@@ -173,23 +173,44 @@ const TTS = {
     return this.list[(base + i) % this.list.length];
   },
   chunks(text) { return (String(text).match(/[^.!?]+[.!?]+["')\]]*|\S[^.!?]*$/g) || [text]).map(s => s.trim()).filter(Boolean); },
+  // iPhone/iPad: el audio web respeta el interruptor de silencio salvo que la sesión sea "playback",
+  // y la primera locución tiene que salir de un toque del usuario. unlock() se llama en el primer toque.
+  unlocked: false, keep: [],
+  unlock() {
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+    if (this.unlocked || !("speechSynthesis" in window)) return;
+    this.unlocked = true;
+    try { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; u.lang = "en-GB"; speechSynthesis.speak(u); } catch (e) {}
+  },
   async speak(text, opt = {}) {
     const my = ++this.token;
-    if ("speechSynthesis" in window) { try { speechSynthesis.cancel(); } catch (e) {} }
+    this.unlock();
+    if ("speechSynthesis" in window) {
+      try {
+        if (speechSynthesis.speaking || speechSynthesis.pending) { speechSynthesis.cancel(); await new Promise(r => setTimeout(r, 120)); }  // WebKit pierde la locución si se hace speak() justo después de cancel()
+        if (speechSynthesis.paused) speechSynthesis.resume();
+      } catch (e) {}
+      if (!this.list.length) { try { this.list = speechSynthesis.getVoices().filter(v => /en[-_]GB/i.test(v.lang)); } catch (e) {} }
+    }
     const rate = (opt.rate || S.settings.rate) * (opt.slow ? 0.75 : 1);
     if ("speechSynthesis" in window && (this.list.length || !TTSCAP)) {
       this.speaking = true;
+      let started = false;
+      const watchdog = setTimeout(() => { if (!started && my === this.token) toast("No sound? Check the volume and the silent switch on the side of your iPhone."); }, 2500);
       for (const part of this.chunks(text)) {
         if (my !== this.token) break;
         await new Promise(res => {
           const u = new SpeechSynthesisUtterance(part);
           u.lang = "en-GB"; const v = this.voice(opt.voice || 0); if (v) u.voice = v;
-          u.rate = rate; u.pitch = opt.pitch || 1;
-          u.onend = u.onerror = () => res();
+          u.rate = rate; u.pitch = opt.pitch || 1; u.volume = 1;
+          u.onstart = () => { started = true; };
+          u.onend = u.onerror = () => { this.keep = this.keep.filter(x => x !== u); res(); };
+          this.keep.push(u);   // evita que Safari la descarte antes de terminar
           speechSynthesis.speak(u);
           setTimeout(res, 20000 + part.length * 120);
         });
       }
+      clearTimeout(watchdog);
       if (my === this.token) this.speaking = false;
       return my === this.token;
     }
@@ -1176,6 +1197,7 @@ function settingsSheet() {
 /* ---------- boot ---------- */
 function boot() {
   shell(); TTS.init(); route();
+  addEventListener("pointerdown", () => TTS.unlock(), {once:true, capture:true});
   addEventListener("hashchange", route);
   addEventListener("online", () => { if (DOC) pushRemote(); });
   document.addEventListener("click", (e) => { if (popEl && !popEl.contains(e.target)) closePop(); });
