@@ -546,6 +546,7 @@ function showFeedback(box, it, ok, given, note, gained, onNext) {
     ${note ? `<p>${esc(note)}</p>` : ""}
     ${!ok ? `<p>Answer: <span class="ans">${it._t === "kwt" ? answerOf(it, true) : esc(answerOf(it))}</span></p>` : ""}
     ${it.why || it.tip ? `<p class="muted">${esc(it.why || it.tip)}</p>` : ""}
+    ${it.es ? `<p class="es"><span class="flag">ES</span> ${esc(it.es)}</p>` : ""}
     ${(it._t === "idioms" || it._t === "work") && it.ex ? `<p class="muted"><i>“${esc(it.ex)}”</i></p>` : ""}
     <div class="row">${aiOn() ? `<button class="btn small ai" id="explain">${I.sparkle} Explain it to me</button>` : ""}${it._t === "spell" || it._t === "idioms" || it._t === "work" ? `<button class="btn small" id="hear">${I.speaker} Hear it</button>` : ""}<span class="spacer"></span><button class="btn primary" id="nx">Next ${I.arrow}</button></div>
     <div class="ai-out" id="aiOut" hidden></div></div>`;
@@ -624,7 +625,7 @@ function validItem(type, o) {
 async function generateItems(type) {
   const existing = pool(type).map(x => x.stem || x.key || x.w || x.t || (x.s || "").slice(0, 40)).slice(-60).join("; ");
   const weak = Object.keys(S.stats).filter(k => acc(k) != null && acc(k) < 0.7).map(k => SKILLS[k]?.n).filter(Boolean).join(", ");
-  const prompt = `${LEARNER}${weak ? " Currently weakest: " + weak + "." : ""}\n\nCreate NEW ${GEN_SPEC[type]}\nSet the sentences in the learner's interest areas (rotate: ${shuffle(INTERESTS).join(", ")}). Use British English spelling and usage throughout. Do not repeat any of these: ${existing}.\nReply with only the JSON array.`;
+  const prompt = `${LEARNER}${weak ? " Currently weakest: " + weak + "." : ""}\n\nCreate NEW ${GEN_SPEC[type]}\nSet the sentences in the learner's interest areas (rotate: ${shuffle(INTERESTS).join(", ")}). Use British English spelling and usage throughout. Also add to every object an "es" field: in Spanish, what the correct answer means and when to use it (max 20 words), e.g. "hold a meeting = celebrar una reunión. Se dice 'hold', no 'do'." Do not repeat any of these: ${existing}.\nReply with only the JSON array.`;
   const arr = await aiJSON(prompt, {modelTier:"default"});
   const list = (Array.isArray(arr) ? arr : arr?.items || []).filter(o => validItem(type, o));
   if (type === "err") list.forEach(o => { o.a = 0; });

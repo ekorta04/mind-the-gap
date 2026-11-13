@@ -9,6 +9,7 @@ App para pasar de B2 a C1/C2 en inglés británico. PWA instalable en iPhone y W
 ## Archivos
 - `index.html`: página principal.
 - `data.js`: contenido base (preguntas, artículos, audios, writing).
+- `es.js`: explicación en castellano de cada respuesta (qué significa y cuándo usarla). Las preguntas nuevas llevan su propio campo `es`.
 - `extra.js`: contenido ampliado (inglés de trabajo, speaking, más lecturas y audios). Aquí van las mejoras de cada iteración.
 - `app.js`: lógica.
 - `backend.js`: sincronización (Supabase) e IA (Gemini).

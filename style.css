@@ -251,3 +251,5 @@ select,input[type=text]{font:inherit;padding:8px 10px;border-radius:10px;border:
 @media (max-width:520px){.quickrow{grid-template-columns:1fr 1fr 1fr;gap:8px}.quickbtn{padding:10px}.quickbtn b{font-size:.88rem}}
 .quickgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
 .quickgrid .tile{padding:12px 14px}.quickgrid .tile h3{font-size:1rem}.quickgrid .tile p{font-size:.8rem}
+.feedback .es{display:flex;gap:8px;align-items:flex-start;margin:4px 0 2px;line-height:1.4}
+.feedback .es .flag{flex:none;font:700 .62rem/1 var(--mono, monospace);letter-spacing:.06em;padding:4px 5px;border-radius:5px;background:rgba(255,255,255,.12);margin-top:2px}

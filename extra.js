@@ -51,11 +51,7 @@ BANK.work = [
 /* ---------- More idioms & phrasal verbs (meetings, opinion, British usage) ---------- */
 BANK.idioms = BANK.idioms.concat([
   {t:"to play it by ear", m:"to decide as things develop", d:["to learn music","to listen carefully","to follow strict rules"], ex:"We don't know when the parts will arrive, so let's play it by ear."},
-  {t:"to cut corners", m:"to do something badly to save time or money", d:["to take a shorter route","to reduce staff","to design rounded edges"], ex:"Never cut corners on fire safety."},
-  {t:"the elephant in the room", m:"an obvious problem nobody mentions", d:["a very large client","a noisy colleague","an expensive mistake"], ex:"The elephant in the room is that we're three weeks late."},
   {t:"to bite the bullet", m:"to accept something unpleasant and do it", d:["to make a hasty decision","to get angry","to be lucky"], ex:"We'll have to bite the bullet and replace the whole system."},
-  {t:"to get the ball rolling", m:"to start an activity", d:["to play football","to finish quickly","to cause trouble"], ex:"Shall I get the ball rolling with a quick update?"},
-  {t:"to be on the same page", m:"to agree or understand the same thing", d:["to read the same book","to work in the same office","to be equally busy"], ex:"Before we sign, let's make sure we're all on the same page."},
   {t:"a can of worms", m:"a situation that creates many new problems", d:["a fishing trip","a cheap meal","a messy desk"], ex:"Reopening the contract would open a can of worms."},
   {t:"to throw someone under the bus", m:"to blame someone else to protect yourself", d:["to help someone in trouble","to fire someone politely","to give someone a lift"], ex:"He threw the subcontractor under the bus in front of the client."},
   {t:"in the pipeline", m:"being planned or developed", d:["blocked","finished","in the water supply"], ex:"We've got two new contracts in the pipeline."},
@@ -68,7 +64,6 @@ BANK.idioms = BANK.idioms.concat([
   {t:"to take something on board", m:"to accept and consider an idea or suggestion", d:["to load a ship","to reject an idea","to hire someone"], ex:"Thanks for the feedback — I'll take it on board."},
   {t:"to sit on the fence", m:"to avoid choosing a side", d:["to rest outside","to watch a match","to be undecided about a job"], ex:"You can't sit on the fence forever; we need a recommendation."},
   {t:"spot on", m:"exactly right", d:["slightly wrong","dirty","late"], ex:"Your estimate was spot on — eleven days exactly."},
-  {t:"to be gutted", m:"to be extremely disappointed", d:["to be very hungry","to be injured","to be relieved"], ex:"We were gutted when we lost the tender by a few euros."},
   {t:"a cock-up", m:"a stupid mistake (informal British)", d:["a celebration","a promotion","a small bird"], ex:"There was a cock-up with the delivery address."}
 ]);
 
