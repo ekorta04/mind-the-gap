@@ -141,7 +141,7 @@ Investigations afterwards pointed to a familiar pattern. Leadership had been rel
 
 Several lessons have since been taken on board by the industry. Systems integration must be planned from the start rather than treated as the final step. Contingency should be realistic, not decorative. And perhaps most importantly, organisations need a culture in which raising a problem early is rewarded, not punished.
 
-None of this diminishes what was achieved. The line now carries hundreds of millions of journeys a year and has reshaped how people move across the capital. But for project managers, its story is a reminder that the hardest part of a megaproject is often not the engineering. It is telling the truth about where you really are.`,
+None of this diminishes what was achieved. The line now carries more than 250 million journeys a year and has reshaped how people move across the capital. But for project managers, its story is a reminder that the hardest part of a megaproject is often not the engineering. It is telling the truth about where you really are.`,
   gloss:{"troubled":"problemático","boring machines":"tuneladoras","threading":"abriéndose paso","to spare":"de margen","fiendishly":"endiabladamente","reluctant":"reacio","prestige":"prestigio","handed over":"entregado","contingency":"contingencia, margen","decorative":"decorativo, de adorno"},
   q:[
    {q:"Which part of the project does the writer describe as a success?", o:["The signalling","The tunnelling","The testing","The budget"], a:1},
@@ -255,3 +255,39 @@ BANK.links = BANK.links.concat([
   {t:"Institution of Mechanical Engineers — podcasts & videos", d:"British engineers talking about real projects.", u:"https://www.imeche.org/news"},
   {t:"F1 TV / Formula 1 on YouTube", d:"Team radio and technical analysis — British commentators at native speed.", u:"https://www.youtube.com/@Formula1"}
 ]);
+
+/* ---------- Sources & further reading ----------
+   Los artículos son textos originales escritos para la app (no copiados).
+   Aquí están las fuentes de los datos que citan, para comprobarlos o leer más. */
+BANK.sources = {
+  "r-bridge":[
+    {t:"Newland (2003), 'Pedestrian excitation of bridges — recent results', Univ. of Cambridge (PDF)", u:"https://iiav.org/ijav/content/volumes/8_2003_710551272264886/vol_1/385_firstpage_196081286806609.pdf"},
+    {t:"ENR — New explanation for London's wobbling Millennium Bridge", u:"https://enr.com/articles/53233-new-explanation-given-for-londons-wobbling-millennium-bridge-after-two-decades"},
+    {t:"Wikipedia — Millennium Bridge, London (overview and references)", u:"https://en.wikipedia.org/wiki/Millennium_Bridge,_London"}],
+  "r-planning":[
+    {t:"PMI — Planning for the planning fallacy (Kahneman & Tversky 1979; Flyvbjerg)", u:"https://www.pmi.org/learning/library/planning-fallacy-causes-solutions-project-expectations-6374"},
+    {t:"Cranfield — Reference class forecasting: promises, problems and a research agenda (PDF)", u:"https://dspace.lib.cranfield.ac.uk/server/api/core/bitstreams/076d9c29-659d-4bfd-9b1b-e0019ea9ad20/content"},
+    {t:"Klein, G. (2007) 'Performing a Project Premortem', Harvard Business Review 85(9) — via Wikipedia", u:"https://www.Wikipedia.org/wiki/Premortem"},
+    {t:"Hofstadter's Law: D. Hofstadter, Gödel, Escher, Bach (1979) — book"}],
+  "r-habits":[
+    {t:"Gollwitzer, P. M. (1999) 'Implementation intentions: Strong effects of simple plans', American Psychologist 54(7) (PDF, Univ. of Konstanz)", u:"https://www.socmot.uni-konstanz.de/sites/default/files/99_Gollwitzer_Implementation_Intentions.pdf"}],
+  "r-compound":[
+    {t:"Quote Investigator — 'The eighth wonder of the world is compound interest' (not Einstein)", u:"https://quoteinvestigator.com/2019/09/09/interest/"},
+    {t:"GOV.UK — Individual Savings Accounts (ISAs)", u:"https://www.gov.uk/individual-savings-accounts"},
+    {t:"The £33,000 and £200,000 figures: own calculation (£200/month, 6% a year compounded monthly)"}],
+  "r-data-football":[
+    {t:"Stats Perform (Opta) — Expected Goals (xG) explained", u:"https://www.statsperform.com/resource/expected-goals-xg/"},
+    {t:"FBref — xG explained (Opta model)", u:"https://aws.fbref.com/en/expected-goals-model-explained"}],
+  "r-predictive":[
+    {t:"U.S. Department of Energy data on compressed-air leaks (20–30% of output), summarised by Reliable Media", u:"https://reliamag.com/topics/guides/compressed-air-leak-statistics"},
+    {t:"Carbon Trust compressed air report (FMLink)", u:"https://www.fmlink.com/carbon-trust-compressed-air-report-shows-how-businesses-can-save-money-from-thin-air/"},
+    {t:"Atlas Copco — Why you need a compressed air leak test", u:"https://www.atlascopco.com/en-ae/compressors/air-compressor-blog/why-you-need-a-compressed-air-leak-test"}],
+  "r-f1-pitwall":[
+    {t:"Guinness World Records — Fastest Formula One pit stop (McLaren, 1.80 s, 2023)", u:"https://guinnessworldrecords.com/world-records/108666-fastest-formula-one-pit-stop"},
+    {t:"Formula1.com — Jolyon Palmer's analysis: the art of undercutting", u:"https://www.formula1.com/en/latest/article/jolyon-palmers-analysis-singapore-and-the-art-of-undercutting.1NgVyVsZnHTDEA9wi0s5lW"},
+    {t:"F1Technical — How do teams define race strategies?", u:"https://www.f1technical.net/news/25828"}],
+  "r-megaproject":[
+    {t:"National Audit Office (2021) — Crossrail: a progress update (summary, PDF)", u:"https://www.nao.org.uk/wp-content/uploads/2021/07/Crossrail-a-progress-update-Summary.pdf"},
+    {t:"Office of Rail and Road — Elizabeth line: 257.4 million journeys in 2025/26", u:"https://www.orr.gov.uk/search-news/orr-says-most-journeys-made-great-britains-rail-network-1920"},
+    {t:"TfL — The Elizabeth line reaches 500 million passenger journeys", u:"https://tfl-newsroom.prgloo.com/news/the-transformational-elizabeth-line-reaches-500-million-passenger-journeys-making-it-the-single-busiest-railway-service-in-the-uk"}]
+};
