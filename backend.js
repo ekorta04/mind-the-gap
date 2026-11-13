@@ -15,7 +15,10 @@
   const TABLE = "mtg_state";
   const KEY_LS = "mtg-gemini-key";
   const MODEL_LS = "mtg-gemini-model";
-  const MODELS = ["gemini-flash-latest", "gemini-3.5-flash", "gemini-2.5-flash"];
+  // Orden de preferencia. Si uno no existe (404) o está saturado (503/429), se prueba el siguiente.
+  const MODELS = ["gemini-flash-latest", "gemini-3.8-flash", "gemini-flash-lite-latest", "gemini-3.5-flash-lite"];
+  const QUICK = ["gemini-flash-lite-latest", "gemini-flash-latest", "gemini-3.8-flash"];
+  const TIMEOUT_MS = 90000;
 
   let sb = null;
   try {
@@ -68,6 +71,7 @@
     if (status === 401 || status === 403) return { code: "bad_key" };
     if (status === 404) return { code: "model_missing" };
     if (status === 429) return { code: "rate_limited" };
+    if (status === 500 || status === 503) return { code: "busy" };
     return { code: "unavailable", status };
   }
 
@@ -77,30 +81,38 @@
     if (!navigator.onLine) throw { code: "offline" };
     const stream = !json && typeof opt.onText === "function";
     const body = {
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      contents: [{ role: "user", parts: [{ text: prompt }].concat(opt.audio ? [{ inline_data: { mime_type: opt.audio.mime, data: opt.audio.data } }] : []) }],
       generationConfig: Object.assign({ temperature: json ? 0.7 : 0.6 }, json ? { responseMimeType: "application/json" } : {})
     };
+    const base = opt.modelTier === "quick" ? QUICK : MODELS;
     const saved = ls.get(MODEL_LS);
-    const order = saved ? [saved].concat(MODELS.filter(m => m !== saved)) : MODELS.slice();
+    const order = saved && base.includes(saved) && opt.modelTier !== "quick" ? [saved].concat(base.filter(m => m !== saved)) : base.slice();
     let lastErr = { code: "unavailable" };
     for (const model of order) {
       let res;
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
       try {
         res = await fetch(endpoint(model, stream), {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+          method: "POST", signal: ctl.signal,
+          headers: { "Content-Type": "application/json", "x-goog-api-key": key.trim() },
           body: JSON.stringify(body)
         });
-      } catch (e) { throw { code: navigator.onLine ? "unavailable" : "offline" }; }
+      } catch (e) {
+        clearTimeout(timer);
+        if (e && e.name === "AbortError") { lastErr = { code: "timeout" }; continue; }
+        throw { code: navigator.onLine ? "unavailable" : "offline" };
+      }
       if (!res.ok) {
+        clearTimeout(timer);
         const t = await res.text().catch(() => "");
         lastErr = errFromStatus(res.status, t);
-        if (lastErr.code === "model_missing") continue;   // probar el siguiente modelo
+        if (["model_missing", "busy", "rate_limited"].includes(lastErr.code)) continue;   // probar el siguiente modelo
         throw lastErr;
       }
-      ls.set(MODEL_LS, model);
+      if (opt.modelTier !== "quick") ls.set(MODEL_LS, model);
       if (!stream) {
-        const out = textOf(await res.json());
+        const out = textOf(await res.json()); clearTimeout(timer);
         if (!json) return out;
         return parseJSON(out);
       }
@@ -117,6 +129,7 @@
           try { full += textOf(JSON.parse(line.slice(5))); opt.onText({ text: full }); } catch (e) {}
         }
       }
+      clearTimeout(timer);
       return full;
     }
     throw lastErr;
@@ -129,6 +142,8 @@
     throw { code: "invalid_json" };
   }
   const sample = (prompt, opt = {}) => callGemini(prompt, opt, false);
+  // Audio + texto (para Speaking): devuelve JSON
+  sample.audioJSON = (prompt, b64, mime, opt = {}) => callGemini(prompt, Object.assign({}, opt, { audio: { data: b64, mime } }), true);
   sample.json = (prompt, opt = {}) => callGemini(prompt, opt, true);
 
   /* ---------------- Shim con la interfaz que espera app.js ---------------- */
@@ -192,6 +207,8 @@
     if (c === "offline") return "You're offline. AI needs an internet connection.";
     if (c === "rate_limited") return "Gemini's free limit was hit. Wait a minute and try again.";
     if (c === "model_missing") return "No available Gemini model found. Try again later.";
+    if (c === "busy") return "Gemini is overloaded right now. Try again in a minute.";
+    if (c === "timeout") return "Gemini took too long to answer. Try again.";
     if (c === "invalid_json") return "The AI reply came back malformed. Tap the button again.";
     return "AI isn't available right now. Try again in a moment.";
   }

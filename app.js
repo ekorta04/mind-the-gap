@@ -33,6 +33,7 @@ const I = {
   sparkle:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.6L19.5 9l-5.7 1.6L12 16l-1.8-5.4L4.5 9l5.7-1.4zM19 15l.9 2.4 2.1.6-2.1.8L19 21l-.9-2.2-2.1-.8 2.1-.6z"/></svg>',
   gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
   slow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>',
+  mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
   link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>'
 };
 const MARK = '<svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M3 22h8M21 22h8" stroke="var(--navy)" stroke-width="4" stroke-linecap="round"/><path d="M6 13c3-6 17-6 20 0" fill="none" stroke="var(--red)" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="0.1 5.4"/><circle cx="26" cy="13" r="3" fill="var(--red)"/><circle cx="6" cy="13" r="3" fill="var(--navy)"/></svg>';
@@ -45,10 +46,11 @@ const TYPES = {
   mc:{name:"Collocation Cloze", part:"Use of English · Part 1", c:"var(--red)", skill:"uoe", desc:"Pick the word that collocates. Natural, native-sounding English."},
   err:{name:"Error Hunt", part:"Grammar & false friends", c:"var(--amber)", skill:"grammar", desc:"Tap the mistake a Spanish speaker would make, then fix it."},
   spell:{name:"Spelling Dictation", part:"Spelling · British English", c:"var(--plum)", skill:"spelling", desc:"Hear it in a British voice, type it. Tricky words and UK spellings."},
+  work:{name:"Work English", part:"Vocabulary · Project & maintenance", c:"var(--green)", skill:"vocab", desc:"The English of site walks, clients, suppliers and shutdowns. Learn it once, use it on Monday."},
   idioms:{name:"Idiom Quickfire", part:"Vocabulary · 60-second sprint", c:"var(--navy)", skill:"vocab", desc:"Idioms, phrasal verbs and British slang against the clock."},
   mock:{name:"Use of English Mock", part:"Exam simulation · Parts 1–4", c:"var(--ink)", skill:"uoe", desc:"24 mixed questions in exam order with a 30-minute clock. Ends with an estimated Cambridge score."}
 };
-const SKILLS = {uoe:{n:"Use of English", c:"var(--red)"}, reading:{n:"Reading", c:"var(--navy)"}, listening:{n:"Listening", c:"var(--green)"}, writing:{n:"Writing", c:"var(--amber)"}, grammar:{n:"Grammar", c:"var(--amber)"}, spelling:{n:"Spelling", c:"var(--plum)"}, vocab:{n:"Vocabulary", c:"var(--navy)"}};
+const SKILLS = {uoe:{n:"Use of English", c:"var(--red)"}, reading:{n:"Reading", c:"var(--navy)"}, listening:{n:"Listening", c:"var(--green)"}, writing:{n:"Writing", c:"var(--amber)"}, grammar:{n:"Grammar", c:"var(--amber)"}, spelling:{n:"Spelling", c:"var(--plum)"}, vocab:{n:"Vocabulary", c:"var(--navy)"}, speaking:{n:"Speaking", c:"var(--red)"}};
 const LEVELS = [{n:"B2", xp:0}, {n:"B2+", xp:1500}, {n:"C1", xp:4000}, {n:"C1+", xp:8000}, {n:"C2", xp:14000}, {n:"C2+", xp:22000}];
 const INTERESTS = ["engineering", "project management", "personal development", "business and finance", "football and sport"];
 const INTERVALS = [0, 1, 2, 4, 7, 15, 30];
@@ -228,6 +230,7 @@ const NAV = [
   {id:"read", n:"Read", i:"book", c:"var(--navy)"},
   {id:"listen", n:"Listen", i:"ear", c:"var(--green)"},
   {id:"write", n:"Write", i:"pen", c:"var(--amber)"},
+  {id:"speak", n:"Speak", i:"mic", c:"var(--red)"},
   {id:"review", n:"Review", i:"cards", c:"var(--plum)"}
 ];
 function shell() {
@@ -273,6 +276,9 @@ function route() {
   else if (h.startsWith("listen-")) viewListening(v, h.slice(7));
   else if (h === "write") viewWriteList(v);
   else if (h.startsWith("write-")) viewWriting(v, h.slice(6));
+  else if (h === "speak") viewSpeakList(v);
+  else if (h === "speak-shadow") viewShadow(v);
+  else if (h.startsWith("speak-")) viewSpeak(v, h.slice(6));
   else if (h === "review") viewReview(v);
   else if (h === "progress") viewProgress(v);
   else viewToday(v);
@@ -294,12 +300,15 @@ function plan() {
   if (inputIsRead) stops.push({id:"input", kind:"read", n:read ? "Read: " + read.title : "Read: a fresh article", s:read ? `${read.topic} · ${read.mins || 4} min` : "Generate one on your topics", c:"var(--navy)", to:read ? "read-" + read.id : "read"});
   else stops.push({id:"input", kind:"listen", n:lis ? "Listen: " + lis.title : "Listen: a fresh recording", s:lis ? `${lis.topic} · British voice` : "Generate one on your topics", c:"var(--green)", to:lis ? "listen-" + lis.id : "listen"});
   stops.push({id:"spell", kind:"spell", n:"Spelling Dictation", s:"Your ortografía, every day · 8 words", c:"var(--plum)", to:"play-spell"});
-  stops.push(d % 2 === 1
-    ? {id:"out", kind:"write", n:"Writing task", s:"Cambridge-marked with corrections", c:"var(--amber)", to:"write"}
-    : {id:"out", kind:"err", n:"Error Hunt", s:"Grammar & false friends · 8 sentences", c:"var(--amber)", to:"play-err"});
+  const outs = [
+    {id:"out", kind:"err", n:"Error Hunt", s:"Grammar & false friends · 8 sentences", c:"var(--amber)", to:"play-err"},
+    {id:"out", kind:"write", n:"Writing task", s:"Cambridge-marked with corrections", c:"var(--amber)", to:"write"},
+    {id:"out", kind:"speak", n:"Speaking: shadowing", s:"Say it like a Brit · 5 sentences", c:"var(--red)", to:"speak-shadow"},
+    {id:"out", kind:"work", n:"Work English", s:"Site, client & supplier English · 8 questions", c:"var(--green)", to:"play-work"}];
+  stops.push(outs[d % outs.length]);
   return stops;
 }
-const STOP_OF = {mock:"uoe", review:"warm", idioms:"warm", wf:"uoe", kwt:"uoe", oc:"uoe", mc:"uoe", read:"input", listen:"input", spell:"spell", write:"out", err:"out"};
+const STOP_OF = {mock:"uoe", review:"warm", idioms:"warm", wf:"uoe", kwt:"uoe", oc:"uoe", mc:"uoe", read:"input", listen:"input", spell:"spell", write:"out", err:"out", speak:"out", work:"out"};
 function markDone(kind) {
   const d = today(), id = STOP_OF[kind];
   if (id && !d.done[id]) { d.done[id] = true; save(); }
@@ -397,7 +406,7 @@ function renderItem(it, onDone) {
       typed(r, (val) => { const n = norm(val); if (n === norm(it.w)) return onDone(true, val); if (it.us && n === norm(it.us)) return onDone(false, val, "That's the American spelling. UK: " + it.w); onDone(false, val); });
     }
   };
-  if (t === "idioms") { const opts = shuffle([it.m].concat(it.d)); return {
+  if (t === "idioms" || t === "work") { const opts = shuffle([it.m].concat(it.d)); return {
     html:`<p class="qtext"><b style="font-family:var(--f-display);font-size:1.5rem">${esc(it.t)}</b></p><div class="opts">${opts.map(o => `<button class="opt">${esc(o)}</button>`).join("")}</div>`,
     mount(r) { $$(".opt", r).forEach(b => b.onclick = () => { $$(".opt", r).forEach(x => { x.disabled = true; if (x.textContent === it.m) x.classList.add("right"); }); const ok = b.textContent === it.m; if (!ok) b.classList.add("wrong"); onDone(ok, b.textContent); }); }
   }; }
@@ -417,7 +426,7 @@ function answerOf(it, html) {
     case "mc": return it.o[it.a];
     case "err": return it.fix || it.c.map((c, i) => i === it.e ? it.o[it.a] : c).join(" ");
     case "spell": return it.w;
-    case "idioms": return it.m;
+    case "idioms": case "work": return it.m;
   }
 }
 function itemAsText(it) {
@@ -428,7 +437,7 @@ function itemAsText(it) {
     case "mc": return `Multiple-choice cloze. "${it.s}" Options: ${it.o.join(", ")}. Correct: ${it.o[it.a]}.`;
     case "err": return `Error correction. Sentence: "${it.c.join(" ")}". Error: "${it.c[it.e]}" → "${it.o[it.a]}".`;
     case "spell": return `Spelling of the word "${it.w}" (British English).`;
-    case "idioms": return `Idiom "${it.t}" means: ${it.m}.`;
+    case "idioms": case "work": return `Expression "${it.t}" means: ${it.m}.`;
   }
 }
 
@@ -507,8 +516,8 @@ function showFeedback(box, it, ok, given, note, gained, onNext) {
     ${note ? `<p>${esc(note)}</p>` : ""}
     ${!ok ? `<p>Answer: <span class="ans">${it._t === "kwt" ? answerOf(it, true) : esc(answerOf(it))}</span></p>` : ""}
     ${it.why || it.tip ? `<p class="muted">${esc(it.why || it.tip)}</p>` : ""}
-    ${it._t === "idioms" && it.ex ? `<p class="muted"><i>“${esc(it.ex)}”</i></p>` : ""}
-    <div class="row">${aiOn() ? `<button class="btn small ai" id="explain">${I.sparkle} Explain it to me</button>` : ""}${it._t === "spell" || it._t === "idioms" ? `<button class="btn small" id="hear">${I.speaker} Hear it</button>` : ""}<span class="spacer"></span><button class="btn primary" id="nx">Next ${I.arrow}</button></div>
+    ${(it._t === "idioms" || it._t === "work") && it.ex ? `<p class="muted"><i>“${esc(it.ex)}”</i></p>` : ""}
+    <div class="row">${aiOn() ? `<button class="btn small ai" id="explain">${I.sparkle} Explain it to me</button>` : ""}${it._t === "spell" || it._t === "idioms" || it._t === "work" ? `<button class="btn small" id="hear">${I.speaker} Hear it</button>` : ""}<span class="spacer"></span><button class="btn primary" id="nx">Next ${I.arrow}</button></div>
     <div class="ai-out" id="aiOut" hidden></div></div>`;
   const nx = $("#nx", box); nx.onclick = onNext; setTimeout(() => nx.focus({preventScroll:true}), 30);
   box.scrollIntoView({behavior:"smooth", block:"nearest"});
@@ -566,6 +575,7 @@ const GEN_SPEC = {
   mc:`Cambridge C1/C2 Use of English Part 1 (multiple-choice cloze) items testing collocations and fixed phrases. JSON array of 8 objects: {"s": sentence with exactly one "___" gap, "o": [4 single-word or short options], "a": index 0-3 of the only correct option, "why": max 18 words}. Distractors must be plausible but clearly wrong for a native speaker.`,
   err:`Error-correction items targeting typical mistakes of Spanish speakers (false friends, uncountables, prepositions, tenses, word order, verb patterns). JSON array of 8 objects: {"c": the sentence split into 3-5 chunks (array of strings) where exactly one chunk contains the mistake, "e": index of the wrong chunk, "o": [3 replacement options for that chunk, the FIRST one correct], "a": 0, "why": max 20 words, may include the Spanish word in brackets}.`,
   spell:`Spelling items: words that are commonly misspelt or have distinct British spellings, useful at C1/C2. JSON array of 8 objects: {"w": the word in British spelling, "s": a natural example sentence containing the word, "tip": a short memory tip, "us": the US spelling only if different, otherwise omit}.`,
+  work:`workplace English for a project manager in industrial maintenance (electrical, fire protection, compressed air, HVAC): collocations, phrasal verbs, contract and site vocabulary used in British workplaces. JSON array of 10 objects: {"t": the expression, "m": its meaning (max 10 words), "d": [3 plausible but wrong meanings], "ex": a natural British example sentence from a site, meeting or email}`,
   idioms:`British idioms, phrasal verbs and informal British expressions useful at C1/C2. JSON array of 10 objects: {"t": the expression, "m": its meaning (max 8 words), "d": [3 plausible but wrong meanings], "ex": a natural British example sentence}.`
 };
 function validItem(type, o) {
@@ -576,7 +586,7 @@ function validItem(type, o) {
     if (type === "mc") return o.s.includes("___") && Array.isArray(o.o) && o.o.length === 4 && o.a >= 0 && o.a < 4;
     if (type === "err") return Array.isArray(o.c) && o.c[o.e] != null && Array.isArray(o.o) && o.o.length >= 2;
     if (type === "spell") return typeof o.w === "string" && o.w.length > 2 && o.s;
-    if (type === "idioms") return o.t && o.m && Array.isArray(o.d) && o.d.length >= 3;
+    if (type === "idioms" || type === "work") return o.t && o.m && Array.isArray(o.d) && o.d.length >= 3;
   } catch (e) {} return false;
 }
 async function generateItems(type) {
@@ -902,7 +912,7 @@ function viewReview(v) {
       $("#q", v).insertAdjacentHTML("beforeend", R.html); R.mount($("#q", v));
       return;
     }
-    v.innerHTML = head + `<div class="card flash" id="fc"><span class="eyebrow">${c.k === "mistake" ? "Fix this" : "What does it mean?"} · box ${c.box}</span><div class="front">${esc(c.f)}</div>${c.k === "word" && c.ex ? `<p class="muted"><i>${esc(c.ex)}</i></p>` : ""}<div class="row"><button class="btn small" id="say">${I.speaker}</button><button class="btn primary" id="show">Show answer</button></div><div class="back" id="back" hidden></div></div>`;
+    v.innerHTML = head + `<div class="card flash" id="fc"><span class="eyebrow">${c.k === "mistake" ? "Fix this" : c.k === "pron" ? "Say it right" : "What does it mean?"} · box ${c.box}</span><div class="front">${esc(c.f)}</div>${c.k === "word" && c.ex ? `<p class="muted"><i>${esc(c.ex)}</i></p>` : ""}<div class="row"><button class="btn small" id="say">${I.speaker}</button><button class="btn primary" id="show">Show answer</button></div><div class="back" id="back" hidden></div></div>`;
     $("#quit", v).onclick = () => go("today");
     $("#say", v).onclick = () => TTS.speak(c.f.replace(/^Dictation: /, ""));
     $("#show", v).onclick = () => {
@@ -921,7 +931,7 @@ function viewProgress(v) {
   const li = level();
   const weeks = 12, start = addDays(dayKey(), -(weeks * 7 - 1));
   const cells = []; for (let i = 0; i < weeks * 7; i++) { const k = addDays(start, i), x = S.days[k]?.xp || 0; cells.push(`<i title="${k}: ${x} XP" class="${x >= S.settings.goal ? "l3" : x >= S.settings.goal / 2 ? "l2" : x > 0 ? "l1" : ""}"></i>`); }
-  const skills = ["uoe", "reading", "listening", "writing", "grammar", "spelling", "vocab"];
+  const skills = ["uoe", "reading", "listening", "writing", "grammar", "spelling", "vocab", "speaking"];
   const ws = S.writings.filter(w => w.fb).slice(-10);
   v.innerHTML = `<div class="hello"><span class="eyebrow">Progress</span><h1>Your line to C2</h1><p class="muted">${S.xp.toLocaleString("en-GB")} XP · level ${LEVELS[li].n} · streak ${liveStreak()} · best ${S.best || 0}</p></div>
   <div class="card stack">${levelLine()}</div>
@@ -938,6 +948,149 @@ function viewProgress(v) {
    <div class="score"><small class="muted">Recordings</small><b>${Object.keys(S.listen).length}</b></div>
    <div class="score"><small class="muted">Texts marked</small><b>${S.writings.length}</b></div>
    <div class="score"><small class="muted">Review cards</small><b>${S.deck.length}</b></div></div></div>`;
+}
+
+/* ---------- speaking (microphone + Gemini) ---------- */
+const Rec = {
+  stream: null, mr: null, chunks: [], mime: "",
+  supported() { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder); },
+  async start() {
+    this.stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true}});
+    const pref = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm", "audio/ogg"].find(t => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || "";
+    this.mr = new MediaRecorder(this.stream, pref ? {mimeType:pref} : undefined); this.mime = this.mr.mimeType || pref || "audio/webm"; this.chunks = [];
+    this.mr.ondataavailable = e => { if (e.data && e.data.size) this.chunks.push(e.data); };
+    this.mr.start();
+  },
+  stop() {
+    return new Promise(res => {
+      if (!this.mr || this.mr.state === "inactive") return res(null);
+      this.mr.onstop = () => { const blob = new Blob(this.chunks, {type:this.mime}); this.release(); res(blob); };
+      this.mr.stop();
+    });
+  },
+  release() { try { this.stream && this.stream.getTracks().forEach(t => t.stop()); } catch (e) {} this.stream = null; },
+  // Convierte cualquier grabación a WAV mono 16 kHz (formato que Gemini acepta siempre)
+  async toWavBase64(blob) {
+    const AC = window.AudioContext || window.webkitAudioContext; const ctx = new AC();
+    const buf = await new Promise((ok, ko) => { blob.arrayBuffer().then(ab => ctx.decodeAudioData(ab, ok, ko)).catch(ko); });
+    const rate = 16000, len = Math.ceil(buf.duration * rate);
+    const off = new OfflineAudioContext(1, len, rate); const src = off.createBufferSource(); src.buffer = buf; src.connect(off.destination); src.start();
+    const pcm = (await off.startRendering()).getChannelData(0); try { ctx.close(); } catch (e) {}
+    const view = new DataView(new ArrayBuffer(44 + pcm.length * 2));
+    const W = (o, s) => { for (let i = 0; i < s.length; i++) view.setUint8(o + i, s.charCodeAt(i)); };
+    W(0, "RIFF"); view.setUint32(4, 36 + pcm.length * 2, true); W(8, "WAVE"); W(12, "fmt "); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+    view.setUint32(24, rate, true); view.setUint32(28, rate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true); W(36, "data"); view.setUint32(40, pcm.length * 2, true);
+    for (let i = 0; i < pcm.length; i++) { const x = Math.max(-1, Math.min(1, pcm[i])); view.setInt16(44 + i * 2, x < 0 ? x * 0x8000 : x * 0x7fff, true); }
+    const bytes = new Uint8Array(view.buffer); let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return {b64:btoa(bin), secs:buf.duration};
+  }
+};
+window.__mtgRec = Rec;  // depuración
+async function aiAudioJSON(prompt, blob) { if (!SAMPLE || !SAMPLE.audioJSON) throw {code:"no_key"}; const w = await Rec.toWavBase64(blob); if (w.secs < 1) throw {code:"too_short"}; return SAMPLE.audioJSON(prompt, w.b64, "audio/wav", {modelTier:"default"}); }
+function micError(e) { return e && e.name === "NotAllowedError" ? "Microphone access was blocked. Allow it in the browser (on iPhone: Settings › Safari › Microphone)." : e && e.code === "too_short" ? "That recording is too short. Try again." : aiErr(e); }
+// Botón de grabar reutilizable: alterna grabar/parar y devuelve el blob
+function recButton(btn, onBlob, maxSecs = 120) {
+  let on = false, t0 = 0, tick = null;
+  const idle = btn.innerHTML;
+  btn.onclick = async () => {
+    if (!Rec.supported()) return toast("This browser can't record audio.");
+    if (!on) {
+      try { TTS.stop(); await Rec.start(); } catch (e) { return toast(micError(e)); }
+      on = true; t0 = Date.now(); btn.classList.add("red");
+      const paint = () => { const s = Math.floor((Date.now() - t0) / 1000); btn.innerHTML = `${I.stop} Stop · ${s}s`; if (s >= maxSecs) btn.click(); };
+      paint(); tick = setInterval(paint, 500);
+    } else {
+      on = false; clearInterval(tick); btn.classList.remove("red"); btn.innerHTML = idle;
+      const blob = await Rec.stop(); if (blob) onBlob(blob);
+    }
+  };
+  return () => { clearInterval(tick); if (on) { on = false; Rec.stop(); } };
+}
+
+function viewSpeakList(v) {
+  const P = BANK.speak.prompts, done = S.speak || {};
+  v.innerHTML = `<div class="hello"><span class="eyebrow" style="color:var(--red)">Speaking</span><h1>Find your voice</h1><p class="muted">Shadow native phrases, then answer real questions out loud. ${aiOn() ? "Gemini listens and marks your pronunciation, fluency, grammar and vocabulary." : "Add your Gemini key in Settings (⚙) to get your speaking marked. You can still record and compare offline."}</p></div>
+  <button class="card tile" id="shadow" style="--c:var(--red)"><span class="tag">Daily · 5 sentences</span><h3>Shadowing</h3><p class="muted">Hear a British speaker, repeat, compare. The fastest way to sound natural in meetings.</p></button>
+  <h2 style="margin-top:8px">Speak for a minute</h2>
+  <div class="list">${P.map(p => `<button class="card tile" data-id="${p.id}" style="--c:var(--red)"><span class="tag">${esc(p.part)} · ${p.level}</span><p>${esc(p.q)}</p>${done[p.id] ? `<div class="meta"><span class="mono">Last score ${done[p.id].total}/20</span></div>` : ""}</button>`).join("")}</div>`;
+  $("#shadow", v).onclick = () => go("speak-shadow");
+  $$("[data-id]", v).forEach(b => b.onclick = () => go("speak-" + b.dataset.id));
+}
+
+function viewShadow(v) {
+  const all = BANK.speak.shadow.concat(BANK.listening.flatMap(l => (l.dict || []).map(s => ({s, f:l.title}))));
+  const start = (dayIdx() * 5) % all.length, set = [0, 1, 2, 3, 4].map(i => all[(start + i) % all.length]);
+  let i = 0, mine = null, url = null, stopRec = null;
+  const paint = () => {
+    const it = set[i];
+    v.innerHTML = `<div class="hello"><span class="eyebrow" style="color:var(--red)">Shadowing · ${i + 1}/${set.length}</span><h1>Say it like a Brit</h1><p class="muted">1. Listen. 2. Record yourself. 3. Compare — rhythm, linking and stress matter more than accent.</p></div>
+    <div class="card stack"><p style="font-size:1.25rem;line-height:1.5"><b>${esc(it.s)}</b></p>${it.f ? `<p class="muted" style="font-size:.85rem">Focus: ${esc(it.f)}</p>` : ""}
+     <div class="row"><button class="btn" id="hear">${I.speaker} Listen</button><button class="btn" id="slowb">${I.slow} Slow</button><button class="btn red" id="rec">${I.mic} Record</button><button class="btn" id="me" ${mine ? "" : "disabled"}>${I.ear} Me</button></div>
+     <div id="fb"></div></div>
+    <div class="row"><button class="btn" id="prev" ${i ? "" : "disabled"}>${I.back} Back</button><span class="spacer"></span><button class="btn primary" id="next">${i === set.length - 1 ? "Finish" : "Next"} ${I.arrow}</button></div>`;
+    $("#hear", v).onclick = () => TTS.speak(it.s); $("#slowb", v).onclick = () => TTS.speak(it.s, {slow:true});
+    $("#me", v).onclick = () => { if (url) new Audio(url).play(); };
+    stopRec = recButton($("#rec", v), async blob => {
+      mine = blob; if (url) URL.revokeObjectURL(url); url = URL.createObjectURL(blob); $("#me", v).disabled = false;
+      if (!aiOn()) { $("#fb", v).innerHTML = `<p class="muted">Recorded. Tap <b>Me</b> and compare with <b>Listen</b>.</p>`; return; }
+      $("#fb", v).innerHTML = `<p class="muted"><span class="spin"></span> Listening to you…</p>`;
+      try {
+        const r = await aiAudioJSON(`You are a British English pronunciation coach. The learner is a Spanish native speaker (B2+). They were asked to repeat exactly this sentence in natural British English:\n"${it.s}"\nListen to the recording and reply with only a JSON object: {"heard": what you actually heard, "score": 0-10 overall (intelligibility, stress, rhythm, linking, sounds), "words": [{"word": a word or phrase they mispronounced, "tip_es": how to fix it in Spanish, max 18 words}] (max 4, empty if fine), "rhythm_es": one sentence in Spanish about stress/rhythm/linking, "praise": one short encouraging phrase in English}`, blob);
+        const sc = Math.max(0, Math.min(10, +r.score || 0)); record("speaking", sc >= 7); addXP(5 + sc);
+        $("#fb", v).innerHTML = `<div class="stack pop"><div class="row"><b>${esc(r.praise || "")}</b><span class="spacer"></span><b class="mono" style="font-size:1.3rem">${sc}/10</b></div>
+          <p class="muted" style="font-size:.85rem">Heard: “${esc(r.heard || "")}”</p>
+          ${(r.words || []).map(w => `<div class="errline"><span class="from">${esc(w.word)}</span><small class="muted">${esc(w.tip_es || "")}</small></div>`).join("")}
+          ${r.rhythm_es ? `<p class="notice">${esc(r.rhythm_es)}</p>` : ""}</div>`;
+        (r.words || []).forEach(w => addCard({k:"pron", f:w.word, b:w.tip_es || "", ex:it.s}));
+      } catch (e) { $("#fb", v).innerHTML = `<p class="muted">${esc(micError(e))}</p>`; }
+    }, 30);
+    $("#prev", v).onclick = () => { stopRec && stopRec(); i--; mine = null; paint(); };
+    $("#next", v).onclick = () => {
+      stopRec && stopRec();
+      if (i < set.length - 1) { i++; mine = null; paint(); return; }
+      addXP(20); markDone("speak"); confetti(); toast("Shadowing done. Nicely spoken!"); go("today");
+    };
+  };
+  paint();
+  cleanup = () => { stopRec && stopRec(); Rec.release(); if (url) URL.revokeObjectURL(url); };
+}
+
+function viewSpeak(v, id) {
+  const P = BANK.speak.prompts.find(p => p.id === id); if (!P) return go("speak");
+  let stopRec = null, url = null;
+  v.innerHTML = `<button class="btn small" id="back">${I.back} Speaking</button>
+  <div class="hello"><span class="eyebrow" style="color:var(--red)">${esc(P.part)} · ${P.level}</span><h1>Speak for 60–90 seconds</h1></div>
+  <div class="card stack"><p style="font-size:1.15rem;line-height:1.5"><b>${esc(P.q)}</b></p>
+   <div class="row"><button class="btn" id="hear">${I.speaker} Read it to me</button></div>
+   <p class="muted" style="font-size:.85rem">Tip: take 15 seconds to plan. Use linkers (<i>having said that, on top of that, at the end of the day</i>), give an example, and finish with a clear conclusion.</p>
+   <div class="row"><button class="btn red" id="rec">${I.mic} Start speaking</button><button class="btn" id="me" disabled>${I.ear} Play back</button></div></div>
+  <div id="res"></div>`;
+  $("#back", v).onclick = () => go("speak"); $("#hear", v).onclick = () => TTS.speak(P.q);
+  $("#me", v).onclick = () => { if (url) new Audio(url).play(); };
+  const res = $("#res", v);
+  stopRec = recButton($("#rec", v), async blob => {
+    if (url) URL.revokeObjectURL(url); url = URL.createObjectURL(blob); $("#me", v).disabled = false;
+    if (!aiOn()) { res.innerHTML = `<div class="card"><p class="muted">Recorded. Play it back and listen for hesitations, repeated words and missing linkers. Add your Gemini key in Settings to get it marked.</p></div>`; addXP(15); markDone("speak"); return; }
+    res.innerHTML = `<div class="card"><p class="muted"><span class="spin"></span> The examiner is listening… (≈20–40 s)</p></div>`;
+    try {
+      const fb = await aiAudioJSON(`You are a senior Cambridge English speaking examiner. ${LEARNER}\nTask given to the candidate: "${P.q}"\nListen to the candidate's spoken answer and assess it at ${P.level} level using Cambridge speaking criteria. Be honest, not generous.\nReply with only a JSON object: {"transcript": accurate transcript of what they said, "scores": {"grammar": 0-5, "vocabulary": 0-5, "discourse": 0-5 (coherence, linkers, extent), "pronunciation": 0-5}, "level": "B1|B2|C1|C2", "summary_es": 2-3 sentences in Spanish, "errors": [{"original": exact words from the transcript, "correction": corrected version, "why_es": short reason in Spanish}] (max 8), "pron_es": [up to 3 pronunciation tips in Spanish], "upgrades": [up to 4 C1/C2 phrases they could have used, in English], "model_answer": a natural British C1/C2 answer of about 120 words}`, blob);
+      const sc = fb.scores || {}; fb.total = ["grammar", "vocabulary", "discourse", "pronunciation"].reduce((a, k) => a + (+sc[k] || 0), 0);
+      fb.errors = Array.isArray(fb.errors) ? fb.errors.filter(e => e && e.original) : [];
+      S.speak = S.speak || {}; S.speak[id] = {date:dayKey(), total:fb.total};
+      fb.errors.forEach(e => addCard({k:"mistake", f:e.original, b:e.correction + (e.why_es ? " — " + e.why_es : ""), ex:"Speaking"}));
+      record("speaking", fb.total >= 12); addXP(40 + fb.total * 5); markDone("speak");
+      res.innerHTML = `<div class="card stack pop"><div class="row"><h2>Examiner's report</h2><span class="spacer"></span><b class="mono" style="font-size:1.4rem">${fb.total}/20</b><span class="chip">${esc(fb.level || "")}</span></div>
+       <div class="scores">${[["grammar", "Grammar"], ["vocabulary", "Vocabulary"], ["discourse", "Discourse"], ["pronunciation", "Pronunciation"]].map(([k, n]) => `<div class="score"><small class="muted">${n}</small><b>${+sc[k] || 0}<small class="muted">/5</small></b></div>`).join("")}</div>
+       ${fb.summary_es ? `<p>${esc(fb.summary_es)}</p>` : ""}</div>
+       <div class="card stack"><h3>What you said</h3><p style="white-space:pre-wrap">${esc(fb.transcript || "")}</p></div>
+       ${fb.errors.length ? `<div class="card stack"><h3>Errors (${fb.errors.length}) — added to your review deck</h3>${fb.errors.map(e => `<div class="errline"><span><span class="from">${esc(e.original)}</span> → <span class="to">${esc(e.correction)}</span></span><small class="muted">${esc(e.why_es || "")}</small></div>`).join("")}</div>` : ""}
+       ${(fb.pron_es || []).length ? `<div class="card stack"><h3>Pronunciation</h3>${fb.pron_es.map(t => `<p>• ${esc(t)}</p>`).join("")}</div>` : ""}
+       ${(fb.upgrades || []).length ? `<div class="card stack"><h3>Sound more C1/C2</h3>${fb.upgrades.map(t => `<p>• <b>${esc(t)}</b></p>`).join("")}</div>` : ""}
+       ${fb.model_answer ? `<div class="card stack"><div class="row"><h3>Model answer</h3><span class="spacer"></span><button class="btn small" id="hearModel">${I.speaker} Listen</button></div><p>${esc(fb.model_answer)}</p></div>` : ""}`;
+      const hm = $("#hearModel", res); if (hm) hm.onclick = () => TTS.speak(fb.model_answer);
+    } catch (e) { res.innerHTML = `<div class="card"><p>${esc(micError(e))}</p></div>`; }
+  }, 150);
+  cleanup = () => { stopRec && stopRec(); Rec.release(); if (url) URL.revokeObjectURL(url); };
 }
 
 /* ---------- settings ---------- */
