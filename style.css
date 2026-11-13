@@ -241,3 +241,13 @@ select,input[type=text]{font:inherit;padding:8px 10px;border-radius:10px;border:
 .spin{width:18px;height:18px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp 0.8s linear infinite;display:inline-block}
 @keyframes sp{to{transform:rotate(360deg)}}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:80}
+
+/* Quick play */
+.quickrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 14px}
+.quickbtn{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;cursor:pointer;border-left:4px solid var(--c);padding:12px 14px}
+.quickbtn b{font-size:1rem}.quickbtn small{font-size:.75rem;line-height:1.25}
+.quickbanner{margin:0 0 14px}
+.tile[disabled]{opacity:.5;cursor:default}
+@media (max-width:520px){.quickrow{grid-template-columns:1fr 1fr 1fr;gap:8px}.quickbtn{padding:10px}.quickbtn b{font-size:.88rem}}
+.quickgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.quickgrid .tile{padding:12px 14px}.quickgrid .tile h3{font-size:1rem}.quickgrid .tile p{font-size:.8rem}

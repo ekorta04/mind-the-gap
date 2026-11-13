@@ -46,6 +46,8 @@ const TYPES = {
   mc:{name:"Collocation Cloze", part:"Use of English · Part 1", c:"var(--red)", skill:"uoe", desc:"Pick the word that collocates. Natural, native-sounding English."},
   err:{name:"Error Hunt", part:"Grammar & false friends", c:"var(--amber)", skill:"grammar", desc:"Tap the mistake a Spanish speaker would make, then fix it."},
   spell:{name:"Spelling Dictation", part:"Spelling · British English", c:"var(--plum)", skill:"spelling", desc:"Hear it in a British voice, type it. Tricky words and UK spellings."},
+  pv:{name:"Phrasal Verbs", part:"Vocabulary · Choose the right one", c:"var(--teal, #0E7C86)", skill:"vocab", desc:"The phrasal verbs Brits use all day at work. Pick the one that fits the gap."},
+  gram:{name:"Grammar Flash", part:"Grammar · C1/C2 structures", c:"var(--purple, #6B3FA0)", skill:"grammar", desc:"Inversion, conditionals, wish, modals in the past… one gap, four options, ten seconds."},
   work:{name:"Work English", part:"Vocabulary · Project & maintenance", c:"var(--green)", skill:"vocab", desc:"The English of site walks, clients, suppliers and shutdowns. Learn it once, use it on Monday."},
   idioms:{name:"Idiom Quickfire", part:"Vocabulary · 60-second sprint", c:"var(--navy)", skill:"vocab", desc:"Idioms, phrasal verbs and British slang against the clock."},
   mock:{name:"Use of English Mock", part:"Exam simulation · Parts 1–4", c:"var(--ink)", skill:"uoe", desc:"24 mixed questions in exam order with a 30-minute clock. Ends with an estimated Cambridge score."}
@@ -276,6 +278,8 @@ function route() {
   else if (h.startsWith("listen-")) viewListening(v, h.slice(7));
   else if (h === "write") viewWriteList(v);
   else if (h.startsWith("write-")) viewWriting(v, h.slice(6));
+  else if (h === "quick") viewQuick(v);
+  else if (h.startsWith("quick-")) startQuick(v, h.slice(6));
   else if (h === "speak") viewSpeakList(v);
   else if (h === "speak-shadow") viewShadow(v);
   else if (h.startsWith("speak-")) viewSpeak(v, h.slice(6));
@@ -335,7 +339,8 @@ function viewToday(v) {
   v.innerHTML = `
   <div class="hello"><span class="eyebrow">${new Date().toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long"})}</span>
     <h1>${greet}. <span>${done === stops.length ? "Route complete." : done ? "Next stop?" : "Mind the gap."}</span></h1>
-    <p class="muted">Today's line: ${stops.length} stops, about 45 minutes. Each stop earns XP towards C1, then C2.</p></div>
+    <p class="muted">Today's line: ${stops.length} stops, about 45 minutes. Short on time? <a href="#quick"><b>Quick play</b></a>: 2–5 minutes.</p></div>
+  <div class="quickrow">${QUICK_MODES.slice(0, 3).map(m => `<button class="card quickbtn" data-q="${m.id}" style="--c:${m.c}"><b>${esc(m.n)}</b><small class="muted">${esc(m.t)}</small></button>`).join("")}</div>
   <div class="grid-2">
     <div class="card"><div class="row"><h2>Today's route</h2><span class="spacer"></span><span class="muted mono">${done}/${stops.length}</span></div>
       <div class="route" id="route">${stops.map(s => `<button class="stop ${d.done[s.id] ? "done" : ""}" data-to="${s.to}" style="--c:${s.c}"><span class="dot">${d.done[s.id] ? I.check : ""}</span><span class="lbl"><b>${esc(s.n)}</b><small>${esc(s.s)}</small></span><span class="go">${I.arrow}</span></button>`).join("")}</div>
@@ -348,6 +353,7 @@ function viewToday(v) {
   </div>
   ${!aiOn() ? `<p class="notice">AI features (fresh articles, writing marking, explanations) switch on when you add your free Gemini key in Settings (⚙). Everything else works offline.</p>` : ""}`;
   $$("#route .stop", v).forEach(b => b.onclick = () => go(b.dataset.to));
+  $$(".quickbtn", v).forEach(b => b.onclick = () => go("quick-" + b.dataset.q));
   $("#sayIdiom", v).onclick = () => TTS.speak(`${idiom.t}. ${idiom.ex}`);
   $("#saveIdiom", v).onclick = () => { addCard({k:"word", f:idiom.t, b:idiom.m, ex:idiom.ex}) ? toast("Added to your review deck.") : toast("Already in your deck."); };
 }
@@ -355,10 +361,12 @@ function viewToday(v) {
 /* ---------- views: practice ---------- */
 function viewPractice(v) {
   v.innerHTML = `<div class="hello"><span class="eyebrow">Games</span><h1>Pick a line</h1><p class="muted">Exam-format games on your topics. Rounds of 8; combos multiply XP. Wrong answers go to your review deck automatically.</p></div>
+  <button class="card tile quickbanner" id="qp" style="--c:var(--red)"><span class="tag">2–5 minutes</span><h3>${I.bolt || ""} Quick play</h3><p class="muted">Short rounds of grammar and vocabulary when you don't have time for the full route.</p></button>
   <div class="grid">${Object.entries(TYPES).map(([k, t]) => { const p = k === "mock" ? {done:S.mockBest || 0, total:24} : poolProgress(k); const a = acc(t.skill);
     return `<button class="card tile" data-k="${k}" style="--c:${t.c}"><span class="tag">${esc(t.part)}</span><h3>${esc(t.name)}</h3><p class="muted">${esc(t.desc)}</p>
     <div class="bar"><i style="--p:${p.done / Math.max(1, p.total) * 100}%"></i></div><div class="meta"><span class="mono">${p.done}/${p.total} ${k === "mock" ? "best" : "mastered"}</span><span>${a == null ? "No score yet" : "Accuracy " + Math.round(a * 100) + "%"}</span></div></button>`; }).join("")}</div>`;
-  $$(".tile", v).forEach(b => b.onclick = () => go("play-" + b.dataset.k));
+  $$(".tile[data-k]", v).forEach(b => b.onclick = () => go("play-" + b.dataset.k));
+  $("#qp", v).onclick = () => go("quick");
 }
 
 /* ---------- game engine ---------- */
@@ -379,7 +387,7 @@ function renderItem(it, onDone) {
     html:`<p class="qtext">${gapped(it.s)}</p><input class="answer" id="ans" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="One word" aria-label="Your answer"><button class="btn primary" id="chk">Check</button>`,
     mount(r) { typed(r, (val) => onDone(it.a.map(norm).includes(norm(val)), val)); }
   };
-  if (t === "mc") { const order = shuffle(it.o.map((o, i) => i)); return {
+  if (t === "mc" || t === "pv" || t === "gram") { const order = shuffle(it.o.map((o, i) => i)); return {
     html:`<p class="qtext">${gapped(it.s)}</p><div class="opts two">${order.map(i => `<button class="opt" data-i="${i}">${esc(it.o[i])}</button>`).join("")}</div>`,
     mount(r) { $$(".opt", r).forEach(b => b.onclick = () => { const i = +b.dataset.i; $$(".opt", r).forEach(x => { x.disabled = true; if (+x.dataset.i === it.a) x.classList.add("right"); }); if (i !== it.a) b.classList.add("wrong"); onDone(i === it.a, it.o[i]); }); }
   }; }
@@ -423,7 +431,7 @@ function answerOf(it, html) {
   switch (it._t) {
     case "wf": case "oc": return it.a.join(" / ");
     case "kwt": return html ? `${esc(it.pre)} <u>${esc(it.a[0])}</u> ${esc(it.post)}` : `${it.pre} ${it.a[0]} ${it.post}`;
-    case "mc": return it.o[it.a];
+    case "mc": case "pv": case "gram": return it.o[it.a];
     case "err": return it.fix || it.c.map((c, i) => i === it.e ? it.o[it.a] : c).join(" ");
     case "spell": return it.w;
     case "idioms": case "work": return it.m;
@@ -434,7 +442,7 @@ function itemAsText(it) {
     case "wf": return `Word formation. Sentence: "${it.s}" Stem: ${it.stem}. Correct: ${it.a.join(" / ")}.`;
     case "kwt": return `Key word transformation. Original: "${it.s1}" Key word: ${it.key}. Target: "${it.pre} ___ ${it.post}". Correct: ${it.a.join(" / ")}.`;
     case "oc": return `Open cloze. "${it.s}" Correct: ${it.a.join(" / ")}.`;
-    case "mc": return `Multiple-choice cloze. "${it.s}" Options: ${it.o.join(", ")}. Correct: ${it.o[it.a]}.`;
+    case "mc": case "pv": case "gram": return `Multiple-choice gap fill. "${it.s}" Options: ${it.o.join(", ")}. Correct: ${it.o[it.a]}.`;
     case "err": return `Error correction. Sentence: "${it.c.join(" ")}". Error: "${it.c[it.e]}" → "${it.o[it.a]}".`;
     case "spell": return `Spelling of the word "${it.w}" (British English).`;
     case "idioms": case "work": return `Expression "${it.t}" means: ${it.m}.`;
@@ -443,7 +451,7 @@ function itemAsText(it) {
 
 function viewGame(v, type, opts = {}) {
   const T = TYPES[type]; if (!T) return viewPractice(v);
-  if (type === "idioms") return viewQuickfire(v);
+  if (type === "idioms" && !opts.items) return viewQuickfire(v);
   const isMock = type === "mock";
   const items = opts.items || (isMock ? ["mc", "oc", "wf", "kwt"].flatMap(t => pickItems(t, 6)) : pickItems(type, 8));
   let mockEnd = 0, mockTimer = null;
@@ -475,10 +483,10 @@ function viewGame(v, type, opts = {}) {
     const dots = items.map((_, j) => `<i class="${j < G.i ? (G.res[j] ? "ok" : "ko") : j === G.i ? "cur" : ""}"></i>`).join("");
     v.innerHTML = `<div class="game-head"><button class="icon-btn" id="quit" aria-label="Quit round">${I.back}</button><div class="progress-dots">${dots}</div>${isMock ? `<span class="timer mono" id="mockT"></span>` : G.combo >= 2 ? `<span class="combo">x${Math.min(3, 1 + Math.floor(G.combo / 2))} combo</span>` : ""}</div>
       <div class="card qcard" id="q" style="--c:${TYPES[it._t].c}"><span class="eyebrow">${isMock ? TYPES[it._t].part + " · " : ""}${esc(TYPES[it._t].name)} · ${G.i + 1} of ${items.length}${it._id.startsWith("ai") ? " · fresh" : ""}</span></div><div id="fb"></div>`;
-    $("#quit", v).onclick = () => go("practice");
+    $("#quit", v).onclick = () => go(opts.back || "practice");
     const r = $("#q", v);
     const R = renderItem(it, (ok, given, note) => {
-      G.res.push(ok); S.seen[it._id] = ok ? 1 : -1; record(T.skill, ok);
+      G.res.push(ok); S.seen[it._id] = ok ? 1 : -1; record((TYPES[it._t] || T).skill, ok);
       let gained = 0;
       if (ok) { G.combo++; gained = 10 * Math.min(3, 1 + Math.floor((G.combo - 1) / 2)); G.xp += gained; }
       else { G.combo = 0; addCard({k:"item", id:"item:" + it._id, t:it._t, ref:it._id, f:TYPES[it._t].name, b:answerOf(it)}); }
@@ -500,12 +508,13 @@ function viewGame(v, type, opts = {}) {
       $("#home", v).onclick = () => go("today"); return;
     }
     const bonus = right === items.length ? 30 : 0;
-    addXP(G.xp + bonus + 10); markDone(type);
+    addXP(G.xp + bonus + 10); if (!opts.quick) markDone(type); if (opts.quick) { S.quick = S.quick || {}; S.quick[opts.quick] = {d:dayKey(), r:right, n:items.length}; }
     S.days[dayKey()].min = (S.days[dayKey()].min || 0) + 5; save();
-    v.innerHTML = `<div class="card stack pop" style="text-align:center;align-items:center;padding:32px 18px"><span class="eyebrow">${esc(T.name)} · round complete</span>
+    v.innerHTML = `<div class="card stack pop" style="text-align:center;align-items:center;padding:32px 18px"><span class="eyebrow">${esc(opts.title || T.name)} · ${opts.quick ? "done" : "round complete"}</span>
       <div class="big-score">${right}/${items.length}</div><p class="muted">+${G.xp + bonus + 10} XP${bonus ? " · perfect round bonus" : ""}. ${right === items.length ? "Flawless." : right >= 6 ? "Strong round." : right >= 4 ? "Solid. Mistakes are now in your review deck." : "Tough one. These will come back in Review until they stick."}</p>
       <div class="row" style="justify-content:center"><button class="btn red" id="again">Another round</button><button class="btn" id="home">Back to Today</button></div></div>`;
-    $("#again", v).onclick = () => route(); $("#home", v).onclick = () => go("today");
+    $("#again", v).onclick = () => route(); $("#home", v).onclick = () => go(opts.back === "quick" ? "quick" : "today");
+    if (opts.back === "quick") { $("#again", v).textContent = "Another one"; $("#home", v).textContent = "Quick play"; }
   };
   if (opts.autostart) next(); else intro();
 }
@@ -572,6 +581,8 @@ const GEN_SPEC = {
   wf:`Cambridge C1/C2 Use of English Part 3 (word formation) items. JSON array of 8 objects: {"s": a sentence containing exactly one "___" gap, "stem": the base word in CAPITALS, "a": [accepted answers in lowercase, British spelling], "why": max 18 words explaining the affix or form}. Mix prefixes (un-, in-, ir-, mis-, dis-, non-, over-, under-) and suffixes (-ity, -ness, -ment, -ance, -ive, -ous, -ly, -ise).`,
   kwt:`Cambridge C1/C2 Use of English Part 4 (key word transformation) items. JSON array of 8 objects: {"s1": original sentence, "key": the key word in CAPITALS, "pre": text before the gap, "post": text after the gap, "a": [all acceptable 3-6 word answers in lowercase, each containing the key word unchanged], "why": max 18 words naming the structure}. Use exam structures: inversion, passive reporting, wish/if only, modal perfects, cleft sentences, phrasal verbs, fixed expressions.`,
   oc:`Cambridge C1/C2 Use of English Part 2 (open cloze) items. JSON array of 8 objects: {"s": sentence with exactly one "___" gap needing ONE word, "a": [all acceptable single words in lowercase], "why": max 18 words}. Target prepositions, linkers, inversion words, quantifiers, relative pronouns, phrasal verb particles.`,
+  pv:`British English phrasal verbs at C1 level used at work and in everyday life. JSON array of 8 objects: {"s": a natural British sentence with exactly one "___" gap where a phrasal verb goes (in the right form), "o": [4 phrasal verbs in the same form; only one correct], "a": index 0-3 of the correct option, "why": the meaning of the correct phrasal verb, max 12 words}.`,
+  gram:`C1/C2 grammar items (inversion, conditionals, wish/if only, modals of deduction and past modals, relative clauses, cleft sentences, gerund vs infinitive, passive forms, linkers). JSON array of 8 objects: {"s": sentence with exactly one "___" gap, "o": [4 options; only one grammatically correct], "a": index 0-3 of the correct option, "why": the rule, max 15 words}.`,
   mc:`Cambridge C1/C2 Use of English Part 1 (multiple-choice cloze) items testing collocations and fixed phrases. JSON array of 8 objects: {"s": sentence with exactly one "___" gap, "o": [4 single-word or short options], "a": index 0-3 of the only correct option, "why": max 18 words}. Distractors must be plausible but clearly wrong for a native speaker.`,
   err:`Error-correction items targeting typical mistakes of Spanish speakers (false friends, uncountables, prepositions, tenses, word order, verb patterns). JSON array of 8 objects: {"c": the sentence split into 3-5 chunks (array of strings) where exactly one chunk contains the mistake, "e": index of the wrong chunk, "o": [3 replacement options for that chunk, the FIRST one correct], "a": 0, "why": max 20 words, may include the Spanish word in brackets}.`,
   spell:`Spelling items: words that are commonly misspelt or have distinct British spellings, useful at C1/C2. JSON array of 8 objects: {"w": the word in British spelling, "s": a natural example sentence containing the word, "tip": a short memory tip, "us": the US spelling only if different, otherwise omit}.`,
@@ -583,7 +594,7 @@ function validItem(type, o) {
     if (type === "wf") return o.s.includes("___") && o.stem && Array.isArray(o.a) && o.a.length;
     if (type === "kwt") return o.s1 && o.key && o.pre != null && o.post != null && Array.isArray(o.a) && o.a.length;
     if (type === "oc") return o.s.includes("___") && Array.isArray(o.a) && o.a.length;
-    if (type === "mc") return o.s.includes("___") && Array.isArray(o.o) && o.o.length === 4 && o.a >= 0 && o.a < 4;
+    if (type === "mc" || type === "pv" || type === "gram") return o.s.includes("___") && Array.isArray(o.o) && o.o.length === 4 && o.a >= 0 && o.a < 4;
     if (type === "err") return Array.isArray(o.c) && o.c[o.e] != null && Array.isArray(o.o) && o.o.length >= 2;
     if (type === "spell") return typeof o.w === "string" && o.w.length > 2 && o.s;
     if (type === "idioms" || type === "work") return o.t && o.m && Array.isArray(o.d) && o.d.length >= 3;
@@ -955,6 +966,49 @@ function viewProgress(v) {
    <div class="score"><small class="muted">Recordings</small><b>${Object.keys(S.listen).length}</b></div>
    <div class="score"><small class="muted">Texts marked</small><b>${S.writings.length}</b></div>
    <div class="score"><small class="muted">Review cards</small><b>${S.deck.length}</b></div></div></div>`;
+}
+
+/* ---------- quick play: short rounds (2–5 min) ---------- */
+const SHORT_TYPES = ["mc", "oc", "wf", "kwt", "err", "pv", "gram", "idioms", "work"];
+const QUICK_MODES = [
+  {id:"five", n:"Quick 5", t:"5 mixed questions · ≈2 min", c:"var(--red)"},
+  {id:"mini", n:"Mini exam", t:"One of each type · ≈5 min", c:"var(--navy)"},
+  {id:"fix", n:"Fix my mistakes", t:"5 questions you got wrong", c:"var(--amber)"},
+  {id:"pv", n:"Phrasal verbs", t:"5 questions · ≈1 min", c:TYPES.pv.c, type:"pv"},
+  {id:"gram", n:"Grammar flash", t:"5 questions · ≈1 min", c:TYPES.gram.c, type:"gram"},
+  {id:"mc", n:"Collocations", t:"5 questions · ≈1 min", c:TYPES.mc.c, type:"mc"},
+  {id:"oc", n:"Fill the gap", t:"5 open-cloze gaps · ≈2 min", c:TYPES.oc.c, type:"oc"},
+  {id:"wf", n:"Word formation", t:"5 questions · ≈2 min", c:TYPES.wf.c, type:"wf"},
+  {id:"kwt", n:"Transformations", t:"3 questions · ≈2 min", c:TYPES.kwt.c, type:"kwt", n_:3},
+  {id:"err", n:"Spot the error", t:"5 sentences · ≈2 min", c:TYPES.err.c, type:"err"},
+  {id:"idioms", n:"Idioms", t:"5 questions · ≈1 min", c:TYPES.idioms.c, type:"idioms"},
+  {id:"work", n:"Work English", t:"5 questions · ≈1 min", c:TYPES.work.c, type:"work"},
+  {id:"spell", n:"Spelling", t:"5 words · ≈2 min", c:TYPES.spell.c, type:"spell"}
+];
+function quickItems(id) {
+  const m = QUICK_MODES.find(x => x.id === id); if (!m) return [];
+  if (m.type) return pickItems(m.type, m.n_ || 5);
+  if (id === "five") { const ts = shuffle(SHORT_TYPES.slice()).slice(0, 5); return shuffle(ts.flatMap(t => pickItems(t, 1))); }
+  if (id === "mini") return ["mc", "oc", "wf", "kwt", "gram", "pv", "err", "idioms"].flatMap(t => pickItems(t, 1));
+  if (id === "fix") return shuffle(SHORT_TYPES.flatMap(t => pool(t).filter(x => S.seen[x._id] === -1))).slice(0, 5);
+  return [];
+}
+function viewQuick(v) {
+  const wrong = SHORT_TYPES.reduce((a, t) => a + pool(t).filter(x => S.seen[x._id] === -1).length, 0);
+  const last = S.quick || {};
+  const card = m => { const l = last[m.id]; const dis = m.id === "fix" && !wrong;
+    return `<button class="card tile" data-q="${m.id}" style="--c:${m.c}" ${dis ? "disabled" : ""}><h3>${esc(m.n)}</h3><p class="muted">${esc(m.id === "fix" ? (wrong ? `${Math.min(5, wrong)} of your ${wrong} mistakes · ≈2 min` : "No mistakes to fix yet") : m.t)}</p>${l ? `<div class="meta"><span class="mono">Last: ${l.r}/${l.n}${l.d === dayKey() ? " · today" : ""}</span></div>` : ""}</button>`; };
+  v.innerHTML = `<div class="hello"><span class="eyebrow" style="color:var(--red)">Quick play</span><h1>Got two minutes?</h1><p class="muted">Short grammar and vocabulary rounds. No reading, listening or writing — just quick answers. Everything counts towards your XP and streak, and mistakes go to your review deck.</p></div>
+  <h2>Mixed</h2><div class="grid">${QUICK_MODES.slice(0, 3).map(card).join("")}</div>
+  <h2 style="margin-top:8px">One skill</h2><div class="grid quickgrid">${QUICK_MODES.slice(3).map(card).join("")}</div>`;
+  $$("[data-q]", v).forEach(b => b.onclick = () => go("quick-" + b.dataset.q));
+}
+function startQuick(v, id) {
+  const m = QUICK_MODES.find(x => x.id === id); if (!m) return go("quick");
+  if (id === "spell") return viewGame(v, "spell", {items:pickItems("spell", 5), autostart:true, back:"quick", quick:id, title:m.n});
+  const items = quickItems(id);
+  if (!items.length) { toast("Nothing to practise here yet."); return go("quick"); }
+  viewGame(v, m.type || "mc", {items, autostart:true, back:"quick", quick:id, title:m.n});
 }
 
 /* ---------- speaking (microphone + Gemini) ---------- */
