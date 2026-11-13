@@ -18,7 +18,7 @@
   // Orden de preferencia. Si uno no existe (404) o está saturado (503/429), se prueba el siguiente.
   const MODELS = ["gemini-flash-latest", "gemini-3.8-flash", "gemini-flash-lite-latest", "gemini-3.5-flash-lite"];
   const QUICK = ["gemini-flash-lite-latest", "gemini-flash-latest", "gemini-3.8-flash"];
-  const TIMEOUT_MS = 90000;
+  const TIMEOUT_MS = 60000, QUICK_TIMEOUT_MS = 20000;
 
   let sb = null;
   try {
@@ -84,14 +84,19 @@
       contents: [{ role: "user", parts: [{ text: prompt }].concat(opt.audio ? [{ inline_data: { mime_type: opt.audio.mime, data: opt.audio.data } }] : []) }],
       generationConfig: Object.assign({ temperature: json ? 0.7 : 0.6 }, json ? { responseMimeType: "application/json" } : {})
     };
+    // Modelos que han fallado hace poco (saturados o lentos) se saltan durante 30 min
+    const BRK = "mtg-gemini-skip";
+    let skip = {}; try { skip = JSON.parse(ls.get(BRK) || "{}"); } catch (e) {}
+    const now = Date.now();
+    const bench = m => { skip[m] = now + 30 * 60000; ls.set(BRK, JSON.stringify(skip)); };
     const base = opt.modelTier === "quick" ? QUICK : MODELS;
-    const saved = ls.get(MODEL_LS);
-    const order = saved && base.includes(saved) && opt.modelTier !== "quick" ? [saved].concat(base.filter(m => m !== saved)) : base.slice();
+    let order = base.filter(m => !(skip[m] > now));
+    if (!order.length) order = base.slice();
     let lastErr = { code: "unavailable" };
     for (const model of order) {
       let res;
       const ctl = new AbortController();
-      const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+      const timer = setTimeout(() => ctl.abort(), opt.modelTier === "quick" ? QUICK_TIMEOUT_MS : TIMEOUT_MS);
       try {
         res = await fetch(endpoint(model, stream), {
           method: "POST", signal: ctl.signal,
@@ -100,17 +105,17 @@
         });
       } catch (e) {
         clearTimeout(timer);
-        if (e && e.name === "AbortError") { lastErr = { code: "timeout" }; continue; }
+        if (e && e.name === "AbortError") { lastErr = { code: "timeout" }; bench(model); continue; }
         throw { code: navigator.onLine ? "unavailable" : "offline" };
       }
       if (!res.ok) {
         clearTimeout(timer);
         const t = await res.text().catch(() => "");
         lastErr = errFromStatus(res.status, t);
-        if (["model_missing", "busy", "rate_limited"].includes(lastErr.code)) continue;   // probar el siguiente modelo
+        if (["model_missing", "busy", "rate_limited"].includes(lastErr.code)) { bench(model); continue; }   // probar el siguiente modelo
         throw lastErr;
       }
-      if (opt.modelTier !== "quick") ls.set(MODEL_LS, model);
+      ls.set(MODEL_LS, model);
       if (!stream) {
         const out = textOf(await res.json()); clearTimeout(timer);
         if (!json) return out;
