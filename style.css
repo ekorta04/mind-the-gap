@@ -278,3 +278,19 @@ select,input[type=text]{font:inherit;padding:8px 10px;border-radius:10px;border:
 .methodcard summary{font-size:.95rem;color:inherit}
 .methodcard ol,.methodcard ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;line-height:1.45}
 .methodcard h3{margin:10px 0 2px}
+
+/* ===== C1 Advanced trainer ===== */
+.stagepill{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;border:0;border-radius:999px;padding:10px 16px;background:var(--navy);color:#fff;font:700 .85rem/1 "JetBrains Mono",monospace;box-shadow:0 6px 20px rgba(5,10,25,.25);cursor:pointer}
+.stagepill.over{background:var(--red)}
+.pf{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.pf .answer{flex:1;min-width:200px;margin:0}
+.alertbtn{display:block;width:100%;text-align:left;border:0;cursor:pointer;font:inherit;color:inherit;margin-bottom:10px}
+.alertbtn b{white-space:nowrap}
+.alertbtn svg{width:14px;height:14px;vertical-align:-2px}
+.examhero{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.examdays{text-align:center;min-width:120px}
+.examdays .big-score{line-height:1}
+.flash .front.long{font-size:1.15rem;font-weight:700;line-height:1.4}
+.flash .answer{max-width:520px;width:100%}
+.miner .errline small{display:block}
+.stop small{white-space:normal}

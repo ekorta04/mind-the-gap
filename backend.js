@@ -82,7 +82,7 @@
     if (!navigator.onLine) throw { code: "offline" };
     const stream = !json && typeof opt.onText === "function";
     const body = {
-      contents: [{ role: "user", parts: (opt.video ? [{ file_data: { file_uri: opt.video } }] : []).concat([{ text: prompt }]).concat(opt.audio ? [{ inline_data: { mime_type: opt.audio.mime, data: opt.audio.data } }] : []) }],
+      contents: [{ role: "user", parts: (opt.video ? [{ file_data: { file_uri: opt.video } }] : []).concat([{ text: prompt }]).concat(opt.audio ? [{ inline_data: { mime_type: opt.audio.mime, data: opt.audio.data } }] : []).concat((opt.images || []).map(im => ({ inline_data: { mime_type: im.mime, data: im.data } }))) }],
       generationConfig: Object.assign({ temperature: json ? 0.7 : 0.6 }, json ? { responseMimeType: "application/json" } : {}, opt.video ? { mediaResolution: "MEDIA_RESOLUTION_LOW" } : {})
     };
     // Modelos que han fallado hace poco (saturados o lentos) se saltan durante 30 min
@@ -153,6 +153,8 @@
   sample.videoJSON = (prompt, url, opt = {}) => callGemini(prompt, Object.assign({ timeoutMs: 180000 }, opt, { video: url }), true);
   sample.audioJSON = (prompt, b64, mime, opt = {}) => callGemini(prompt, Object.assign({}, opt, { audio: { data: b64, mime } }), true);
   sample.json = (prompt, opt = {}) => callGemini(prompt, opt, true);
+  // Fotos (redacción escrita a mano): se transcriben y corrigen en una sola petición
+  sample.imagesJSON = (prompt, imgs, opt = {}) => callGemini(prompt, Object.assign({}, opt, { images: imgs }), true);
 
   /* ---------------- Voces naturales (Gemini TTS) ----------------
      Convierte un guion en audio con voces británicas naturales. Devuelve un Blob WAV.
