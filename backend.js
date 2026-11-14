@@ -154,6 +154,59 @@
   sample.audioJSON = (prompt, b64, mime, opt = {}) => callGemini(prompt, Object.assign({}, opt, { audio: { data: b64, mime } }), true);
   sample.json = (prompt, opt = {}) => callGemini(prompt, opt, true);
 
+  /* ---------------- Voces naturales (Gemini TTS) ----------------
+     Convierte un guion en audio con voces británicas naturales. Devuelve un Blob WAV.
+     lines: [[speaker, text], ...] (máx. 2 hablantes). */
+  const TTS_MODELS = ["gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts"];
+  const TTS_NAMES = [["Tom", "Charon"], ["Sarah", "Kore"]];
+  function pcmToWav(b64, rate) {
+    const bin = atob(b64), n = bin.length, buf = new ArrayBuffer(44 + n), v = new DataView(buf);
+    const W = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    W(0, "RIFF"); v.setUint32(4, 36 + n, true); W(8, "WAVE"); W(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); W(36, "data"); v.setUint32(40, n, true);
+    const u8 = new Uint8Array(buf, 44); for (let i = 0; i < n; i++) u8[i] = bin.charCodeAt(i);
+    return new Blob([buf], { type: "audio/wav" });
+  }
+  async function ttsLines(lines, opt = {}) {
+    const key = ls.get(KEY_LS); if (!key) throw { code: "no_key" };
+    if (!navigator.onLine) throw { code: "offline" };
+    const spk = [...new Set(lines.map(l => l[0]))].slice(0, 2);
+    const name = s => (TTS_NAMES[spk.indexOf(s)] || TTS_NAMES[0])[0];
+    const multi = spk.length > 1;
+    const style = opt.style || "Read this aloud as real British people from the south of England (London accents), speaking naturally and at a relaxed, conversational pace, like colleagues talking — not like presenters or a textbook.";
+    const text = style + "\n\n" + lines.map(l => (multi ? name(l[0]) + ": " : "") + l[1]).join("\n");
+    const speechConfig = multi
+      ? { multiSpeakerVoiceConfig: { speakerVoiceConfigs: spk.map((s, i) => ({ speaker: TTS_NAMES[i][0], voiceConfig: { prebuiltVoiceConfig: { voiceName: TTS_NAMES[i][1] } } })) } }
+      : { voiceConfig: { prebuiltVoiceConfig: { voiceName: opt.voice || "Charon" } } };
+    let last = { code: "unavailable" };
+    for (const model of TTS_MODELS) {
+      const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 120000);
+      try {
+        const res = await fetch(endpoint(model, false), { method: "POST", signal: ctl.signal, headers: { "Content-Type": "application/json", "x-goog-api-key": key.trim() },
+          body: JSON.stringify({ contents: [{ role: "user", parts: [{ text }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig } }) });
+        clearTimeout(t);
+        if (!res.ok) { const b = await res.text().catch(() => ""); last = errFromStatus(res.status, b); if (["model_missing", "busy", "rate_limited", "bad_request"].includes(last.code)) continue; throw last; }
+        const j = await res.json();
+        const part = ((j.candidates || [])[0] || {}).content?.parts?.find(p => p.inlineData || p.inline_data);
+        const d = part && (part.inlineData || part.inline_data);
+        if (!d || !d.data) { last = { code: "unavailable" }; continue; }
+        const rate = +((/rate=(\d+)/.exec(d.mimeType || d.mime_type || "") || [])[1] || 24000);
+        return pcmToWav(d.data, rate);
+      } catch (e) { clearTimeout(t); if (e && e.code) { last = e; if (e.code === "bad_key") throw e; continue; } last = { code: e && e.name === "AbortError" ? "timeout" : (navigator.onLine ? "unavailable" : "offline") }; }
+    }
+    throw last;
+  }
+  // Caché de audios generados: se generan una vez y luego funcionan sin conexión
+  const TTS_CACHE = "mtg-tts";
+  async function cachedAudio(id, lines, opt) {
+    const req = new Request("./tts-cache/" + encodeURIComponent(id) + ".wav");
+    try { const c = await caches.open(TTS_CACHE); const hit = await c.match(req); if (hit) return await hit.blob(); } catch (e) {}
+    const blob = await ttsLines(lines, opt);
+    try { const c = await caches.open(TTS_CACHE); await c.put(req, new Response(blob, { headers: { "Content-Type": "audio/wav" } })); } catch (e) {}
+    return blob;
+  }
+  async function hasCachedAudio(id) { try { const c = await caches.open(TTS_CACHE); return !!(await c.match(new Request("./tts-cache/" + encodeURIComponent(id) + ".wav"))); } catch (e) { return false; } }
+
   /* ---------------- Shim con la interfaz que espera app.js ---------------- */
   window.claude = {
     use(name) {
@@ -242,5 +295,5 @@
     return "AI isn't available right now. Try again in a moment.";
   }
 
-  window.MTG = { mountSettings, errText, hasSync: !!sb };
+  window.MTG = { mountSettings, errText, hasSync: !!sb, cachedAudio, hasCachedAudio, hasKey: () => !!ls.get(KEY_LS) };
 })();

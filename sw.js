@@ -1,7 +1,7 @@
 /* Service worker · Mind the Gap
    Guarda la app en caché para que funcione sin conexión.
    IMPORTANTE: al cambiar cualquier archivo, sube el número de versión. */
-const CACHE = "mtg-v10";
+const CACHE = "mtg-v11";
 const FILES = [
   "./", "./index.html", "./manifest.webmanifest", "./style.css",
   "./vendor/supabase-2.118.0.min.js", "./backend.js", "./data.js", "./extra.js", "./es.js", "./app.js",
@@ -17,7 +17,7 @@ self.addEventListener("install", e => {
 
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== FONT_CACHE).map(k => caches.delete(k))))
+    .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== FONT_CACHE && k !== "mtg-tts").map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
