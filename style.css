@@ -265,3 +265,16 @@ select,input[type=text]{font:inherit;padding:8px 10px;border-radius:10px;border:
 .card .es,.rqf .es{display:flex;gap:8px;align-items:flex-start;margin:4px 0;line-height:1.4}
 .card .es .flag,.rqf .es .flag{flex:none;font:700 .62rem/1 var(--mono, monospace);letter-spacing:.06em;padding:4px 5px;border-radius:5px;background:rgba(127,127,127,.18);margin-top:2px}
 .rq .opts{display:grid;gap:8px}
+/* consejos */
+.tipbox{border:1px dashed color-mix(in srgb,var(--amber) 55%,transparent);background:var(--warn-bg);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:.88rem;line-height:1.4}
+.tipbox p{margin:0}
+.tipbox p.ctx{font-weight:500}
+.tipbox p.ctx b{color:var(--amber)}
+.tiphead{display:flex;align-items:center;gap:8px}
+.tiphead b{flex:1;font-size:.78rem;letter-spacing:.04em}
+.tipx{background:none;border:0;color:var(--muted);font-size:.9rem;cursor:pointer;padding:2px 6px}
+.tipbox summary,.methodcard summary{cursor:pointer;color:var(--muted);font-size:.82rem}
+.tipbox ol{margin:6px 0 0;padding-left:20px}
+.methodcard summary{font-size:.95rem;color:inherit}
+.methodcard ol,.methodcard ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;line-height:1.45}
+.methodcard h3{margin:10px 0 2px}

@@ -59,7 +59,7 @@ const INTERVALS = [0, 1, 2, 4, 7, 15, 30];
 
 /* ---------- state ---------- */
 const LS_KEY = "mtg-state-v1";
-const blank = () => ({v:1, xp:0, streak:0, best:0, lastActive:null, days:{}, stats:{}, seen:{}, deck:[], read:{}, listen:{}, writings:[], ai:{}, aiArticles:[], aiListening:[], settings:{rate:0.95, voice:"", goal:300}, updatedAt:0});
+const blank = () => ({v:1, xp:0, streak:0, best:0, lastActive:null, days:{}, stats:{}, seen:{}, deck:[], read:{}, listen:{}, writings:[], ai:{}, aiArticles:[], aiListening:[], settings:{rate:0.95, voice:"", goal:300, tips:true}, updatedAt:0});
 let S = blank();
 try { const raw = localStorage.getItem(LS_KEY); if (raw) S = Object.assign(blank(), JSON.parse(raw)); } catch (e) {}
 S.settings = Object.assign(blank().settings, S.settings || {});
@@ -499,7 +499,7 @@ function viewGame(v, type, opts = {}) {
     v.innerHTML = `<div class="row"><button class="btn ghost small" id="bk">${I.back} Games</button></div>
     <div class="hello"><span class="eyebrow" style="color:${T.c}">${esc(T.part)}</span><h1>${esc(T.name)}</h1><p class="muted">${esc(T.desc)}</p></div>
     <div class="card stack"><div class="row"><span class="mono">${p.done}/${p.total}</span><span class="muted">${isMock ? "best mock score" : "mastered in this bank"}</span></div><div class="bar" style="--c:${T.c}"><i style="--p:${p.done / Math.max(1, p.total) * 100}%"></i></div>
-    <div class="row"><button class="btn red" id="start">${isMock ? "Start mock · 30 min" : "Start round · 8"}</button>${aiOn() && !isMock ? `<button class="btn ai" id="gen">${I.sparkle} Generate 8 fresh questions</button>` : ""}</div><p class="muted" id="genMsg"></p></div>`;
+    <div class="row"><button class="btn red" id="start">${isMock ? "Start mock · 30 min" : "Start round · 8"}</button>${aiOn() && !isMock ? `<button class="btn ai" id="gen">${I.sparkle} Generate 8 fresh questions</button>` : ""}</div><p class="muted" id="genMsg"></p></div>${methodCard(type)}`;
     $("#bk", v).onclick = () => go("practice");
     $("#start", v).onclick = () => {
       if (!items.length) return toast("No questions yet.");
@@ -519,9 +519,9 @@ function viewGame(v, type, opts = {}) {
     const it = items[G.i];
     const dots = items.map((_, j) => `<i class="${j < G.i ? (G.res[j] ? "ok" : "ko") : j === G.i ? "cur" : ""}"></i>`).join("");
     v.innerHTML = `<div class="game-head"><button class="icon-btn" id="quit" aria-label="Quit round">${I.back}</button><div class="progress-dots">${dots}</div>${isMock ? `<span class="timer mono" id="mockT"></span>` : G.combo >= 2 ? `<span class="combo">x${Math.min(3, 1 + Math.floor(G.combo / 2))} combo</span>` : ""}</div>
-      <div class="card qcard" id="q" style="--c:${TYPES[it._t].c}"><span class="eyebrow">${isMock ? TYPES[it._t].part + " · " : ""}${esc(TYPES[it._t].name)} · ${G.i + 1} of ${items.length}${it._id.startsWith("ai") ? " · fresh" : ""}</span></div><div id="fb"></div>`;
+      <div class="card qcard" id="q" style="--c:${TYPES[it._t].c}"><span class="eyebrow">${isMock ? TYPES[it._t].part + " · " : ""}${esc(TYPES[it._t].name)} · ${G.i + 1} of ${items.length}${it._id.startsWith("ai") ? " · fresh" : ""}</span>${tipBox(it)}</div><div id="fb"></div>`;
     $("#quit", v).onclick = () => go(opts.back || "practice");
-    const r = $("#q", v);
+    const r = $("#q", v); bindTips(r);
     const R = renderItem(it, (ok, given, note) => {
       G.res.push(ok); S.seen[it._id] = ok ? 1 : -1; record((TYPES[it._t] || T).skill, ok);
       let gained = 0;
@@ -577,13 +577,31 @@ function showFeedback(box, it, ok, given, note, gained, onNext) {
   };
 }
 
+/* ---------- consejos (tips.js) ---------- */
+let tipN = Math.floor(Math.random() * 6);
+function tipBox(it) {
+  if (!S.settings.tips || typeof TIPS === "undefined" || !TIPS[it._t]) return "";
+  const T = TIPS[it._t], t = tipFor(it, tipN++);
+  return `<div class="tipbox"><div class="tiphead"><b>💡 Antes de responder</b><button class="tipx" type="button" aria-label="Ocultar consejos">✕</button></div>
+    <p><b>Primero:</b> ${esc(T.steps[0])}</p>${t ? `<p class="${t.ctx ? "ctx" : ""}"><b>${t.ctx ? "En esta pregunta:" : "Consejo:"}</b> ${esc(t.text)}</p>` : ""}
+    <details${S.settings.tipsOpen ? " open" : ""}><summary>Método completo</summary><ol>${T.steps.map(x => `<li>${esc(x)}</li>`).join("")}</ol></details></div>`;
+}
+function bindTips(root) {
+  const x = root && root.querySelector(".tipx"); if (x) x.onclick = () => { S.settings.tips = false; save(); $$(".tipbox").forEach(b => b.remove()); toast("Consejos ocultos. Puedes volver a activarlos en Settings."); };
+  const d = root && root.querySelector(".tipbox details"); if (d) d.ontoggle = () => { S.settings.tipsOpen = d.open; save(); };
+}
+function methodCard(type) {
+  const T = typeof TIPS !== "undefined" && TIPS[type]; if (!T) return "";
+  return `<details class="card stack methodcard"><summary><b>💡 Cómo atacarlo</b> <span class="muted">· método y consejos</span></summary><h3>Método</h3><ol>${T.steps.map(x => `<li>${esc(x)}</li>`).join("")}</ol><h3>Consejos clave</h3><ul>${T.tips.map(x => `<li>${esc(x)}</li>`).join("")}</ul></details>`;
+}
+
 /* ---------- quickfire ---------- */
 function viewQuickfire(v) {
   const T = TYPES.idioms;
   v.style.setProperty("--c", T.c);
   v.innerHTML = `<div class="row"><button class="btn ghost small" id="bk">${I.back} Games</button></div>
   <div class="hello"><span class="eyebrow" style="color:${T.c}">${T.part}</span><h1>Idiom Quickfire</h1><p class="muted">60 seconds. As many idioms, phrasal verbs and British slang as you can. +8 XP each, streaks of 3 add a bonus.</p></div>
-  <div class="card stack"><p>Your record: <b class="mono">${S.qfBest || 0}</b></p><div class="row"><button class="btn red" id="start">Start · 60 s</button>${aiOn() ? `<button class="btn ai" id="gen">${I.sparkle} Generate fresh idioms</button>` : ""}</div><p class="muted" id="genMsg"></p></div>`;
+  <div class="card stack"><p>Your record: <b class="mono">${S.qfBest || 0}</b></p><div class="row"><button class="btn red" id="start">Start · 60 s</button>${aiOn() ? `<button class="btn ai" id="gen">${I.sparkle} Generate fresh idioms</button>` : ""}</div><p class="muted" id="genMsg"></p></div>${methodCard("idioms")}`;
   $("#bk", v).onclick = () => go("practice");
   const gb = $("#gen", v); if (gb) gb.onclick = async () => { gb.disabled = true; gb.innerHTML = `<span class="spin"></span> Writing…`; try { const n = await generateItems("idioms"); $("#genMsg", v).textContent = `${n} new idioms added.`; } catch (e) { $("#genMsg", v).textContent = aiErr(e); } gb.disabled = false; gb.innerHTML = `${I.sparkle} Generate more`; };
   $("#start", v).onclick = () => {
@@ -988,8 +1006,8 @@ function viewReview(v) {
     if (c.k === "item") {
       const type = c.t, it = findItem(type, c.ref);
       if (!it) { S.deck = S.deck.filter(x => x !== c); i++; return step(); }
-      v.innerHTML = head + `<div class="card qcard" id="q" style="--c:${TYPES[type].c}"><span class="eyebrow">${esc(TYPES[type].name)} · from your mistakes · box ${c.box}</span></div><div id="fb"></div>`;
-      $("#quit", v).onclick = () => go("today");
+      v.innerHTML = head + `<div class="card qcard" id="q" style="--c:${TYPES[type].c}"><span class="eyebrow">${esc(TYPES[type].name)} · from your mistakes · box ${c.box}</span>${tipBox(it)}</div><div id="fb"></div>`;
+      $("#quit", v).onclick = () => go("today"); bindTips($("#q", v));
       const R = renderItem(it, (ok, given, note) => { grade(c, ok); if (ok) right++; record(TYPES[type].skill, ok); showFeedback($("#fb", v), it, ok, given, note, ok ? 6 : 0, () => { i++; step(); }); });
       $("#q", v).insertAdjacentHTML("beforeend", R.html); R.mount($("#q", v));
       return;
@@ -1337,6 +1355,7 @@ function settingsSheet() {
   bg.innerHTML = `<div class="card sheet stack" role="dialog" aria-label="Settings"><div class="row"><h2>Settings</h2><span class="spacer"></span><button class="icon-btn" id="x" aria-label="Close">✕</button></div>
   <label class="stack" style="gap:6px"><b>Daily goal</b><select id="goal">${[[150, "Light · ~20 min"], [300, "Serious · ~45 min"], [500, "Intense · 60+ min"]].map(([g, n]) => `<option value="${g}" ${S.settings.goal === g ? "selected" : ""}>${g} XP — ${n}</option>`).join("")}</select></label>
   <div class="stack" style="gap:6px"><b>British voice</b><div class="row"><select id="voiceSel"></select><button class="btn small" id="t">${I.speaker} Test</button></div><small class="muted" id="voiceNote"></small></div>
+  <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="tipsOn" ${S.settings.tips ? "checked" : ""} style="width:20px;height:20px"><span><b>Consejos en los ejercicios</b><br><small class="muted">Método y consejo clave encima de cada pregunta.</small></span></label>
   <div id="mtgBackend" class="stack"></div>
   <div class="stack" style="gap:6px"><b>Backup</b><div class="row"><button class="btn small" id="copy">Copy progress code</button></div><textarea class="answer" id="imp" rows="2" placeholder="Paste a progress code here to restore it" spellcheck="false"></textarea><div><button class="btn small" id="doImp">Restore</button></div></div>
   <p class="muted" style="font-size:.8rem">AI: ${aiOn() ? "Gemini connected" : "not connected"} · ${pool("wf").length + pool("kwt").length + pool("oc").length + pool("mc").length} Use of English items · ${BANK.spell.length + (S.ai.spell || []).length} spelling words</p></div>`;
@@ -1344,6 +1363,7 @@ function settingsSheet() {
   const close = () => bg.remove();
   bg.onclick = (e) => { if (e.target === bg) close(); }; $("#x", bg).onclick = close;
   $("#goal", bg).onchange = (e) => { S.settings.goal = +e.target.value; save(); route(); };
+  $("#tipsOn", bg).onchange = (e) => { S.settings.tips = e.target.checked; save(); };
   window.MTG && window.MTG.mountSettings($("#mtgBackend", bg));
   paintVoiceSel(); $("#t", bg).onclick = () => TTS.speak("Cheers. This is how I'll read your texts.");
   $("#copy", bg).onclick = async () => { const code = btoa(unescape(encodeURIComponent(JSON.stringify(S)))); try { await navigator.clipboard.writeText(code); toast("Copied. Keep it somewhere safe."); } catch (e) { const ta = $("#imp", bg); ta.value = code; ta.select(); toast("Select-all and copy the text in the box."); } };
