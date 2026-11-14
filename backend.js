@@ -72,6 +72,7 @@
     if (status === 404) return { code: "model_missing" };
     if (status === 429) return { code: "rate_limited" };
     if (status === 500 || status === 503) return { code: "busy" };
+    if (status === 400) { let m = ""; try { m = JSON.parse(body).error.message || ""; } catch (e) {} return { code: "bad_request", msg: m.slice(0, 160) }; }
     return { code: "unavailable", status };
   }
 
@@ -81,8 +82,8 @@
     if (!navigator.onLine) throw { code: "offline" };
     const stream = !json && typeof opt.onText === "function";
     const body = {
-      contents: [{ role: "user", parts: [{ text: prompt }].concat(opt.audio ? [{ inline_data: { mime_type: opt.audio.mime, data: opt.audio.data } }] : []) }],
-      generationConfig: Object.assign({ temperature: json ? 0.7 : 0.6 }, json ? { responseMimeType: "application/json" } : {})
+      contents: [{ role: "user", parts: (opt.video ? [{ file_data: { file_uri: opt.video } }] : []).concat([{ text: prompt }]).concat(opt.audio ? [{ inline_data: { mime_type: opt.audio.mime, data: opt.audio.data } }] : []) }],
+      generationConfig: Object.assign({ temperature: json ? 0.7 : 0.6 }, json ? { responseMimeType: "application/json" } : {}, opt.video ? { mediaResolution: "MEDIA_RESOLUTION_LOW" } : {})
     };
     // Modelos que han fallado hace poco (saturados o lentos) se saltan durante 30 min
     const BRK = "mtg-gemini-skip";
@@ -96,7 +97,7 @@
     for (const model of order) {
       let res;
       const ctl = new AbortController();
-      const timer = setTimeout(() => ctl.abort(), opt.modelTier === "quick" ? QUICK_TIMEOUT_MS : TIMEOUT_MS);
+      const timer = setTimeout(() => ctl.abort(), opt.timeoutMs || (opt.modelTier === "quick" ? QUICK_TIMEOUT_MS : TIMEOUT_MS));
       try {
         res = await fetch(endpoint(model, stream), {
           method: "POST", signal: ctl.signal,
@@ -148,6 +149,8 @@
   }
   const sample = (prompt, opt = {}) => callGemini(prompt, opt, false);
   // Audio + texto (para Speaking): devuelve JSON
+  // Vídeo público de YouTube (Gemini lo "ve" y lo escucha a partir del enlace): devuelve JSON
+  sample.videoJSON = (prompt, url, opt = {}) => callGemini(prompt, Object.assign({ timeoutMs: 180000 }, opt, { video: url }), true);
   sample.audioJSON = (prompt, b64, mime, opt = {}) => callGemini(prompt, Object.assign({}, opt, { audio: { data: b64, mime } }), true);
   sample.json = (prompt, opt = {}) => callGemini(prompt, opt, true);
 
@@ -214,6 +217,7 @@
     if (c === "model_missing") return "No available Gemini model found. Try again later.";
     if (c === "busy") return "Gemini is overloaded right now. Try again in a minute.";
     if (c === "timeout") return "Gemini took too long to answer. Try again.";
+    if (c === "bad_request") return "Gemini couldn't process that" + (e.msg ? ": " + e.msg : ".") + "";
     if (c === "invalid_json") return "The AI reply came back malformed. Tap the button again.";
     return "AI isn't available right now. Try again in a moment.";
   }

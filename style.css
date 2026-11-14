@@ -253,3 +253,15 @@ select,input[type=text]{font:inherit;padding:8px 10px;border-radius:10px;border:
 .quickgrid .tile{padding:12px 14px}.quickgrid .tile h3{font-size:1rem}.quickgrid .tile p{font-size:.8rem}
 .feedback .es{display:flex;gap:8px;align-items:flex-start;margin:4px 0 2px;line-height:1.4}
 .feedback .es .flag{flex:none;font:700 .62rem/1 var(--mono, monospace);letter-spacing:.06em;padding:4px 5px;border-radius:5px;background:rgba(255,255,255,.12);margin-top:2px}
+
+/* Real British */
+.video{position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000;margin:0 0 6px}
+.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.realitem{display:flex;gap:12px;align-items:center;text-align:left}
+.realitem .thumb{width:112px;height:63px;object-fit:cover;border-radius:8px;flex:none;background:var(--line, #ddd)}
+.realitem .txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.vocab{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-bottom:1px solid var(--line, rgba(127,127,127,.2))}
+.vocab:last-child{border-bottom:0}
+.card .es,.rqf .es{display:flex;gap:8px;align-items:flex-start;margin:4px 0;line-height:1.4}
+.card .es .flag,.rqf .es .flag{flex:none;font:700 .62rem/1 var(--mono, monospace);letter-spacing:.06em;padding:4px 5px;border-radius:5px;background:rgba(127,127,127,.18);margin-top:2px}
+.rq .opts{display:grid;gap:8px}

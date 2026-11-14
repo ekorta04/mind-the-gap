@@ -288,7 +288,7 @@ function route() {
   const h = (location.hash || "#today").slice(1) || "today";
   const main = $("#main"); main.innerHTML = "";
   const sec = h.split("-")[0];
-  $$(".nav button").forEach(b => b.setAttribute("aria-current", (b.dataset.nav === sec || (sec === "play" && b.dataset.nav === "practice")) ? "page" : "false"));
+  $$(".nav button").forEach(b => b.setAttribute("aria-current", (b.dataset.nav === sec || (sec === "play" && b.dataset.nav === "practice") || (sec === "real" && b.dataset.nav === "listen") || (sec === "quick" && b.dataset.nav === "practice")) ? "page" : "false"));
   const v = document.createElement("section"); v.className = "view"; main.append(v);
   if (h === "today") viewToday(v);
   else if (h === "practice") viewPractice(v);
@@ -299,6 +299,8 @@ function route() {
   else if (h.startsWith("listen-")) viewListening(v, h.slice(7));
   else if (h === "write") viewWriteList(v);
   else if (h.startsWith("write-")) viewWriting(v, h.slice(6));
+  else if (h === "real") viewRealList(v);
+  else if (h.startsWith("real-")) viewReal(v, h.slice(5));
   else if (h === "quick") viewQuick(v);
   else if (h.startsWith("quick-")) startQuick(v, h.slice(6));
   else if (h === "speak") viewSpeakList(v);
@@ -743,12 +745,14 @@ function allListening() { return BANK.listening.concat(S.aiListening); }
 function viewListenList(v) {
   const L = allListening();
   v.innerHTML = `<div class="hello"><span class="eyebrow" style="color:var(--green)">Listening</span><h1>Train your ear</h1><p class="muted">Meetings, match analysis, money podcasts, site briefings — read by a British voice. Listen first, answer, then do the dictation.</p></div>
+  <button class="card tile quickbanner" id="realb" style="--c:var(--red)"><span class="tag">Real people · real accents</span><h3>Real British</h3><p class="muted">BBC Learning English, F1 engineers and UK engineers on video — with exercises made from the real audio.</p></button>
   <div class="card stack"><h3>Voice</h3><div class="row"><select id="voiceSel" aria-label="British voice"></select><span class="muted" id="voiceNote"></span></div><div class="row"><span class="muted">Speed</span><div class="seg-ctl" id="rate">${[0.8, 0.9, 1, 1.1].map(r => `<button aria-pressed="${S.settings.rate === r}" data-r="${r}">${r}×</button>`).join("")}</div><button class="btn small" id="test">${I.speaker} Test</button></div></div>
   ${aiOn() ? `<div class="card stack"><h3>Fresh recording</h3><div class="row"><select id="topic" aria-label="Topic">${INTERESTS.map(t => `<option>${t}</option>`).join("")}</select><select id="kind" aria-label="Format"><option value="a meeting between two colleagues">meeting</option><option value="a radio interview">radio interview</option><option value="a podcast monologue">podcast</option><option value="a heated but friendly debate">debate</option></select><button class="btn ai" id="gen">${I.sparkle} Create it</button></div><p class="muted" id="genMsg"></p></div>` : ""}
   <div class="list">${L.slice().reverse().map(l => `<button class="card item" data-id="${esc(l.id)}" style="--c:var(--green)"><span class="badge">${I.ear}</span><span class="txt"><b>${esc(l.title)}</b><small>${esc(l.topic)} · ${l.lines.length > 4 ? "dialogue" : "monologue"}${l.ai ? " · fresh" : ""}</small></span>${S.listen[l.id] ? `<span class="check">${S.listen[l.id].score}/${l.q.length}</span>` : `<span class="go muted">${I.arrow}</span>`}</button>`).join("")}</div>`;
   paintVoiceSel(); bindRate(v);
   $("#test", v).onclick = () => TTS.speak("Right then. Let's crack on — the kettle's on and the meeting starts in five.");
   $$(".item[data-id]", v).forEach(b => b.onclick = () => go("listen-" + b.dataset.id));
+  $("#realb", v).onclick = () => go("real");
   const gb = $("#gen", v); if (gb) gb.onclick = async () => {
     gb.disabled = true; gb.innerHTML = `<span class="spin"></span> Writing… (≈30 s)`;
     try {
@@ -988,6 +992,119 @@ function viewProgress(v) {
    <div class="score"><small class="muted">Recordings</small><b>${Object.keys(S.listen).length}</b></div>
    <div class="score"><small class="muted">Texts marked</small><b>${S.writings.length}</b></div>
    <div class="score"><small class="muted">Review cards</small><b>${S.deck.length}</b></div></div></div>`;
+}
+
+/* ---------- Real British: real recordings + Gemini exercises ---------- */
+function ytId(u) {
+  const m = String(u || "").trim().match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/))([A-Za-z0-9_-]{11})/) || String(u || "").trim().match(/^([A-Za-z0-9_-]{11})$/);
+  return m ? m[1] : null;
+}
+function realVideo(id) { return (BANK.real || []).find(x => x.yt === id) || (S.realCustom || []).find(x => x.yt === id) || null; }
+function ytEmbed(id, start = 0, end = 0, auto = false) {
+  return `https://www.youtube-nocookie.com/embed/${id}?rel=0&playsinline=1&modestbranding=1${start ? "&start=" + Math.max(0, Math.floor(start)) : ""}${end ? "&end=" + Math.floor(end) : ""}${auto ? "&autoplay=1" : ""}`;
+}
+const fmtT = s => { s = Math.max(0, Math.floor(+s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+
+function viewRealList(v) {
+  S.realEx = S.realEx || {}; S.realCustom = S.realCustom || [];
+  const all = (BANK.real || []).concat(S.realCustom);
+  const topics = ["All"].concat([...new Set(all.map(x => x.topic))]);
+  let f = "All";
+  const paint = () => {
+    const list = all.filter(x => f === "All" || x.topic === f);
+    $("#rl", v).innerHTML = list.map(x => { const ex = S.realEx[x.yt]; return `<button class="card item realitem" data-yt="${esc(x.yt)}" style="--c:var(--red)">
+      <img class="thumb" alt="" loading="lazy" src="https://i.ytimg.com/vi/${esc(x.yt)}/mqdefault.jpg">
+      <span class="txt"><b>${esc(x.t)}</b><small>${esc(x.src || "YouTube")} · ${esc(x.topic || "")}${x.mins ? " · " + x.mins + " min" : ""}${x.long ? " · long" : ""}</small>${ex && ex.done ? `<small class="mono">Score ${ex.done.r}/${ex.done.n}</small>` : ex ? `<small class="mono">Exercises ready</small>` : ""}</span></button>`; }).join("");
+    $$("[data-yt]", v).forEach(b => b.onclick = () => go("real-" + b.dataset.yt));
+  };
+  v.innerHTML = `<button class="btn small" id="back">${I.back} Listening</button>
+  <div class="hello"><span class="eyebrow" style="color:var(--red)">Real British</span><h1>Real people, real voices</h1><p class="muted">Real recordings of British speakers: BBC Learning English, F1 engineers, UK engineers. ${aiOn() ? "Gemini watches the video and builds the exercises for you: questions, key vocabulary in Spanish and dictation with the real audio." : "Add your Gemini key in Settings (⚙) so Gemini can build exercises from each video. You can still watch them."} Needs internet.</p></div>
+  <div class="card stack"><h3>Practise with any video</h3><p class="muted" style="font-size:.85rem">Paste a YouTube link (a talk, an interview, a podcast…). British speakers work best.</p>
+   <div class="row"><input class="answer" id="url" inputmode="url" autocomplete="off" placeholder="https://youtu.be/…" style="flex:1;min-width:0"><button class="btn primary" id="addv">Open</button></div></div>
+  <div class="seg-ctl" id="tp" style="flex-wrap:wrap">${topics.map(t => `<button data-t="${esc(t)}" aria-pressed="${t === f}">${esc(t)}</button>`).join("")}</div>
+  <div class="list" id="rl"></div>`;
+  $("#back", v).onclick = () => go("listen");
+  $$("#tp button", v).forEach(b => b.onclick = () => { f = b.dataset.t; $$("#tp button", v).forEach(x => x.setAttribute("aria-pressed", x === b)); paint(); });
+  $("#addv", v).onclick = () => {
+    const id = ytId($("#url", v).value);
+    if (!id) return toast("That doesn't look like a YouTube link.");
+    if (!realVideo(id)) { S.realCustom.unshift({yt:id, t:"Your video", src:"YouTube", topic:"Mine", custom:true}); S.realCustom = S.realCustom.slice(0, 30); save(); }
+    go("real-" + id);
+  };
+  paint();
+}
+
+function viewReal(v, id) {
+  S.realEx = S.realEx || {};
+  const V = realVideo(id) || {yt:id, t:"YouTube video", src:"YouTube", topic:"Mine"};
+  let ex = S.realEx[id];
+  const watch = "https://www.youtube.com/watch?v=" + id;
+  v.innerHTML = `<button class="btn small" id="back">${I.back} Real British</button>
+  <div class="hello"><span class="eyebrow" style="color:var(--red)">${esc(V.src || "YouTube")} · ${esc(V.topic || "")}</span><h1 id="vt">${esc((ex && ex.title) || V.t)}</h1></div>
+  <div class="video"><iframe id="yt" src="${ytEmbed(id)}" title="Video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+  <p class="muted" style="font-size:.8rem">Step 1: watch it once without help. Step 2: answer. Step 3: learn the key phrases and write what you hear. <a href="${watch}" target="_blank" rel="noopener">Open on YouTube</a> if it doesn't play here.</p>
+  <div id="exs"></div>`;
+  $("#back", v).onclick = () => go("real");
+  const seek = (t, end) => { const f = $("#yt", v); if (f) { f.src = ytEmbed(id, t, end, true); f.scrollIntoView({behavior:"smooth", block:"center"}); } };
+  const box = $("#exs", v);
+  const build = async () => {
+    if (!aiOn()) { box.innerHTML = `<div class="card"><p class="muted">Add your Gemini key in Settings (⚙) and Gemini will create questions, vocabulary in Spanish and a dictation from this video.</p></div>`; return; }
+    box.innerHTML = `<div class="card"><p class="muted"><span class="spin"></span> Gemini is watching the video and preparing your exercises… (≈30–90 s${V.long ? ", longer for this one" : ""})</p></div>`;
+    try {
+      const r = await SAMPLE.videoJSON(`${LEARNER}
+Watch and listen to this video carefully. Build a listening exercise based ONLY on what is actually said in it.
+Reply with only a JSON object:
+{"title": a short title for the video (English),
+ "summary_es": 2 sentences in Spanish summarising it,
+ "speakers": short description of who speaks and their accents (English),
+ "level": "B2|C1|C2",
+ "questions": [6 multiple-choice comprehension questions in English, testing detail, opinion and inference, in the order they appear: {"q": question, "o": [4 options], "a": index 0-3 of the correct option, "t": second in the video where the answer is, "why_es": short explanation in Spanish}],
+ "vocab": [8 useful C1/C2 words or phrases actually said in the video: {"p": the phrase, "m": meaning in simple English, "es": Spanish translation and when to use it (max 15 words), "t": second where it is said}],
+ "dict": [3 short sentences (8–14 words) said clearly in the video, copied exactly as spoken: {"s": exact sentence, "t": second where it starts}]}
+Use the real timestamps. Do not invent content that is not in the video.`, watch);
+      if (!r || !Array.isArray(r.questions) || !r.questions.length) throw {code:"invalid_json"};
+      r.questions = r.questions.filter(q => q && q.q && Array.isArray(q.o) && q.o.length >= 2 && Number.isInteger(+q.a)).slice(0, 8);
+      r.vocab = (Array.isArray(r.vocab) ? r.vocab : []).filter(x => x && x.p).slice(0, 10);
+      r.dict = (Array.isArray(r.dict) ? r.dict : []).filter(x => x && x.s).slice(0, 4);
+      r.made = dayKey();
+      S.realEx[id] = r; ex = r;
+      if (V.custom && r.title) { V.t = r.title; }
+      save(); $("#vt", v).textContent = r.title || V.t; render();
+    } catch (e) { box.innerHTML = `<div class="card stack"><p>${esc(aiErr(e))}</p><div><button class="btn" id="retry">Try again</button></div></div>`; $("#retry", box).onclick = build; }
+  };
+  const render = () => {
+    const ans = {};
+    box.innerHTML = `
+    ${ex.summary_es ? `<div class="card stack"><div class="row"><span class="chip">${esc(ex.level || "")}</span><small class="muted">${esc(ex.speakers || "")}</small></div><details><summary class="muted">Resumen en castellano (míralo después)</summary><p>${esc(ex.summary_es)}</p></details></div>` : ""}
+    <div class="card stack"><h2>Questions</h2>${ex.questions.map((q, i) => `<div class="stack rq" data-q="${i}"><p><b>${i + 1}. ${esc(q.q)}</b></p><div class="opts">${q.o.map((o, j) => `<button class="opt" data-j="${j}">${esc(o)}</button>`).join("")}</div><div class="rqf"></div></div>`).join("")}<div id="rres"></div></div>
+    ${ex.vocab.length ? `<div class="card stack"><div class="row"><h2>Key phrases</h2><span class="spacer"></span><button class="btn small" id="addAll">Add all to review</button></div>${ex.vocab.map((w, i) => `<div class="vocab"><div class="row"><b>${esc(w.p)}</b><span class="spacer"></span>${w.t != null ? `<button class="btn small ghost" data-seek="${+w.t}">${I.speaker} ${fmtT(w.t)}</button>` : ""}</div><small class="muted">${esc(w.m || "")}</small>${w.es ? `<p class="es"><span class="flag">ES</span> ${esc(w.es)}</p>` : ""}</div>`).join("")}</div>` : ""}
+    ${ex.dict.length ? `<div class="card stack"><h2>Dictation — real audio</h2><p class="muted" style="font-size:.85rem">Play the moment, listen (as many times as you need) and write exactly what they say.</p>${ex.dict.map((d, i) => `<div class="stack"><div class="row"><button class="btn small" data-seek="${Math.max(0, (+d.t || 0) - 1)}" data-end="${(+d.t || 0) + 8}">${I.speaker} Play ${fmtT(d.t)}</button></div><textarea class="answer" rows="2" data-di="${i}" autocapitalize="sentences" placeholder="Write what you hear…"></textarea><div class="row"><button class="btn small" data-chk="${i}">Check</button></div><div data-dout="${i}"></div></div>`).join("")}</div>` : ""}
+    <p class="muted" style="font-size:.8rem">Exercises generated by Gemini from the video${ex.made ? " on " + ex.made : ""}. If something doesn't match what you hear, trust your ears. <button class="btn small ghost" id="regen">Make new exercises</button></p>`;
+    $$(".rq", box).forEach(el => { const i = +el.dataset.q, q = ex.questions[i];
+      $$(".opt", el).forEach(b => b.onclick = () => {
+        if (i in ans) return; const j = +b.dataset.j, ok = j === +q.a; ans[i] = ok;
+        $$(".opt", el).forEach(x => { x.disabled = true; if (+x.dataset.j === +q.a) x.classList.add("right"); });
+        if (!ok) b.classList.add("wrong");
+        record("listening", ok); S.seen["real-" + id + "-" + i] = ok ? 1 : -1;
+        $(".rqf", el).innerHTML = `<div class="row" style="gap:8px;align-items:flex-start">${q.why_es ? `<p class="es" style="flex:1"><span class="flag">ES</span> ${esc(q.why_es)}</p>` : `<span class="spacer"></span>`}${q.t != null ? `<button class="btn small ghost" data-seek="${Math.max(0, +q.t - 3)}">${I.speaker} Replay ${fmtT(q.t)}</button>` : ""}</div>`;
+        bindSeek(el);
+        if (Object.keys(ans).length === ex.questions.length) {
+          const r = Object.values(ans).filter(Boolean).length, xp = r * 15 + 25; addXP(xp); markDone("listen");
+          ex.done = {r, n:ex.questions.length, d:dayKey()}; save();
+          $("#rres", box).innerHTML = `<div class="feedback ${r >= ex.questions.length * 0.6 ? "ok" : "ko"} pop"><b class="t">${r}/${ex.questions.length} · +${xp} XP</b><p>${r === ex.questions.length ? "Brilliant — real-speed British English, no problem." : "Use the Replay buttons to hear the parts you missed."}</p></div>`;
+          if (r === ex.questions.length) confetti();
+        }
+      }); });
+    const bindSeek = root => $$("[data-seek]", root).forEach(b => b.onclick = () => seek(+b.dataset.seek, b.dataset.end ? +b.dataset.end : 0));
+    bindSeek(box);
+    const aa = $("#addAll", box); if (aa) aa.onclick = () => { ex.vocab.forEach(w => addCard({k:"vocab", f:w.p, b:(w.m || "") + (w.es ? " — " + w.es : ""), ex:V.t})); aa.disabled = true; aa.textContent = "Added ✓"; toast("Added to your review deck."); };
+    $$("[data-chk]", box).forEach(b => b.onclick = () => { const i = +b.dataset.chk, ta = $(`[data-di="${i}"]`, box);
+      const r = lcsDiff(ex.dict[i].s.replace(/[.,!?;:—–"“”]/g, ""), ta.value.replace(/[.,!?;:—–"“”]/g, ""));
+      $(`[data-dout="${i}"]`, box).innerHTML = `<p>${r.html}</p><p class="muted">${Math.round(r.score * 100)}% accurate${r.score === 1 ? " · +20 XP" : ""}.</p>`;
+      if (r.score === 1) addXP(20); record("spelling", r.score >= 0.9); });
+    $("#regen", box).onclick = () => { delete S.realEx[id]; ex = null; save(); build(); };
+  };
+  if (ex) render(); else build();
 }
 
 /* ---------- quick play: short rounds (2–5 min) ---------- */

@@ -373,3 +373,25 @@ BANK.gram = [
   {s:"There's no point ___ the meeting if the client can't come.", o:["in having","to have","have","for have"], a:0, why:"There's no point (in) + -ing."},
   {s:"The fewer mistakes you make, ___ the review will be.", o:["the shorter","shorter","the shortest","the more short"], a:0, why:"Double comparative."}
 ];
+
+/* ---------- Real British: real people, real recordings (YouTube) ----------
+   Vídeos públicos. Los ejercicios los prepara Gemini viendo el vídeo
+   (necesita internet y la clave de Gemini). IDs comprobados en YouTube. */
+BANK.real = [
+  {yt:"efc3fFMCvvc", t:"Project management — English at Work 31", src:"BBC Learning English", topic:"Work", mins:5},
+  {yt:"L3QbkK0bB44", t:"Delivering bad news — English at Work 27", src:"BBC Learning English", topic:"Work", mins:6},
+  {yt:"-HZrTUNJKCs", t:"Negotiating — English at Work 30", src:"BBC Learning English", topic:"Work", mins:5},
+  {yt:"o9KEaQCWqDg", t:"Negotiating a deal — English at Work 32", src:"BBC Learning English", topic:"Work", mins:6},
+  {yt:"zS2bmhmGCsI", t:"Keeping things professional — English at Work 28", src:"BBC Learning English", topic:"Work", mins:6},
+  {yt:"RS4MrptnnP8", t:"Tech that refuses to die — 6 Minute English", src:"BBC Learning English", topic:"Technology", mins:6},
+  {yt:"StEB_wntlZ0", t:"Is technology harmful to youngsters? — 6 Minute English", src:"BBC Learning English", topic:"Technology", mins:6},
+  {yt:"wMQjmpVgor8", t:"How can we make the web a better place? — 6 Minute English", src:"BBC Learning English", topic:"Technology", mins:6},
+  {yt:"OO5OObiYWac", t:"What makes the perfect pit stop? (Ron Meadows, Mercedes)", src:"Mercedes-AMG F1", topic:"F1"},
+  {yt:"E__Yxf21EV8", t:"Formula 1 pit stops explained (Red Bull Racing)", src:"Oracle Red Bull Racing", topic:"F1"},
+  {yt:"WG7TP1lARDM", t:"The double-stack pit stop, explained (James Allison)", src:"Mercedes-AMG F1", topic:"F1"},
+  {yt:"K7EEBE-2Wf4", t:"Ruth Buscombe on the role of the F1 strategy engineer", src:"Formula 1", topic:"F1"},
+  {yt:"1mQ_BUA67kw", t:"Manufacturing at Caterpillar UK — engineers on camera", src:"The Royal Institution", topic:"Engineering"},
+  {yt:"9DXq7SRkD54", t:"Business & Work — 6 Minute English box set", src:"BBC Learning English", topic:"Work", mins:30, long:true},
+  {yt:"m9LyXOBmQvo", t:"Business & Work 2 — 6 Minute English box set", src:"BBC Learning English", topic:"Work", mins:30, long:true},
+  {yt:"-p1gn1lMVqw", t:"Sport — 6 Minute English box set", src:"BBC Learning English", topic:"Sport", mins:30, long:true}
+];
