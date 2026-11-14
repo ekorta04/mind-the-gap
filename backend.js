@@ -170,6 +170,7 @@
     if (!box) return;
     const u = await currentUser();
     const key = ls.get(KEY_LS);
+    try { window.MTG_VERSION = ((await caches.keys()).find(k => /^mtg-v\d+$/.test(k)) || "").replace("mtg-", ""); } catch (e) {}
     box.innerHTML = `
       <div class="stack" style="gap:6px"><b>Account &amp; sync</b>
         ${!sb ? `<p class="muted">Sync library not loaded. Progress is saved on this device.</p>` :
@@ -180,10 +181,10 @@
              <input class="answer" id="mtgPass" type="password" autocomplete="current-password" placeholder="Password">
              <div><button class="btn small" id="mtgIn">Sign in</button> <small class="muted" id="mtgMsg"></small></div>`}
       </div>
-      <div class="stack" style="gap:6px"><b>AI (Gemini)</b>
+      <div class="stack" style="gap:6px"><b>AI (Gemini)</b> <small class="muted">App ${esc(window.MTG_VERSION || "")}</small>
         <p class="muted" style="font-size:.85rem">${key ? "Key saved on this device. Model: " + esc(ls.get(MODEL_LS) || "auto") : "Paste your free key from aistudio.google.com/apikey to enable writing marking, explanations and new content."}</p>
         <input class="answer" id="mtgKey" type="password" autocomplete="off" spellcheck="false" placeholder="${key ? "•••••••• (saved)" : "Gemini API key"}">
-        <div class="row"><button class="btn small" id="mtgSaveKey">Save key</button>${key ? ` <button class="btn small" id="mtgTest">Test</button> <button class="btn small" id="mtgDelKey">Remove</button>` : ""}</div>
+        <div class="row"><button class="btn small" id="mtgSaveKey">Save &amp; test</button> <button class="btn small" id="mtgTest">Test</button>${key ? ` <button class="btn small" id="mtgDelKey">Remove</button>` : ""}</div>
         <small class="muted" id="mtgKeyMsg"></small>
       </div>`;
     const $ = s => box.querySelector(s);
@@ -195,17 +196,36 @@
       location.reload();
     };
     if ($("#mtgOut")) $("#mtgOut").onclick = async () => { try { await sb.auth.signOut(); } catch (e) {} location.reload(); };
-    $("#mtgSaveKey").onclick = () => {
-      const v = $("#mtgKey").value.trim();
+    $("#mtgSaveKey").onclick = async () => {
+      const v = $("#mtgKey").value.replace(/\s+/g, "");
       if (!v) return msg("#mtgKeyMsg", "Paste the key first.");
-      ls.set(KEY_LS, v); ls.set(MODEL_LS, ""); location.reload();
+      const r = await runTest(v);
+      if (r.ok) { ls.set(KEY_LS, v); ls.set(MODEL_LS, r.model); ls.set("mtg-gemini-skip", ""); msg("#mtgKeyMsg", "✓ Key works and is saved (" + r.model + "). Reloading…"); setTimeout(() => location.reload(), 1200); }
     };
     if ($("#mtgDelKey")) $("#mtgDelKey").onclick = () => { ls.set(KEY_LS, ""); location.reload(); };
-    if ($("#mtgTest")) $("#mtgTest").onclick = async () => {
-      msg("#mtgKeyMsg", "Testing…");
-      try { const r = await sample("Reply with exactly: Cheers, it works."); msg("#mtgKeyMsg", "✓ " + r.trim().slice(0, 60) + " (" + ls.get(MODEL_LS) + ")"); }
-      catch (e) { msg("#mtgKeyMsg", window.MTG.errText(e)); }
-    };
+    $("#mtgTest").onclick = () => runTest($("#mtgKey").value.replace(/\s+/g, "") || ls.get(KEY_LS));
+    // Prueba rápida y clara: cada modelo con 15 s como máximo, y dice exactamente qué ha pasado
+    async function runTest(k) {
+      if (!k) { msg("#mtgKeyMsg", "There's no key on this device yet. Paste it above and tap Save & test."); return {ok:false}; }
+      if (!navigator.onLine) { msg("#mtgKeyMsg", "You're offline. Connect to the internet and try again."); return {ok:false}; }
+      const log = [];
+      for (const model of ["gemini-flash-lite-latest", "gemini-flash-latest", "gemini-3.8-flash"]) {
+        msg("#mtgKeyMsg", "Testing " + model + "…");
+        const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 15000);
+        try {
+          const res = await fetch(endpoint(model, false), { method:"POST", signal:ctl.signal, headers:{ "Content-Type":"application/json", "x-goog-api-key":k },
+            body: JSON.stringify({ contents:[{ role:"user", parts:[{ text:"Reply with exactly: Cheers, it works." }] }] }) });
+          clearTimeout(t);
+          const txt = await res.text();
+          if (res.ok) { let out = ""; try { out = textOf(JSON.parse(txt)); } catch (e) {} msg("#mtgKeyMsg", "✓ " + (out.trim().slice(0, 40) || "OK") + " — " + model); return {ok:true, model}; }
+          let m = ""; try { m = JSON.parse(txt).error.message; } catch (e) {}
+          log.push(model + ": " + res.status + (m ? " " + m.slice(0, 90) : ""));
+          if (res.status === 400 || res.status === 401 || res.status === 403) break;   // problema de la clave: no hace falta probar más modelos
+        } catch (e) { clearTimeout(t); log.push(model + ": " + (e && e.name === "AbortError" ? "no answer in 15 s" : "network error")); }
+      }
+      msg("#mtgKeyMsg", "✗ " + log.join(" · "));
+      return {ok:false};
+    }
   }
 
   function errText(e) {

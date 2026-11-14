@@ -163,6 +163,7 @@ function voiceQ(v) {
   return {score:1, label:""};
 }
 // La voz elegida se guarda por dispositivo (iPhone y PC tienen voces distintas)
+const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 function myVoice() { try { return localStorage.getItem("mtg-voice") || ""; } catch (e) { return ""; } }
 function setMyVoice(x) { try { localStorage.setItem("mtg-voice", x); } catch (e) {} }
 const TTS = {
@@ -181,7 +182,9 @@ const TTS = {
   },
   voice(i = 0) {
     if (!this.list.length) return null;
-    const mine = myVoice(); let base = this.list.findIndex(v => v.name === mine || v.voiceURI === mine); if (base < 0) base = 0;
+    if (isIOS() && (myVoice() === "system" || !myVoice()) && i > 0) return this.list[(i - 1) % this.list.length];   // 2.º hablante en diálogos
+    const mine = myVoice(); if (mine === "system" || (!mine && isIOS() && i === 0)) return null;
+    let base = this.list.findIndex(v => v.name === mine || v.voiceURI === mine); if (base < 0) base = 0;
     return this.list[(base + i) % this.list.length];
   },
   chunks(text) { return (String(text).match(/[^.!?]+[.!?]+["')\]]*|\S[^.!?]*$/g) || [text]).map(s => s.trim()).filter(Boolean); },
@@ -779,7 +782,8 @@ function paintVoiceSel() {
   const sel = $("#voiceSel"); if (!sel) return;
   if (!TTS.list.length) { sel.innerHTML = `<option>${"speechSynthesis" in window ? "Default English voice" : "No voice available"}</option>`; sel.disabled = true; const n = $("#voiceNote"); if (n) n.textContent = "No British voice installed. On iPhone: Settings › Accessibility › Spoken Content › Voices › English (UK). On Windows: Settings › Time & language › Speech."; return; }
   const cur = TTS.voice();
-  sel.disabled = false; sel.innerHTML = TTS.list.map(vc => `<option value="${esc(vc.voiceURI || vc.name)}" ${cur && vc === cur ? "selected" : ""}>${esc(vc.name)}${voiceQ(vc).label ? " · " + voiceQ(vc).label : ""}</option>`).join("");
+  const sys = isIOS() ? `<option value="system" ${(myVoice() === "system" || !myVoice()) ? "selected" : ""}>iPhone voice (the one set in Settings › Spoken Content)</option>` : "";
+  sel.disabled = false; sel.innerHTML = sys + TTS.list.map(vc => `<option value="${esc(vc.voiceURI || vc.name)}" ${cur && vc === cur && myVoice() !== "system" && (myVoice() || !isIOS()) ? "selected" : ""}>${esc(vc.name)}${voiceQ(vc).label ? " · " + voiceQ(vc).label : ""}</option>`).join("");
   sel.onchange = () => { setMyVoice(sel.value); TTS.speak("Lovely. This is how I sound."); };
   const best = TTS.list.length ? voiceQ(TTS.list[0]) : null;
   const n = $("#voiceNote"); if (n) n.textContent = TTS.list.length + " British voice" + (TTS.list.length > 1 ? "s" : "") + " on this device" + (best && best.score < 2 && /iPhone|iPad|Mac/i.test(navigator.userAgent) ? ". For a more natural voice, download a Premium or Enhanced UK voice (Settings › Accessibility › Spoken Content › Voices › English › English (UK)), then close and reopen the app." : best && best.label ? "." : ".");
