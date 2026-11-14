@@ -395,3 +395,104 @@ BANK.real = [
   {yt:"m9LyXOBmQvo", t:"Business & Work 2 — 6 Minute English box set", src:"BBC Learning English", topic:"Work", mins:30, long:true},
   {yt:"-p1gn1lMVqw", t:"Sport — 6 Minute English box set", src:"BBC Learning English", topic:"Sport", mins:30, long:true}
 ];
+
+/* ===== Iteración: temario C1/C2 ampliado =====
+   Ejercicios originales que cubren estructuras típicas de un curso C1/C2 que faltaban:
+   subjuntivo, unreal past, causativa, participle clauses, énfasis, inversión en condicionales,
+   nominalización, colocaciones (wide/strong/deep/high, make/keep) y British vs American English. */
+BANK.gram = BANK.gram.concat([
+  {s:"The auditor insisted that the report ___ resubmitted by Friday.", o:["be","is","was","would be"], a:0, why:"Subjunctive after insist/demand/suggest that: base form (be).", es:"Tras insist/demand/suggest that va el verbo en forma base: that it BE. Es formal y muy de C2."},
+  {s:"It is essential that every contractor ___ the induction before entering the site.", o:["complete","completes","completed","will complete"], a:0, why:"It is essential/vital that + subject + base form (no -s).", es:"It is essential that + sujeto + forma base, sin -s en tercera persona."},
+  {s:"I'd sooner you ___ mention this to the client yet.", o:["didn't","don't","won't","wouldn't"], a:0, why:"would sooner/rather + another subject + past simple (present meaning).", es:"would sooner/rather + otra persona + pasado, aunque hable del presente: preferiría que no lo mencionaras."},
+  {s:"If only we ___ the warranty before it expired.", o:["had extended","extended","would extend","have extended"], a:0, why:"If only + past perfect: regret about the past.", es:"If only + past perfect para lamentar algo del pasado: ojalá hubiéramos ampliado."},
+  {s:"We're having the fire alarms ___ next week.", o:["tested","test","testing","to test"], a:0, why:"Causative: have + object + past participle (someone does it for us).", es:"Causativa: have + objeto + participio. Otro lo hace por nosotros: nos van a revisar las alarmas."},
+  {s:"I'll get the supplier ___ a revised quote.", o:["to send","send","sent","sending"], a:0, why:"get + person + to-infinitive = persuade/arrange for someone to do it.", es:"get + persona + to + infinitivo = conseguir que alguien haga algo. Con have va sin to: have him send."},
+  {s:"She had her laptop ___ on the train.", o:["stolen","steal","to steal","stealing"], a:0, why:"have + object + past participle can also describe something bad that happened to you.", es:"have + objeto + participio también sirve para algo malo que te pasa: le robaron el portátil."},
+  {s:"The site manager made everyone ___ the safety briefing again.", o:["attend","to attend","attending","attended"], a:0, why:"make + object + bare infinitive (active).", es:"make + persona + infinitivo sin to (en activa): obligar a alguien a hacer algo."},
+  {s:"We were made ___ three hours for the permit.", o:["to wait","wait","waiting","waited"], a:0, why:"In the passive, make takes the to-infinitive: be made to do.", es:"En pasiva, make sí lleva to: we were made TO wait."},
+  {s:"___ the drawings twice, she was confident there were no errors.", o:["Having checked","Checked","Being checked","To check"], a:0, why:"Perfect participle clause: one action completed before the other, same subject.", es:"Having + participio: una acción terminada antes que la otra, con el mismo sujeto. Tras revisar…"},
+  {s:"___ in 1962, the plant still runs on its original boilers.", o:["Built","Building","Having built","To build"], a:0, why:"Past participle clause with passive meaning: (which was) built in 1962.", es:"Participio pasado con sentido pasivo: construida en 1962, la planta…"},
+  {s:"Not ___ the area, we relied on the local technician.", o:["knowing","known","to know","knew"], a:0, why:"Present participle clause giving a reason: because we didn't know.", es:"Not + -ing para dar la causa: como no conocíamos la zona…"},
+  {s:"What ___ me most was how calm the team stayed.", o:["impressed","it impressed","was impressed","impressing"], a:0, why:"Cleft sentence with What…: What + verb + was… for emphasis.", es:"Frase enfática con What: lo que más me impresionó fue…"},
+  {s:"It was only after the audit ___ we realised the scale of the problem.", o:["that","when","what","which"], a:0, why:"Cleft sentence: It was… that…", es:"Estructura enfática It was… THAT…: fue solo después de la auditoría cuando…"},
+  {s:"___ the contractor to pull out, we would need a plan B.", o:["Were","Should","Had","If"], a:0, why:"Inverted second conditional: Were + subject + to-infinitive = If the contractor pulled out.", es:"Condicional invertida formal: Were + sujeto + to + infinitivo = If the contractor pulled out."},
+  {s:"___ it not been for the backup generator, the whole line would have stopped.", o:["Had","Were","Should","If"], a:0, why:"Inverted third conditional: Had it not been for = If it hadn't been for.", es:"Had it not been for… = de no haber sido por… (tercera condicional invertida)."},
+  {s:"If we had signed the contract last year, we ___ much less now.", o:["would be paying","would have paid","will pay","had paid"], a:0, why:"Mixed conditional: past condition, present result (now).", es:"Condicional mixta: condición en el pasado y resultado en el presente (now) → would + infinitivo."},
+  {s:"You can borrow the van ___ you bring it back by six.", o:["provided","unless","in case","supposing"], a:0, why:"provided (that) = only if.", es:"provided (that) = siempre que, con la condición de que."},
+  {s:"___ for the delay at customs, the parts would be here already.", o:["But","Except","Without","Unless"], a:0, why:"But for + noun = if it weren't for.", es:"But for + sustantivo = si no fuera por."},
+  {s:"Tired ___ she was, she stayed to finish the handover.", o:["as","although","despite","however"], a:0, why:"Adjective + as/though + subject + verb = although she was tired (emphatic).", es:"Adjetivo + as/though + sujeto + verbo: por muy cansada que estuviera. Concesión enfática."},
+  {s:"___ hard we tried, we couldn't get the pump to start.", o:["However","Although","Despite","No matter"], a:0, why:"However + adjective/adverb = no matter how.", es:"However + adjetivo/adverbio = por mucho que. 'No matter' necesitaría how."},
+  {s:"After months of tuning, the result was ___ perfect.", o:["absolutely","very","extremely","fairly"], a:0, why:"Non-gradable (extreme) adjectives take absolutely/completely, not very.", es:"Los adjetivos absolutos (perfect, essential, impossible) van con absolutely/completely, nunca con very."},
+  {s:"This proposal ___ three separate phases.", o:["consists of","is consisting of","consists in","is consisted of"], a:0, why:"Stative verb: no continuous, no passive. consist of = be made up of.", es:"consist of es verbo de estado: sin forma continua ni pasiva."},
+  {s:"The ceremony is ___ start — please take your seats.", o:["about to","due","bound","on the verge"], a:0, why:"be about to + infinitive = going to happen very soon.", es:"be about to + infinitivo = estar a punto de."},
+  {s:"The technician admitted ___ to isolate the circuit.", o:["having forgotten","to forget","forget","that forgetting"], a:0, why:"admit + -ing (or having + past participle).", es:"admit + -ing / having + participio: admitió haber olvidado."},
+  {s:"The manager urged us ___ the deadline seriously.", o:["to take","taking","take","that we take"], a:0, why:"urge + object + to-infinitive.", es:"urge / encourage / advise / warn + persona + to + infinitivo."},
+  {s:"There has been a sharp ___ in energy costs.", o:["rise","rising","risen","raise"], a:0, why:"Nominalisation: a sharp rise in (noun), more formal than 'costs have risen sharply'.", es:"Nominalización: a sharp rise IN. En textos formales se prefiere el sustantivo al verbo."},
+  {s:"___ of the two proposals was accepted; we have to start again.", o:["Neither","None","Either","Both"], a:0, why:"Neither (of two) + singular verb. None is for three or more.", es:"Neither = ninguno de dos (verbo en singular). None se usa con tres o más."},
+  {s:"We have ___ information about the new regulations so far.", o:["little","few","a few","many"], a:0, why:"Uncountable noun → little. 'little' = not much (negative idea).", es:"information es incontable → little (poca). few/many van con contables."},
+  {s:"I ___ call you yesterday, but the meeting overran.", o:["was going to","would","used to","am going to"], a:0, why:"was going to = intention in the past that didn't happen.", es:"was going to = iba a (intención pasada que no se cumplió)."}
+]);
+
+BANK.kwt = BANK.kwt.concat([
+  {s1:"They are repairing our roof next week.", key:"HAVING", pre:"We are", post:"next week.", a:["having our roof repaired"], why:"Causative: have + object + past participle.", es:"Causativa: have + objeto + participio (nos lo hace otro)."},
+  {s1:"We only finished on time because the night shift helped.", key:"BEEN", pre:"We wouldn't have finished on time had it", post:"the night shift.", a:["not been for"], why:"Had it not been for = if it hadn't been for.", es:"Had it not been for = de no haber sido por (condicional invertida)."},
+  {s1:"I regret not checking the invoice.", key:"WISH", pre:"I", post:"the invoice.", a:["wish I had checked","wish I'd checked"], why:"wish + past perfect for regrets about the past.", es:"wish + past perfect para lamentar el pasado."},
+  {s1:"The director demanded a full written report from the team.", key:"SUBMIT", pre:"The director demanded that the team", post:"report.", a:["submit a full written","should submit a full written"], why:"demand that + subject + (should) + base form.", es:"demand that + sujeto + (should) + forma base: subjuntivo."},
+  {s1:"She was very tired, but she finished the audit.", key:"THOUGH", pre:"Tired", post:"finished the audit.", a:["though she was, she","though she was she"], why:"Adjective + though + subject + verb = although.", es:"Adjetivo + though + sujeto + verbo: concesión enfática."},
+  {s1:"As soon as the shutdown began, a valve failed.", key:"SOONER", pre:"No", post:"than a valve failed.", a:["sooner had the shutdown begun"], why:"No sooner + had + subject + past participle + than.", es:"No sooner + inversión con past perfect + than."},
+  {s1:"People say the company is planning to open a new plant.", key:"SAID", pre:"The company", post:"to open a new plant.", a:["is said to be planning"], why:"Passive reporting: subject + is said + to be -ing.", es:"Pasiva impersonal: is said to be + -ing (se dice que está planeando)."},
+  {s1:"I'd prefer you not to tell the client yet.", key:"RATHER", pre:"I", post:"the client yet.", a:["would rather you didn't tell","'d rather you didn't tell","would rather you did not tell","'d rather you did not tell"], why:"would rather + subject + past simple.", es:"would rather + otra persona + pasado."},
+  {s1:"The price of copper rose sharply, which surprised analysts.", key:"RISE", pre:"Analysts were surprised by", post:"the price of copper.", a:["the sharp rise in"], why:"Nominalisation: verb + adverb → adjective + noun. rise IN.", es:"Nominalización: rose sharply → the sharp rise IN."},
+  {s1:"Someone must check the extinguishers every year.", key:"CHECKED", pre:"We must", post:"every year.", a:["have the extinguishers checked","get the extinguishers checked"], why:"Causative: have/get + object + past participle.", es:"Causativa: have/get + objeto + participio."}
+]);
+
+BANK.mc = BANK.mc.concat([
+  {s:"There is a ___ range of suppliers to choose from.", o:["wide","deep","high","strong"], a:0, why:"a wide range/variety/choice.", es:"a wide range = una amplia gama. También wide variety, wide choice."},
+  {s:"The proposal met with ___ opposition from the union.", o:["strong","deep","high","wide"], a:0, why:"strong opposition/criticism/support.", es:"strong opposition = fuerte oposición. También strong support, strong criticism."},
+  {s:"I have ___ respect for the way she handled the crisis.", o:["deep","wide","tall","heavy"], a:0, why:"deep respect/concern/regret.", es:"deep respect = profundo respeto. También deep concern, deep regret."},
+  {s:"Expectations are ___ after last season's title.", o:["high","deep","wide","strong"], a:0, why:"high expectations/standards/priority.", es:"high expectations = grandes expectativas. También high standards, high priority."},
+  {s:"Could you ___ me posted on any changes?", o:["keep","make","hold","put"], a:0, why:"keep someone posted = keep them informed.", es:"keep me posted = mantenme informado."},
+  {s:"Let's ___ the most of the dry weather and finish the roof.", o:["make","take","do","get"], a:0, why:"make the most of = take full advantage of.", es:"make the most of = aprovechar al máximo."},
+  {s:"It took me a while to ___ sense of the new regulations.", o:["make","take","do","find"], a:0, why:"make sense of = understand.", es:"make sense of = entender, sacar algo en claro."},
+  {s:"Please ___ an eye on the pressure gauge.", o:["keep","put","hold","take"], a:0, why:"keep an eye on = watch carefully.", es:"keep an eye on = vigilar, no perder de vista."},
+  {s:"The delay ___ in a penalty of £5,000.", o:["resulted","led","caused","brought"], a:0, why:"result IN; lead TO; cause + object.", es:"result IN = dar lugar a. Ojo: lead TO, cause (sin preposición)."},
+  {s:"She is ___ of leading a much bigger team.", o:["capable","able","competent","skilled"], a:0, why:"capable OF + -ing; able TO + infinitive.", es:"capable OF + -ing. able va con TO + infinitivo."},
+  {s:"We're running ___ time — can we skip to the last item?", o:["short of","out","low at","off"], a:0, why:"run short of / run out of time.", es:"run short of time = ir justos de tiempo. run out necesitaría OF."},
+  {s:"The project finally ___ shape once the new manager arrived.", o:["took","made","got","put"], a:0, why:"take shape = develop into something clear.", es:"take shape = tomar forma."},
+  {s:"I can't ___ up with the noise from the compressor any longer.", o:["put","keep","take","get"], a:0, why:"put up with = tolerate.", es:"put up with = aguantar, soportar."},
+  {s:"He's been ___ pressure to cut costs.", o:["under","in","on","with"], a:0, why:"under pressure.", es:"under pressure = bajo presión."},
+  {s:"In Britain, you fill up the car with ___.", o:["petrol","gas","gasoline","fuel oil"], a:0, why:"British: petrol. American: gas/gasoline.", es:"Británico: petrol. Americano: gas / gasoline."},
+  {s:"A Brit says 'ground floor'; an American calls the same level the ___ floor.", o:["first","second","basement","lower"], a:0, why:"UK ground floor = US first floor. UK first floor = US second floor.", es:"Planta baja: ground floor (UK) = first floor (US). Importante al quedar con alguien en un edificio."},
+  {s:"In British English, the document listing your work experience is your ___.", o:["CV","résumé","career","curriculum"], a:0, why:"British: CV. American: résumé. 'Career' = trayectoria profesional.", es:"Británico: CV. Americano: résumé. career es un falso amigo (trayectoria, no carrera universitaria)."},
+  {s:"British English: 'I'll be on ___ for two weeks in August.'", o:["holiday","vacation","holidays","free days"], a:0, why:"British: on holiday (singular). American: on vacation.", es:"Británico: on holiday (en singular). Americano: on vacation."},
+  {s:"British spelling: 'We need to ___ the results.'", o:["analyse","analyze","analise","analize"], a:0, why:"British: analyse. American: analyze.", es:"Británico: analyse (con s). Americano: analyze."},
+  {s:"British usage: 'What are you doing ___ the weekend?'", o:["at","on","in","by"], a:0, why:"British: at the weekend. American: on the weekend.", es:"Británico: AT the weekend. Americano: on the weekend."}
+]);
+
+BANK.wf = BANK.wf.concat([
+  {s:"The inspector criticised the ___ of the fire doors.", stem:"ADEQUATE", a:["inadequacy"], why:"Noun after 'the': in- + adequa- + -cy.", es:"Tras 'the' va un sustantivo, y el sentido es negativo (criticised): inadequacy = insuficiencia."},
+  {s:"It would be ___ to sign before reading the small print.", stem:"RESPONSIBLE", a:["irresponsible"], why:"Negative prefix ir- before r.", es:"Prefijo negativo ir- delante de r: irresponsible, irregular, irrelevant."},
+  {s:"The findings of the two reports are completely ___.", stem:"CONSISTENT", a:["inconsistent"], why:"Negative adjective: in- + consistent.", es:"in- + consistent = incoherente, contradictorio."},
+  {s:"The ___ of the old boiler will take two days.", stem:"REMOVE", a:["removal"], why:"Noun with -al: remove → removal.", es:"Sustantivo en -al: removal (retirada). Igual: arrival, approval, proposal."},
+  {s:"The data was ___ and had to be collected again.", stem:"RELY", a:["unreliable"], why:"un- + rely (y → i) + -able.", es:"un- + reli + -able: la y pasa a i. Poco fiable."},
+  {s:"Her ___ as head of maintenance was announced on Monday.", stem:"APPOINT", a:["appointment"], why:"Noun after a possessive: appoint + -ment.", es:"Tras posesivo va sustantivo: appointment = nombramiento (y también cita)."},
+  {s:"We need to ___ the reporting process; it has too many steps.", stem:"SIMPLE", a:["simplify"], why:"Verb after 'need to': simple → simplify.", es:"Tras 'need to' va un verbo: simplify. Sufijo verbal -ify (clarify, justify)."},
+  {s:"The ___ of the control system will cost over a million.", stem:"MODERN", a:["modernisation"], us:["modernization"], why:"Noun: modern + -isation (British spelling).", es:"Sustantivo en -isation con s (británico): modernisation."},
+  {s:"The ___ of the new line doubled our output.", stem:"INSTALL", a:["installation"], why:"Noun: install + -ation.", es:"Sustantivo en -ation: installation."},
+  {s:"He was dismissed for gross ___.", stem:"CONDUCT", a:["misconduct"], why:"mis- = wrongly/badly. Gross misconduct is a fixed legal phrase.", es:"mis- = mal. gross misconduct = falta grave (expresión fija en despidos)."},
+  {s:"The ___ majority of faults are caused by poor maintenance.", stem:"OVERWHELM", a:["overwhelming"], why:"Collocation: the overwhelming majority.", es:"Colocación fija: the overwhelming majority = la inmensa mayoría."},
+  {s:"We must ___ that the area is isolated before work starts.", stem:"SURE", a:["ensure"], why:"Verb with prefix en-: ensure (make certain).", es:"Prefijo en- para formar verbos: ensure (asegurarse), enable, enlarge."}
+]);
+
+BANK.oc = BANK.oc.concat([
+  {s:"___ it not been for the alarm, nobody would have noticed the leak.", a:["had"], why:"Inverted third conditional: Had it not been for…", es:"Had it not been for = de no haber sido por."},
+  {s:"It is vital that the valve ___ closed before maintenance begins.", a:["be","is"], why:"Subjunctive: it is vital that + base form (be). 'is' is also heard in everyday English.", es:"Subjuntivo formal: that the valve BE closed. En el día a día también se oye 'is'."},
+  {s:"Try ___ she might, she couldn't open the panel.", a:["as"], why:"Try as she might = although she tried very hard.", es:"Try as she might = por mucho que lo intentó (expresión fija)."},
+  {s:"We had the whole system checked ___ an independent engineer.", a:["by"], why:"Causative + by + agent.", es:"Causativa + by + quien lo hace."},
+  {s:"___ for your help, I'd still be stuck on site.", a:["but"], why:"But for = if it weren't for.", es:"But for = si no fuera por."},
+  {s:"The site, most of ___ is underground, is hard to inspect.", a:["which"], why:"Quantifier + of which in a non-defining relative clause.", es:"most of WHICH: relativo tras cuantificador (para cosas). Para personas: most of whom."},
+  {s:"She succeeded ___ convincing the board.", a:["in"], why:"succeed IN + -ing.", es:"succeed IN + -ing (no 'succeed to')."},
+  {s:"___ having little experience, he handled the client well.", a:["despite"], why:"despite + -ing.", es:"despite + -ing = a pesar de."},
+  {s:"The manager objected ___ being left out of the decision.", a:["to"], why:"object TO + -ing (to is a preposition).", es:"object TO + -ing: aquí to es preposición."},
+  {s:"On no ___ should this door be left open.", a:["account"], why:"On no account + inversion = under no circumstances.", es:"On no account + inversión = bajo ningún concepto."}
+]);

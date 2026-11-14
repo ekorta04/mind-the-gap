@@ -1,7 +1,7 @@
 /* Service worker · Mind the Gap
    Guarda la app en caché para que funcione sin conexión.
    IMPORTANTE: al cambiar cualquier archivo, sube el número de versión. */
-const CACHE = "mtg-v13";
+const CACHE = "mtg-v14";
 const FILES = [
   "./", "./index.html", "./manifest.webmanifest", "./style.css",
   "./vendor/supabase-2.118.0.min.js", "./backend.js", "./data.js", "./extra.js", "./es.js", "./tips.js", "./app.js",
