@@ -137,7 +137,7 @@ const TIPS = {
     ],
     ctx: [
       {re:/^\s*(Not only|Never|Hardly|Scarcely|Rarely|Seldom|Little|No sooner|Only (when|after|by|then|if|in|once)|Under no|At no time|On no account|Nowhere|Not until|In no way)/i, tip:"Empieza con expresión negativa o restrictiva → INVERSIÓN: auxiliar + sujeto (Not only DID he…, Hardly HAD we…)."},
-      {re:/^\s*the (more|less|\w+er)\b/i, tip:"Empieza por ‘The more…’: la segunda mitad repite la estructura con ‘the’ + comparativo (the more you practise, the more fluent you'll become)."},
+      {re:/^\s*the (more|less|\w+er)\b/i, tip:"Empieza por ‘The more…’: la segunda mitad repite la estructura con ‘the’ + comparativo (the harder you work, the better you get)."},
       {re:/\b(wish|if only)\b/i, tip:"wish / if only: presente → pasado simple (I wish I had); pasado → past perfect (I wish I'd known); queja sobre otro → would (I wish he would stop)."},
       {re:/\bif\b[^.]*\b(had|would have|'d have)\b|\b(had|would have)\b[^.]*\bif\b/i, tip:"Condicional con ‘had / would have’: si TODO es pasado, if + had + participio → would have + participio. Si el resultado es presente, es mixto: would + infinitivo."},
       {re:/\b(if|unless|provided|supposing|as long as)\b/i, tip:"Condicional: ¿es real (presente → will) o hipotético (pasado → would)? ¿Habla del pasado (had + participio)?"},
