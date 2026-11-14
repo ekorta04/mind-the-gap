@@ -153,6 +153,18 @@ function pickItems(type, n) {
 function poolProgress(type) { const all = pool(type); const done = all.filter(x => S.seen[x._id] === 1).length; return {done, total:all.length}; }
 
 /* ---------- speech (British voice) ---------- */
+// Calidad de la voz: en iPhone el nombre no lo dice, pero el voiceURI sí (…premium… / …enhanced… / …compact…)
+function voiceQ(v) {
+  const id = ((v && v.name) || "") + " " + ((v && v.voiceURI) || "");
+  if (/premium/i.test(id)) return {score:3, label:"Premium"};
+  if (/natural|neural|online/i.test(id)) return {score:3, label:"Natural"};
+  if (/enhanced|siri/i.test(id)) return {score:2, label:"Enhanced"};
+  if (/google/i.test(id)) return {score:1.5, label:""};
+  return {score:1, label:""};
+}
+// La voz elegida se guarda por dispositivo (iPhone y PC tienen voces distintas)
+function myVoice() { try { return localStorage.getItem("mtg-voice") || ""; } catch (e) { return ""; } }
+function setMyVoice(x) { try { localStorage.setItem("mtg-voice", x); } catch (e) {} }
 const TTS = {
   list: [], token: 0, speaking: false,
   init() {
@@ -160,7 +172,7 @@ const TTS = {
     const load = () => {
       const all = speechSynthesis.getVoices();
       let gb = all.filter(v => /en[-_]GB/i.test(v.lang));
-      const rank = v => (/natural|neural|online|premium|enhanced/i.test(v.name) ? 0 : 1) + (/google uk/i.test(v.name) ? 0 : 0.5) + (/novelty|whisper|bad news|bells|grandpa|grandma|jester|organ|bubbles|trinoids|zarvox|albert|superstar|wobble|boing|cellos|good news/i.test(v.name) ? 5 : 0);
+      const rank = v => -voiceQ(v).score + (/google uk/i.test(v.name) ? -0.2 : 0) + (/novelty|whisper|bad news|bells|grandpa|grandma|jester|organ|bubbles|trinoids|zarvox|albert|superstar|wobble|boing|cellos|good news|eloquence|rocko|sandy|shelley|flo|reed/i.test(v.name + " " + v.voiceURI) ? 5 : 0);
       gb.sort((a, b) => rank(a) - rank(b));
       this.list = gb;
       if (location.hash.startsWith("#listen") || $("#voiceSel")) paintVoiceSel();
@@ -169,7 +181,7 @@ const TTS = {
   },
   voice(i = 0) {
     if (!this.list.length) return null;
-    let base = this.list.findIndex(v => v.name === S.settings.voice); if (base < 0) base = 0;
+    const mine = myVoice(); let base = this.list.findIndex(v => v.name === mine || v.voiceURI === mine); if (base < 0) base = 0;
     return this.list[(base + i) % this.list.length];
   },
   chunks(text) { return (String(text).match(/[^.!?]+[.!?]+["')\]]*|\S[^.!?]*$/g) || [text]).map(s => s.trim()).filter(Boolean); },
@@ -766,9 +778,11 @@ function viewListenList(v) {
 function paintVoiceSel() {
   const sel = $("#voiceSel"); if (!sel) return;
   if (!TTS.list.length) { sel.innerHTML = `<option>${"speechSynthesis" in window ? "Default English voice" : "No voice available"}</option>`; sel.disabled = true; const n = $("#voiceNote"); if (n) n.textContent = "No British voice installed. On iPhone: Settings › Accessibility › Spoken Content › Voices › English (UK). On Windows: Settings › Time & language › Speech."; return; }
-  sel.disabled = false; sel.innerHTML = TTS.list.map(vc => `<option ${vc.name === S.settings.voice ? "selected" : ""}>${esc(vc.name)}</option>`).join("");
-  sel.onchange = () => { S.settings.voice = sel.value; save(); TTS.speak("Lovely. This is how I sound."); };
-  const n = $("#voiceNote"); if (n) n.textContent = TTS.list.length + " British voice" + (TTS.list.length > 1 ? "s" : "");
+  const cur = TTS.voice();
+  sel.disabled = false; sel.innerHTML = TTS.list.map(vc => `<option value="${esc(vc.voiceURI || vc.name)}" ${cur && vc === cur ? "selected" : ""}>${esc(vc.name)}${voiceQ(vc).label ? " · " + voiceQ(vc).label : ""}</option>`).join("");
+  sel.onchange = () => { setMyVoice(sel.value); TTS.speak("Lovely. This is how I sound."); };
+  const best = TTS.list.length ? voiceQ(TTS.list[0]) : null;
+  const n = $("#voiceNote"); if (n) n.textContent = TTS.list.length + " British voice" + (TTS.list.length > 1 ? "s" : "") + " on this device" + (best && best.score < 2 && /iPhone|iPad|Mac/i.test(navigator.userAgent) ? ". For a more natural voice, download a Premium or Enhanced UK voice (Settings › Accessibility › Spoken Content › Voices › English › English (UK)), then close and reopen the app." : best && best.label ? "." : ".");
 }
 function bindRate(v) { $$("#rate button", v).forEach(b => b.onclick = () => { S.settings.rate = +b.dataset.r; save(); $$("#rate button", v).forEach(x => x.setAttribute("aria-pressed", x === b)); }); }
 function lcsDiff(target, given) {
