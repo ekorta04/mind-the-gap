@@ -1,5 +1,16 @@
 # CHANGELOG · Mind the Gap
 
+## v16 · Phrasebook (16 nov 2026)
+
+Nueva sección **Phrasebook** (icono de lupa arriba, o enlace en Hoy y en Review): un buscador sobre todas las expresiones de la app y las tuyas.
+
+- Reúne en un solo sitio: frases propias, expresiones minadas de lecturas y audios, un banco nuevo de 86 expresiones de C1 por temas (`phrases.js`), idioms, vocabulario de trabajo, phrasal verbs, colocaciones, frases de Writing y Speaking y los ejemplos del temario de gramática.
+- Búsqueda instantánea en inglés o en español (ignora tildes y mayúsculas), filtros por categoría y por "In review".
+- **Learn** envía la expresión a la cola de repaso espaciado, donde se pide escribirla de memoria.
+- **Añadir la tuya** con significado y ejemplo; con clave de Gemini, un botón rellena la ficha.
+- Si no encuentra algo, **Gemini lo busca** (una petición): acepta inglés o español y devuelve hasta tres expresiones con significado, ejemplo y aviso de registro, para guardar con un toque.
+- Funciona offline salvo las consultas a Gemini. Las frases propias se sincronizan entre móvil y PC (máximo 400).
+
 ## v15 · Entrenador del C1 Advanced (14 nov 2026)
 
 La app pasa de ser un entrenador general de inglés a preparar el **C1 Advanced de Cambridge en papel** (fecha por defecto: 8 de mayo de 2027, editable en Ajustes). Se conserva todo el historial: progreso, tarjetas, redacciones y XP.

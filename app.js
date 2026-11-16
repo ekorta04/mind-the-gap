@@ -16,6 +16,7 @@ const words = (s) => (String(s).trim().match(/\S+/g) || []).length;
 
 /* ---------- icons ---------- */
 const I = {
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v6.5M12 15.5V22M2 12h6.5M15.5 12H22"/></svg>',
   play:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="4"/><path d="M8 10v4M6 12h4"/><circle cx="16" cy="11" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/></svg>',
   book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5C5 4.5 8.5 4.5 12 6.5c3.5-2 7-2 9-1V19c-2-1-5.5-1-9 1-3.5-2-7-2-9-1z"/><path d="M12 6.5V20"/></svg>',
@@ -60,7 +61,7 @@ const INTERVALS = [0, 1, 3, 7, 16, 35];
 
 /* ---------- state ---------- */
 const LS_KEY = "mtg-state-v1";
-const blank = () => ({v:1, xp:0, streak:0, best:0, lastActive:null, days:{}, stats:{}, seen:{}, deck:[], read:{}, listen:{}, writings:[], ai:{}, aiArticles:[], aiListening:[], settings:{rate:0.95, voice:"", goal:300, tips:true, examDate:"", produce:true}, c1:{}, bad:{}, updatedAt:0});
+const blank = () => ({v:1, xp:0, streak:0, best:0, lastActive:null, days:{}, stats:{}, seen:{}, deck:[], read:{}, listen:{}, writings:[], ai:{}, aiArticles:[], aiListening:[], settings:{rate:0.95, voice:"", goal:300, tips:true, examDate:"", produce:true}, c1:{}, bad:{}, pb:[], updatedAt:0});
 let S = blank();
 try { const raw = localStorage.getItem(LS_KEY); if (raw) S = Object.assign(blank(), JSON.parse(raw)); } catch (e) {}
 S.settings = Object.assign(blank().settings, S.settings || {});
@@ -77,6 +78,7 @@ function save() {
 }
 function trimState() {
   if (S.deck.length > 600) S.deck = S.deck.slice(-600);
+  if (S.pb && S.pb.length > 400) S.pb = S.pb.slice(-400);
   if (S.aiArticles.length > 8) S.aiArticles = S.aiArticles.slice(-8);
   if (S.aiListening.length > 8) S.aiListening = S.aiListening.slice(-8);
   for (const k in S.ai) if (S.ai[k].length > 60) S.ai[k] = S.ai[k].slice(-60);
@@ -285,6 +287,7 @@ function shell() {
       <div class="chips">
         <span class="chip flame" id="chipStreak" title="Day streak">${I.flame}<span class="mono">0</span></span>
         <span class="chip xp" id="chipXP" title="Total XP">${I.bolt}<span class="mono">0</span></span>
+        <button class="icon-btn" id="btnPhrases" aria-label="Phrasebook" title="Phrasebook">${I.search}</button>
         <button class="icon-btn" id="btnProgress" aria-label="Progress">${I.chart}</button>
         <button class="icon-btn" id="btnSettings" aria-label="Settings"><span id="sync">${I.gear}</span></button>
       </div>
@@ -295,6 +298,7 @@ function shell() {
   $$(".nav button").forEach(b => b.onclick = () => go(b.dataset.nav));
   $("#brand").onclick = () => go("today");
   $("#btnProgress").onclick = () => go("progress");
+  $("#btnPhrases").onclick = () => go("phrases");
   $("#btnSettings").onclick = settingsSheet;
   paintChips(); paintSync();
 }
@@ -312,6 +316,7 @@ function route() {
   $$(".nav button").forEach(b => b.setAttribute("aria-current", (b.dataset.nav === sec || (sec === "play" && b.dataset.nav === "practice") || (sec === "real" && b.dataset.nav === "listen") || (sec === "quick" && b.dataset.nav === "practice") || (["mix", "focus", "close", "mocks"].includes(sec) && b.dataset.nav === "today") || (["rewrite", "micro"].includes(sec) && b.dataset.nav === "write")) ? "page" : "false"));
   const v = document.createElement("section"); v.className = "view"; main.append(v);
   if (h === "today") viewToday(v);
+  else if (h === "phrases") viewPhrases(v);
   else if (h === "mix") viewMix(v);
   else if (h === "focus") viewFocus(v);
   else if (h === "close") viewClose(v);
@@ -1386,7 +1391,7 @@ function viewToday(v) {
       <div class="card wotd stack"><span class="eyebrow">Chunk of the day</span><div class="row"><span class="term">${esc(idiom.t)}</span><button class="icon-btn" id="sayIdiom" aria-label="Listen">${I.speaker}</button></div><p>${esc(idiom.m)}.</p><p class="muted"><i>“${esc(idiom.ex)}”</i></p><div><button class="btn small" id="saveIdiom">Add to review</button></div></div>
     </div>
   </div>
-  <p class="muted" style="font-size:.85rem">More practice: <a href="#quick"><b>Quick play</b></a> · <a href="#practice"><b>Games</b></a> · <a href="#mocks"><b>Official mocks</b></a></p>
+  <p class="muted" style="font-size:.85rem">More: <a href="#phrases"><b>Phrasebook</b></a> · <a href="#quick"><b>Quick play</b></a> · <a href="#practice"><b>Games</b></a> · <a href="#mocks"><b>Official mocks</b></a></p>
   ${!aiOn() ? `<p class="notice">AI features (marking, fresh articles, explanations) switch on when you add your free Gemini key in Settings (⚙). Everything else works offline.</p>` : ""}`;
   const open = (s) => { if (!d.done[s.id]) startStage(s); go(s.to); };
   $$("#route .stop", v).forEach(b => b.onclick = () => open(stops[+b.dataset.i]));
@@ -1501,6 +1506,7 @@ function viewReview(v) {
     <div class="card stack"><h3>Queue by box</h3><p class="muted">Intervals of ${INTERVALS.slice(1).join(", ")} days. A miss sends the card back to box 0. Everything is scheduled to come round again before your exam.</p><div class="stack">${boxes.map((n, i) => `<div class="skillrow"><span>Box ${i}</span><div class="bar" style="--c:var(--plum)"><i style="--p:${total ? n / total * 100 : 0}%"></i></div><span class="mono">${n}</span></div>`).join("")}</div></div>
     <div class="row"><button class="btn red" id="mx">5-minute mix</button><button class="btn" id="home">Back to Today</button></div>`;
     $("#mx", v).onclick = () => go("mix"); $("#home", v).onclick = () => go("today");
+    $("#home", v).insertAdjacentHTML("afterend", `<button class="btn" id="pbGo">Phrasebook</button>`); $("#pbGo", v).onclick = () => go("phrases");
     return;
   }
   const queue = due.slice(0, 20); let i = 0, right = 0;
@@ -1939,6 +1945,99 @@ function bindDash(v) {
 }
 function aiCount() { try { const o = JSON.parse(localStorage.getItem("mtg-ai-usage") || "{}"); return o.d === dayKey() ? o.n : 0; } catch (e) { return 0; } }
 function aiTick() { try { localStorage.setItem("mtg-ai-usage", JSON.stringify({d:dayKey(), n:aiCount() + 1})); } catch (e) {} }
+
+/* ---------- phrasebook: buscar, guardar y aprender expresiones ---------- */
+const fold = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[’‘`´]/g, "'");
+function pbAll() {
+  const out = [], seen = new Set();
+  const add = (f, m, ex, cat, extra) => { f = String(f || "").trim(); const k = fold(f); if (!f || seen.has(k)) return; seen.add(k); out.push(Object.assign({f, m:String(m || ""), ex:String(ex || ""), cat}, extra)); };
+  const split = (why, alt) => { const w = String(why || "").trim().replace(/\.$/, ""), i = w.indexOf(" = "); const par = w.match(/^([^()]+?) \(([^()]+)\)$/); if (i < 0 && par) return [par[1], par[2]]; return i > 0 ? [w.slice(0, i), w.slice(i + 3)] : words(w) <= 8 && w ? [w, ""] : [alt, w]; };
+  const fill = (x) => String(x.s).replace(/_{3,}/, x.o[x.a]);
+  (S.pb || []).forEach(e => add(e.f, e.m, e.ex, "My phrases", {mine:e.id, note:e.note || ""}));
+  S.deck.filter(c => c.k === "chunk" && !/^ph:/.test(c.id)).forEach(c => add(c.f, c.b, c.ex, "My phrases", {}));
+  for (const cat in PHRASES) PHRASES[cat].forEach(p => add(p[0], p[1], p[2], cat));
+  pool("idioms").forEach(x => add(x.t, x.m, x.ex, "Idioms"));
+  pool("work").forEach(x => add(x.t, x.m, x.ex, "Projects & work"));
+  pool("pv").forEach(x => { const [f, m] = split(x.why, x.o[x.a]); add(f, m, fill(x), "Phrasal verbs"); });
+  pool("mc").filter(x => !x.pt).forEach(x => { const [f, m] = split(x.why, x.o[x.a]); add(f, m, fill(x), "Collocations"); });
+  Object.keys(C1.GENRES).forEach(g => C1.GENRES[g].phrases.forEach(p => add(p[0], p[1], "", "Writing · " + C1.GENRES[g].n)));
+  C1.TALKPH.forEach(p => add(p[0], p[1], "", "Speaking"));
+  C1.POINTS.forEach(p => p.ex.forEach(x => add(x, p.t, "", "Grammar patterns", {noLearn:true})));
+  return out;
+}
+function viewPhrases(v) {
+  let all = pbAll(), q = "", cat = "", onlyRev = false, limit = 40;
+  const inDeck = () => { const m = new Map(); S.deck.forEach(c => { if (c.k !== "item" && c.k !== "mistake") m.set(fold(c.f), c); }); return m; };
+  const cats = () => { const n = {}; all.forEach(e => n[e.cat] = (n[e.cat] || 0) + 1); return Object.keys(n).sort((a, b) => a === "My phrases" ? -1 : b === "My phrases" ? 1 : a < b ? -1 : 1).map(c => [c, n[c]]); };
+  v.innerHTML = `<div class="hello"><span class="eyebrow" style="color:var(--navy)">Phrasebook · works offline</span><h1>Look it up. <span>Keep it.</span></h1>
+    <p class="muted">Every expression in the app in one place, plus your own. Search in English or Spanish, then tap Learn to send it to your review queue.</p></div>
+  <div class="card stack pbsearch"><input type="search" class="answer" id="pbQ" placeholder="Search: deadline, a pesar de, put off…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="margin:0" aria-label="Search the phrasebook">
+    <div class="pbcats" id="pbCats"></div></div>
+  <div id="pbList" class="stack"></div>
+  <details class="card stack methodcard" id="pbAddBox"><summary><b>Add your own expression</b></summary>
+    <input class="answer" id="nF" placeholder="Expression in English" autocapitalize="off" spellcheck="false" style="margin:0">
+    <input class="answer" id="nM" placeholder="Meaning (Spanish or English)" style="margin:0">
+    <input class="answer" id="nE" placeholder="Example sentence (optional)" spellcheck="false" style="margin:0">
+    <div class="row">${aiOn() ? `<button class="btn ai small" id="nAI">${I.sparkle} Fill in with Gemini</button>` : ""}<span class="spacer"></span><button class="btn primary" id="nSave">Save and learn</button></div></details>`;
+  const list = $("#pbList", v);
+  const saveMine = (e, learn) => {
+    S.pb = S.pb || []; const k = fold(e.f);
+    if (!S.pb.some(x => fold(x.f) === k)) S.pb.push({id:Date.now().toString(36) + Math.random().toString(36).slice(2, 5), f:e.f.trim(), m:(e.m || "").trim(), ex:(e.ex || "").trim(), note:(e.note || "").trim(), d:dayKey()});
+    if (learn && !inDeck().has(k)) addCard({k:"chunk", f:e.f.trim(), b:(e.m || "").trim(), ex:(e.ex || "").trim()});
+    save(); all = pbAll();
+  };
+  const rowHTML = (e, i, deck) => { const c = deck.get(fold(e.f));
+    return `<div class="card pbrow" data-i="${i}"><div class="row"><b class="pbf">${esc(e.f)}</b><button class="icon-btn" data-say aria-label="Listen">${I.speaker}</button><span class="spacer"></span>${e.noLearn ? "" : c ? `<span class="chip">${I.check} In review · box ${c.box}</span>` : `<button class="btn small primary" data-learn>Learn</button>`}</div>
+      ${e.m ? `<p>${esc(e.m)}</p>` : ""}${e.ex ? `<p class="muted"><i>${esc(e.ex)}</i></p>` : ""}${e.note ? `<p class="muted" style="font-size:.85rem">${esc(e.note)}</p>` : ""}
+      <div class="row"><span class="typepill">${esc(e.cat)}</span><span class="spacer"></span>${e.mine ? `<button class="btn small ghost" data-del>Delete</button>` : ""}</div></div>`; };
+  const paint = () => {
+    const deck = inDeck(), toks = fold(q).split(/\s+/).filter(Boolean);
+    $("#pbCats", v).innerHTML = `<button class="pbcat ${!cat && !onlyRev ? "on" : ""}" data-cat="">All <span class="mono">${all.length}</span></button><button class="pbcat ${onlyRev ? "on" : ""}" data-rev="1">In review</button>` + cats().map(([c, n]) => `<button class="pbcat ${cat === c ? "on" : ""}" data-cat="${esc(c)}">${esc(c)} <span class="mono">${n}</span></button>`).join("");
+    $$(".pbcat", v).forEach(b => b.onclick = () => { if (b.dataset.rev) { onlyRev = !onlyRev; cat = ""; } else { cat = b.dataset.cat; onlyRev = false; } limit = 40; paint(); });
+    let res = all.filter(e => (!cat || e.cat === cat) && (!onlyRev || deck.has(fold(e.f))));
+    if (toks.length) {
+      res = res.map(e => { const f = fold(e.f), hay = f + " | " + fold(e.m) + " | " + fold(e.ex); if (!toks.every(t => hay.includes(t))) return null; const fq = fold(q).trim(); return {e, s:f === fq ? 0 : f.startsWith(fq) ? 1 : toks.every(t => f.includes(t)) ? 2 : toks.every(t => fold(e.m).includes(t)) ? 3 : 4}; }).filter(Boolean).sort((a, b) => a.s - b.s).map(x => x.e);
+    }
+    const shown = res.slice(0, limit);
+    list.innerHTML = shown.map(e => rowHTML(e, all.indexOf(e), deck)).join("")
+      + (res.length > limit ? `<div class="row"><button class="btn" id="pbMore">Show more · ${res.length - limit} left</button></div>` : "")
+      + (!res.length ? `<div class="card stack"><h3>Nothing for “${esc(q || cat || "that")}”</h3><p class="muted">${toks.length ? "It isn't in the phrasebook yet." : onlyRev ? "You haven't sent anything to review from here yet." : "Empty."}</p>${toks.length ? `<div class="row">${aiOn() ? `<button class="btn ai" id="pbAsk">${I.sparkle} Look it up with Gemini · 1 request</button>` : ""}<button class="btn" id="pbOwn">Add it myself</button></div>${aiOn() ? "" : `<p class="muted" style="font-size:.85rem">With a free Gemini key (Settings) the app can look up anything, in English or Spanish.</p>`}` : ""}<div id="pbAI" class="stack"></div></div>` : toks.length && aiOn() ? `<div class="row"><button class="btn ai small" id="pbAsk">${I.sparkle} Not what you wanted? Ask Gemini</button></div><div id="pbAI" class="stack"></div>` : "");
+    $$(".pbrow", list).forEach(r => { const e = all[+r.dataset.i]; if (!e) return;
+      $("[data-say]", r).onclick = () => TTS.speak(e.ex ? `${e.f}. ${e.ex}` : e.f);
+      const lb = $("[data-learn]", r); if (lb) lb.onclick = () => { addCard({k:"chunk", f:e.f, b:e.m, ex:e.ex}); toast("In your review queue. It comes up in the next mix."); paint(); };
+      const db = $("[data-del]", r); if (db) db.onclick = () => { S.pb = (S.pb || []).filter(x => x.id !== e.mine); save(); all = pbAll(); paint(); toast("Deleted from your phrases."); };
+    });
+    const mb = $("#pbMore", v); if (mb) mb.onclick = () => { limit += 40; paint(); };
+    const ob = $("#pbOwn", v); if (ob) ob.onclick = () => { const d = $("#pbAddBox", v); d.open = true; $("#nF", v).value = q; d.scrollIntoView({behavior:"smooth", block:"center"}); $("#nM", v).focus(); };
+    const ab = $("#pbAsk", v); if (ab) ab.onclick = () => ask(ab);
+  };
+  const lookup = (term) => aiJSON(`${LEARNER}\nThe learner typed this into their personal phrasebook: "${term}". It may be an English word or expression (possibly misspelt) or a Spanish word or idea they want to say in English. Give the 1-3 most useful British English expressions for it at B2-C1 level. If the input is already a correct English expression, the first entry must be that expression in its dictionary form.\nReply with only a JSON object: {"entries":[{"f": the expression, "m": its meaning in Spanish (max 15 words), "ex": one natural example sentence in British English, "note": a register or usage warning in Spanish (max 15 words) or ""}]}`, {modelTier:"quick", cache:false});
+  const ask = async (btn) => {
+    const term = q.trim(), box = $("#pbAI", v); if (!term || !box) return;
+    btn.disabled = true; box.innerHTML = `<p class="muted"><span class="spin"></span> Looking it up…</p>`;
+    try {
+      const r = await lookup(term), es = (r && Array.isArray(r.entries) ? r.entries : []).filter(e => e && e.f && e.m).slice(0, 3);
+      if (!es.length) throw {code:"invalid_json"};
+      box.innerHTML = es.map((e, i) => `<div class="pbrow card" style="--c:var(--navy)"><div class="row"><b class="pbf">${esc(e.f)}</b><span class="spacer"></span><button class="btn small primary" data-keep="${i}">Save and learn</button></div><p>${esc(e.m)}</p>${e.ex ? `<p class="muted"><i>${esc(e.ex)}</i></p>` : ""}${e.note ? `<p class="muted" style="font-size:.85rem">${esc(e.note)}</p>` : ""}</div>`).join("") + `<p class="muted" style="font-size:.8rem">Written by Gemini: usually right, not infallible. Check anything that looks odd in a dictionary.</p>`;
+      $$("[data-keep]", box).forEach(b => b.onclick = () => { saveMine(es[+b.dataset.keep], true); b.disabled = true; b.textContent = "Saved"; toast("Saved to My phrases and to your review queue."); });
+    } catch (e) { box.innerHTML = `<p>${esc(aiErr(e))}</p>`; btn.disabled = false; }
+  };
+  let t; $("#pbQ", v).oninput = (e) => { q = e.target.value; if (q.trim()) { cat = ""; onlyRev = false; } limit = 40; clearTimeout(t); t = setTimeout(paint, 120); };
+  $("#nSave", v).onclick = () => {
+    const f = $("#nF", v).value.trim(); if (!f) return toast("Type the expression first.");
+    saveMine({f, m:$("#nM", v).value, ex:$("#nE", v).value}, true);
+    ["#nF", "#nM", "#nE"].forEach(s => $(s, v).value = ""); cat = "My phrases"; onlyRev = false; q = ""; $("#pbQ", v).value = ""; paint(); toast("Saved to My phrases and to your review queue.");
+  };
+  const nb = $("#nAI", v); if (nb) nb.onclick = async () => {
+    const f = $("#nF", v).value.trim(); if (!f) return toast("Type the expression first.");
+    nb.disabled = true; nb.innerHTML = `<span class="spin"></span> Thinking…`;
+    try { const r = await lookup(f), e = r && r.entries && r.entries[0]; if (!e) throw {code:"invalid_json"}; $("#nF", v).value = e.f || f; $("#nM", v).value = e.m || ""; $("#nE", v).value = e.ex || ""; }
+    catch (e) { toast(aiErr(e)); }
+    nb.disabled = false; nb.innerHTML = `${I.sparkle} Fill in with Gemini`;
+  };
+  paint();
+  setTimeout(() => { if (matchMedia("(pointer:fine)").matches) $("#pbQ", v).focus(); }, 50);
+}
 
 /* ---------- settings ---------- */
 function settingsSheet() {

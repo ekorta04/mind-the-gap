@@ -294,3 +294,18 @@ select,input[type=text]{font:inherit;padding:8px 10px;border-radius:10px;border:
 .flash .answer{max-width:520px;width:100%}
 .miner .errline small{display:block}
 .stop small{white-space:normal}
+
+/* ===== Phrasebook ===== */
+.pbcats{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.pbcat{flex:none;border:1px solid var(--line);background:var(--surface);color:inherit;border-radius:999px;padding:6px 12px;font:600 .8rem/1.2 inherit;cursor:pointer;white-space:nowrap}
+.pbcat.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.pbcat .mono{opacity:.7;font-size:.72rem}
+.pbrow{display:grid;gap:6px;padding:14px 16px}
+.pbrow p{margin:0}
+.pbf{font-size:1.08rem;flex:1;min-width:0}
+.pbrow .chip svg{width:13px;height:13px}
+.pbsearch{min-width:0;overflow:hidden}
+.pbsearch>*{min-width:0;max-width:100%}
+.pbrow{min-width:0}
+.pbrow .row{flex-wrap:wrap}
+@media (max-width:440px){.brand span{display:none}.top-in{min-width:0}}
