@@ -70,15 +70,77 @@ S.deck.forEach(c => { if (c.box > INTERVALS.length - 1) c.box = INTERVALS.length
 let DB = null, DOC = null, SAMPLE = null, TTSCAP = null, syncState = "local";
 let saveTimer = null, saving = false, saveAgain = false;
 
+let dirty = false; try { dirty = localStorage.getItem("mtg-dirty") === "1"; } catch (e) {}
+const setDirty = (v) => { dirty = v; try { localStorage.setItem("mtg-dirty", v ? "1" : ""); } catch (e) {} };
+// Copia de seguridad local diaria, por si algo va mal al sincronizar
+try { const k = new Date().toDateString(); if (localStorage.getItem("mtg-bk-day") !== k) { const raw = localStorage.getItem(LS_KEY); if (raw) { localStorage.setItem("mtg-state-bk2", localStorage.getItem("mtg-state-bk") || ""); localStorage.setItem("mtg-state-bk", raw); } localStorage.setItem("mtg-bk-day", k); } } catch (e) {}
 function save() {
   S.updatedAt = Date.now();
   try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) {}
+  setDirty(true);
   clearTimeout(saveTimer);
   saveTimer = setTimeout(pushRemote, 1500);
+}
+const tomb = (key) => { (S.del = S.del || {})[key] = Date.now(); };
+/* Fusiona en S el estado de la nube (R) sin perder lo hecho en ninguno de los dos dispositivos.
+   Antes ganaba entero el último en guardar, y una pestaña abierta en otro aparato podía borrar el trabajo del día. */
+function mergeState(R) {
+  if (!R || typeof R !== "object") return;
+  const newer = (R.updatedAt || 0) > (S.updatedAt || 0);
+  const del = Object.assign({}, R.del || {}); for (const k in S.del || {}) del[k] = Math.max(del[k] || 0, S.del[k]);
+  const uni = (A, B, key) => { const ks = new Set(A.map(key)); (B || []).forEach(x => { const k = key(x); if (!ks.has(k)) { A.push(x); ks.add(k); } }); return A; };
+  S.xp = Math.max(S.xp || 0, R.xp || 0); S.best = Math.max(S.best || 0, R.best || 0); S.mockBest = Math.max(S.mockBest || 0, R.mockBest || 0);
+  if ((R.lastActive || "") > (S.lastActive || "")) { S.lastActive = R.lastActive; S.streak = R.streak || 0; }
+  else if (R.lastActive && R.lastActive === S.lastActive) S.streak = Math.max(S.streak || 0, R.streak || 0);
+  for (const k in R.days || {}) { const a = S.days[k], b = R.days[k]; if (!a) S.days[k] = b; else { a.xp = Math.max(a.xp || 0, b.xp || 0); a.min = Math.max(a.min || 0, b.min || 0); a.done = Object.assign({}, b.done, a.done); a.goalHit = a.goalHit || b.goalHit; } }
+  for (const k in R.stats || {}) if (!S.stats[k] || (R.stats[k].n || 0) > (S.stats[k].n || 0)) S.stats[k] = R.stats[k];
+  for (const k in R.seen || {}) if (S.seen[k] === undefined || newer) S.seen[k] = R.seen[k];
+  ["read", "listen", "speak"].forEach(f => { const A = S[f] || (S[f] = {}), B = R[f] || {}; for (const k in B) if (!A[k] || (B[k].at || B[k].date || "") > (A[k].at || A[k].date || "")) A[k] = B[k]; });
+  const byId = new Map(S.deck.map(c => [c.id, c]));
+  (R.deck || []).forEach(c => { const a = byId.get(c.id); if (!a) S.deck.push(c); else if ((c.u || 0) > (a.u || 0) || (!c.u && !a.u && newer)) Object.assign(a, c); });
+  S.deck = S.deck.filter(c => !((del["d:" + c.id] || 0) > (c.u || 0)));
+  uni(S.writings, R.writings, w => w.task + "|" + w.date + "|" + (w.fb ? w.fb.total : ""));
+  (R.writings || []).forEach(b => { if (b.rw) { const a = S.writings.find(w => w.task === b.task && w.date === b.date && w.rw === null); if (a) { a.rw = b.rw; a.rwFixed = b.rwFixed; } } });
+  S.writings.sort((x, y) => x.date < y.date ? -1 : x.date > y.date ? 1 : 0);
+  uni(S.aiArticles, R.aiArticles, x => x.id); uni(S.aiListening, R.aiListening, x => x.id);
+  for (const t in R.ai || {}) uni(S.ai[t] || (S.ai[t] = []), R.ai[t], x => x._id);
+  S.mocks = uni(S.mocks || [], R.mocks, m => m.d + "|" + m.r);
+  S.pb = uni(S.pb || [], R.pb, e => e.id).filter(e => !del["p:" + e.id]);
+  S.bad = Object.assign(S.bad || {}, R.bad || {});
+  for (const t in S.ai) S.ai[t] = S.ai[t].filter(x => !S.bad[x._id]);
+  const a = S.c1 || (S.c1 = {}), b = R.c1 || {}; a.pts = a.pts || {}; a.mocks = a.mocks || []; a.week = a.week || {};
+  for (const k in b.pts || {}) if (!a.pts[k]) a.pts[k] = b.pts[k];
+  a.mocks = uni(a.mocks, b.mocks, m => m.id).filter(m => !del["m:" + m.id]);
+  if (b.start && (!a.start || b.start < a.start)) a.start = b.start;
+  a.diagDone = a.diagDone || b.diagDone; a.humanMarked = a.humanMarked || b.humanMarked;
+  if ((b.human || "") > (a.human || "")) a.human = b.human;
+  if ((b.focusDay || "") > (a.focusDay || "")) { a.focusDay = b.focusDay; a.focusPt = b.focusPt; }
+  a.talks = Math.max(a.talks || 0, b.talks || 0); a.p2 = Math.max(a.p2 || 0, b.p2 || 0);
+  if (newer) { if (b.week) a.week = b.week; a.pendingMark = b.pendingMark || null; S.settings = Object.assign(blank().settings, S.settings || {}, R.settings || {}); }
+  for (const k in R) if (S[k] === undefined) S[k] = R[k];
+  S.del = del;
+}
+let lastStamp = null, lastPull = 0;
+// Trae el estado de la nube y lo fusiona. Devuelve true si había algo nuevo.
+async function pullRemote(force) {
+  if (!DOC || saving || (!force && Date.now() - lastPull < 15000)) return false;
+  lastPull = Date.now();
+  try {
+    const snap = await DOC.get(), d = snap && snap.exists ? snap.data() : null;
+    if (!d || !d.s) { if (S.updatedAt) pushRemote(); return false; }
+    if (d.updatedAt === lastStamp) { syncState = "synced"; paintSync(); return false; }
+    const localNewer = (S.updatedAt || 0) > (d.updatedAt || 0);   // p. ej. trabajo hecho sin conexión que nunca llegó a subirse
+    mergeState(JSON.parse(d.s)); lastStamp = d.updatedAt; if (localNewer) setDirty(true);
+    S.deck.forEach(c => { if (c.box > INTERVALS.length - 1) c.box = INTERVALS.length - 1; });
+    if (dirty) { S.updatedAt = Date.now(); try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) {} pushRemote(); }
+    else { S.updatedAt = Math.max(S.updatedAt || 0, d.updatedAt || 0); try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) {} syncState = "synced"; }
+    paintChips(); paintSync(); return true;
+  } catch (e) { syncState = "error"; paintSync(); return false; }
 }
 function trimState() {
   if (S.deck.length > 600) S.deck = S.deck.slice(-600);
   if (S.pb && S.pb.length > 400) S.pb = S.pb.slice(-400);
+  if (S.del) { const ks = Object.keys(S.del); if (ks.length > 500) ks.sort((x, y) => S.del[x] - S.del[y]).slice(0, ks.length - 500).forEach(k => delete S.del[k]); }
   if (S.aiArticles.length > 8) S.aiArticles = S.aiArticles.slice(-8);
   if (S.aiListening.length > 8) S.aiListening = S.aiListening.slice(-8);
   for (const k in S.ai) if (S.ai[k].length > 60) S.ai[k] = S.ai[k].slice(-60);
@@ -91,11 +153,15 @@ async function pushRemote() {
   if (saving) { saveAgain = true; return; }
   saving = true;
   try {
+    // Si otro dispositivo ha guardado desde nuestra última lectura, fusionar antes de escribir
+    const snap = await DOC.get(), d = snap && snap.exists ? snap.data() : null;
+    if (d && d.s && d.updatedAt !== lastStamp) { mergeState(JSON.parse(d.s)); S.updatedAt = Date.now(); paintChips(); }
     trimState();
     let s = JSON.stringify(S);
     if (s.length > 230000) { S.writings.forEach(w => { w.text = (w.text || "").slice(0, 1500); w.fb && (w.fb.improved = ""); }); S.aiArticles = S.aiArticles.slice(-3); s = JSON.stringify(S); }
+    try { localStorage.setItem(LS_KEY, s); } catch (e) {}
     await DOC.set({s, updatedAt:S.updatedAt});
-    syncState = "synced";
+    lastStamp = S.updatedAt; syncState = "synced"; if (!saveAgain) setDirty(false);
   } catch (e) { syncState = "error"; }
   saving = false; paintSync();
   if (saveAgain) { saveAgain = false; pushRemote(); }
@@ -131,8 +197,9 @@ const scaleLabel = (n) => n == null ? "—" : n >= 200 ? "C2" : n >= 180 ? "C1" 
 function addCard(card) {
   const id = card.id || (card.k + ":" + norm(card.f).slice(0, 60));
   const ex = S.deck.find(c => c.id === id);
-  if (ex) { ex.box = 0; ex.due = dayKey(); ex.lapses = (ex.lapses || 0) + 1; save(); return false; }
-  S.deck.push(Object.assign({id, box:0, due:dayKey(), added:dayKey()}, card)); save(); return true;
+  if (S.del) delete S.del["d:" + id];
+  if (ex) { ex.box = 0; ex.due = dayKey(); ex.lapses = (ex.lapses || 0) + 1; ex.u = Date.now(); save(); return false; }
+  S.deck.push(Object.assign({id, box:0, due:dayKey(), added:dayKey(), u:Date.now()}, card)); save(); return true;
 }
 const dueCards = () => S.deck.filter(c => c.due <= dayKey());
 function grade(card, ok) {
@@ -141,7 +208,7 @@ function grade(card, ok) {
   let due = addDays(dayKey(), ok ? INTERVALS[card.box] : 1);
   const cap = addDays(examDate(), -3);   // todo vuelve a salir antes del examen
   if (due > cap && cap > dayKey()) due = cap;
-  card.due = due; save();
+  card.due = due; card.u = Date.now(); save();
 }
 
 /* ---------- items (bank + AI-generated) ---------- */
@@ -544,7 +611,7 @@ function showFeedback(box, it, ok, given, note, gained, onNext) {
     ${(it._t === "idioms" || it._t === "work") && it.ex ? `<p class="muted"><i>“${esc(it.ex)}”</i></p>` : ""}
     <div class="row">${aiOn() ? `<button class="btn small ai" id="explain">${I.sparkle} Explain it to me</button>` : ""}${it._t === "spell" || it._t === "idioms" || it._t === "work" ? `<button class="btn small" id="hear">${I.speaker} Hear it</button>` : ""}<button class="btn small ghost" id="bad" title="Remove this question for good">Wrong question?</button><span class="spacer"></span><button class="btn primary" id="nx">Next ${I.arrow}</button></div>
     <div class="ai-out" id="aiOut" hidden></div></div>`;
-  const bd = $("#bad", box); if (bd) bd.onclick = () => { (S.bad = S.bad || {})[it._id] = 1; S.deck = S.deck.filter(c => c.id !== "item:" + it._id); if (S.ai[it._t]) S.ai[it._t] = S.ai[it._t].filter(x => x._id !== it._id); save(); bd.disabled = true; toast("Removed. You won't see this question again."); };
+  const bd = $("#bad", box); if (bd) bd.onclick = () => { (S.bad = S.bad || {})[it._id] = 1; tomb("d:item:" + it._id); S.deck = S.deck.filter(c => c.id !== "item:" + it._id); if (S.ai[it._t]) S.ai[it._t] = S.ai[it._t].filter(x => x._id !== it._id); save(); bd.disabled = true; toast("Removed. You won't see this question again."); };
   const nx = $("#nx", box); nx.onclick = onNext; setTimeout(() => nx.focus({preventScroll:true}), 30);
   box.scrollIntoView({behavior:"smooth", block:"nearest"});
   const hb = $("#hear", box); if (hb) hb.onclick = () => TTS.speak(it._t === "spell" ? `${it.w}. ${it.s}` : `${it.t}. ${it.ex || ""}`);
@@ -1488,7 +1555,7 @@ function viewMix(v) {
       v.innerHTML = `<div class="game-head"><button class="icon-btn" id="quit" aria-label="Quit">${I.back}</button><span class="timer mono" id="mixT"></span><span class="spacer"></span><span class="mono muted">${i + 1}/${queue.length}</span></div><div id="cardBox"></div>`;
       $("#quit", v).onclick = () => { if (!n) { clearInterval(tick); return go("today"); } finish(); };
       cardUI($("#cardBox", v), c, (ok) => {
-        if (ok === null) { if (!c.tmp) S.deck = S.deck.filter(x => x !== c); }
+        if (ok === null) { if (!c.tmp) { tomb("d:" + c.id); S.deck = S.deck.filter(x => x !== c); } }
         else { n++; if (ok) right++; if (!c.tmp) grade(c, ok); else if (!ok) { const it = findItem(c.t, c.ref); if (it) addCard(itemCard(it)); } }
         i++; step();
       });
@@ -1517,7 +1584,7 @@ function viewReview(v) {
     const c = queue[i];
     v.innerHTML = `<div class="game-head"><button class="icon-btn" id="quit" aria-label="Quit">${I.back}</button><div class="progress-dots">${queue.map((_, j) => `<i class="${j < i ? "ok" : j === i ? "cur" : ""}"></i>`).join("")}</div><span class="mono muted">${i + 1}/${queue.length}</span></div><div id="cardBox"></div>`;
     $("#quit", v).onclick = () => go("today");
-    cardUI($("#cardBox", v), c, (ok) => { if (ok === null) S.deck = S.deck.filter(x => x !== c); else { grade(c, ok); if (ok) right++; } i++; step(); });
+    cardUI($("#cardBox", v), c, (ok) => { if (ok === null) { tomb("d:" + c.id); S.deck = S.deck.filter(x => x !== c); } else { grade(c, ok); if (ok) right++; } i++; step(); });
   };
   step();
 }
@@ -1886,7 +1953,7 @@ function viewMocks(v) {
     if (!Object.keys(r).length) return toast("Enter at least one mark.");
     c.mocks.push({id:Date.now().toString(36), d:$("#mD", v).value || dayKey(), off:$("#mOff", v).checked, r}); save(); toast("Saved."); route();
   };
-  $$("[data-del]", v).forEach(b => b.onclick = () => { c.mocks = c.mocks.filter(m => m.id !== b.dataset.del); save(); route(); });
+  $$("[data-del]", v).forEach(b => b.onclick = () => { tomb("m:" + b.dataset.del); c.mocks = c.mocks.filter(m => m.id !== b.dataset.del); save(); route(); });
 }
 
 /* ---------- panel de progreso (cuadro de mando) ---------- */
@@ -2005,7 +2072,7 @@ function viewPhrases(v) {
     $$(".pbrow", list).forEach(r => { const e = all[+r.dataset.i]; if (!e) return;
       $("[data-say]", r).onclick = () => TTS.speak(e.ex ? `${e.f}. ${e.ex}` : e.f);
       const lb = $("[data-learn]", r); if (lb) lb.onclick = () => { addCard({k:"chunk", f:e.f, b:e.m, ex:e.ex}); toast("In your review queue. It comes up in the next mix."); paint(); };
-      const db = $("[data-del]", r); if (db) db.onclick = () => { S.pb = (S.pb || []).filter(x => x.id !== e.mine); save(); all = pbAll(); paint(); toast("Deleted from your phrases."); };
+      const db = $("[data-del]", r); if (db) db.onclick = () => { tomb("p:" + e.mine); S.pb = (S.pb || []).filter(x => x.id !== e.mine); save(); all = pbAll(); paint(); toast("Deleted from your phrases."); };
     });
     const mb = $("#pbMore", v); if (mb) mb.onclick = () => { limit += 40; paint(); };
     const ob = $("#pbOwn", v); if (ob) ob.onclick = () => { const d = $("#pbAddBox", v); d.open = true; $("#nF", v).value = q; d.scrollIntoView({behavior:"smooth", block:"center"}); $("#nM", v).focus(); };
@@ -2075,6 +2142,10 @@ function boot() {
   addEventListener("pointerdown", () => TTS.unlock(), {once:true, capture:true});
   addEventListener("hashchange", route);
   addEventListener("online", () => { if (DOC) pushRemote(); });
+  // Al salir: subir ya lo pendiente. Al volver: traer lo hecho en otros dispositivos.
+  const flush = () => { if (DOC && dirty) { clearTimeout(saveTimer); pushRemote(); } };
+  document.addEventListener("visibilitychange", () => { if (document.hidden) flush(); else pullRemote().then(ch => { const h = location.hash.slice(1); if (ch && (!h || h === "today" || h === "progress")) route(); }); });
+  addEventListener("pagehide", flush);
   document.addEventListener("click", (e) => { if (popEl && !popEl.contains(e.target)) closePop(); });
   const C = window.claude;
   if (C && C.use) {
@@ -2083,16 +2154,10 @@ function boot() {
     Promise.all([C.use("db"), C.use("user")]).then(async ([db, user]) => {
       if (!db || !user) return; const id = await user.id(); if (!id) return;
       DB = db; const ref = db.doc(`data/users/${id}/state`);
-      try {
-        const snap = await ref.get(); const d = snap && snap.exists ? snap.data() : null;
-        if (d && d.s && (d.updatedAt || 0) > (S.updatedAt || 0)) {
-          S = Object.assign(blank(), JSON.parse(d.s)); S.settings = Object.assign(blank().settings, S.settings || {});
-S.deck.forEach(c => { if (c.box > INTERVALS.length - 1) c.box = INTERVALS.length - 1; });
-          try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) {}
-          DOC = ref; syncState = "synced"; paintChips(); paintSync();
-          const h = location.hash.slice(1); if (!h || ["today", "practice", "progress", "review"].includes(h)) route();
-        } else { DOC = ref; if (S.updatedAt) pushRemote(); else { syncState = "synced"; paintSync(); } }
-      } catch (e) { syncState = "error"; paintSync(); DOC = ref; }
+      DOC = ref;
+      const changed = await pullRemote(true);
+      if (!changed && dirty) pushRemote();
+      const h = location.hash.slice(1); if (changed && (!h || ["today", "practice", "progress", "review", "phrases"].includes(h))) route();
     }).catch(() => {});
   }
 }

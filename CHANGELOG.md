@@ -1,5 +1,14 @@
 # CHANGELOG · Mind the Gap
 
+## v17 · Sincronización sin pérdidas (16 nov 2026)
+
+Problema: la sincronización era "gana entero el último que guarda". Si la app quedaba abierta en otro dispositivo (o en segundo plano) con datos antiguos, al tocar cualquier cosa subía ese estado viejo y borraba lo hecho ese día en el otro aparato. Además, lo pendiente de subir se perdía si se cerraba la app antes de 1,5 s.
+
+- **Fusión por elementos** (`mergeState`): XP y días por máximo, paradas hechas por unión, tarjetas de repaso por marca de tiempo de cada tarjeta, puntos del temario, simulacros, redacciones, frases propias y preguntas vistas por unión. Los borrados se recuerdan para que no reaparezcan.
+- Antes de **subir**, la app lee la nube y fusiona si otro dispositivo ha guardado.
+- Al **volver a la app** se trae lo hecho en otros dispositivos; al **salir** se sube lo pendiente al instante.
+- Marca de "cambios sin subir" que sobrevive a cerrar la app, y copia de seguridad local diaria (dos días).
+
 ## v16 · Phrasebook (16 nov 2026)
 
 Nueva sección **Phrasebook** (icono de lupa arriba, o enlace en Hoy y en Review): un buscador sobre todas las expresiones de la app y las tuyas.
