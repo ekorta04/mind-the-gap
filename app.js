@@ -68,7 +68,7 @@ S.settings = Object.assign(blank().settings, S.settings || {});
 S.deck.forEach(c => { if (c.box > INTERVALS.length - 1) c.box = INTERVALS.length - 1; });
 
 let DB = null, DOC = null, SAMPLE = null, TTSCAP = null, syncState = "local";
-let saveTimer = null, saving = false, saveAgain = false;
+let saveTimer = null, saving = false, saveAgain = false, syncErr = "", lastOk = 0;
 
 let dirty = false; try { dirty = localStorage.getItem("mtg-dirty") === "1"; } catch (e) {}
 const setDirty = (v) => { dirty = v; try { localStorage.setItem("mtg-dirty", v ? "1" : ""); } catch (e) {} };
@@ -128,15 +128,16 @@ async function pullRemote(force) {
   try {
     const snap = await DOC.get(), d = snap && snap.exists ? snap.data() : null;
     if (!d || !d.s) { if (S.updatedAt) pushRemote(); return false; }
-    if (d.updatedAt === lastStamp) { syncState = "synced"; paintSync(); return false; }
+    if (d.updatedAt === lastStamp) { syncState = "synced"; syncErr = ""; lastOk = Date.now(); paintSync(); return false; }
     const localNewer = (S.updatedAt || 0) > (d.updatedAt || 0);   // p. ej. trabajo hecho sin conexión que nunca llegó a subirse
     mergeState(JSON.parse(d.s)); lastStamp = d.updatedAt; if (localNewer) setDirty(true);
     S.deck.forEach(c => { if (c.box > INTERVALS.length - 1) c.box = INTERVALS.length - 1; });
     if (dirty) { S.updatedAt = Date.now(); try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) {} pushRemote(); }
     else { S.updatedAt = Math.max(S.updatedAt || 0, d.updatedAt || 0); try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) {} syncState = "synced"; }
     paintChips(); paintSync(); return true;
-  } catch (e) { syncState = "error"; paintSync(); return false; }
+  } catch (e) { syncState = "error"; syncErr = errMsg(e); paintSync(); return false; }
 }
+function errMsg(e) { return (e && (e.message || e.code || e.details)) ? String(e.message || e.code || e.details).slice(0, 140) : "unknown error"; }
 function trimState() {
   if (S.deck.length > 600) S.deck = S.deck.slice(-600);
   if (S.pb && S.pb.length > 400) S.pb = S.pb.slice(-400);
@@ -161,16 +162,21 @@ async function pushRemote() {
     if (s.length > 230000) { S.writings.forEach(w => { w.text = (w.text || "").slice(0, 1500); w.fb && (w.fb.improved = ""); }); S.aiArticles = S.aiArticles.slice(-3); s = JSON.stringify(S); }
     try { localStorage.setItem(LS_KEY, s); } catch (e) {}
     await DOC.set({s, updatedAt:S.updatedAt});
-    lastStamp = S.updatedAt; syncState = "synced"; if (!saveAgain) setDirty(false);
-  } catch (e) { syncState = "error"; }
+    lastStamp = S.updatedAt; syncState = "synced"; syncErr = ""; lastOk = Date.now(); if (!saveAgain) setDirty(false);
+  } catch (e) { syncState = "error"; syncErr = errMsg(e); }
   saving = false; paintSync();
   if (saveAgain) { saveAgain = false; pushRemote(); }
 }
 function paintSync() {
   const el = $("#sync"); if (!el) return;
-  el.title = syncState === "synced" ? "Progress synced across your devices" : syncState === "error" ? "Sync failed — saved on this device" : "Saved on this device";
-  el.style.color = syncState === "synced" ? "var(--green)" : syncState === "error" ? "var(--red)" : "var(--muted)";
+  el.title = syncState === "synced" ? "Progress synced across your devices" : syncState === "error" ? "Sync failed — saved on this device" : syncState === "nologin" ? "Not signed in — NOT syncing with your other devices" : "Saved on this device";
+  el.style.color = syncState === "synced" ? "var(--green)" : syncState === "error" ? "var(--red)" : syncState === "nologin" ? "var(--amber, #e5a50a)" : "var(--muted)";
 }
+// Estado y sincronización manual, usados desde Ajustes
+window.MTG_SYNC = {
+  status: () => ({ state: syncState, err: syncErr, lastOk, dirty, signedIn: !!DOC }),
+  async now() { if (!DOC) return false; clearTimeout(saveTimer); lastPull = 0; const ch = await pullRemote(true); if (dirty || !ch) await pushRemote(); const h = location.hash.slice(1); if (!h || ["today", "practice", "progress", "review", "phrases"].includes(h)) route(); return syncState === "synced"; }
+};
 
 /* ---------- day, xp, streak ---------- */
 const today = () => { const k = dayKey(); if (!S.days[k]) S.days[k] = {xp:0, done:{}, min:0}; return S.days[k]; };
@@ -2146,13 +2152,16 @@ function boot() {
   const flush = () => { if (DOC && dirty) { clearTimeout(saveTimer); pushRemote(); } };
   document.addEventListener("visibilitychange", () => { if (document.hidden) flush(); else pullRemote().then(ch => { const h = location.hash.slice(1); if (ch && (!h || h === "today" || h === "progress")) route(); }); });
   addEventListener("pagehide", flush);
+  // Con la app abierta y a la vista, mirar cada 20 s si el otro dispositivo ha guardado algo
+  setInterval(() => { if (DOC && !document.hidden && navigator.onLine) pullRemote().then(ch => { const h = location.hash.slice(1); if (ch && (!h || h === "today" || h === "progress")) route(); }); }, 20000);
+  addEventListener("online", () => { if (DOC) pullRemote(true); });
   document.addEventListener("click", (e) => { if (popEl && !popEl.contains(e.target)) closePop(); });
   const C = window.claude;
   if (C && C.use) {
     C.use("sample").then(s => { SAMPLE = s; if (s) { const h = location.hash.slice(1); if (["", "today", "practice", "read", "listen", "write", "speak", "real"].includes(h) || /^(listen|read|write|speak|real)-/.test(h) || (h.startsWith("play-") && $("#start"))) route(); } }).catch(() => {});
     C.use("tts").then(t => { TTSCAP = t; }).catch(() => {});
     Promise.all([C.use("db"), C.use("user")]).then(async ([db, user]) => {
-      if (!db || !user) return; const id = await user.id(); if (!id) return;
+      if (!db || !user) return; const id = await user.id(); if (!id) { syncState = "nologin"; paintSync(); return; }
       DB = db; const ref = db.doc(`data/users/${id}/state`);
       DOC = ref;
       const changed = await pullRemote(true);

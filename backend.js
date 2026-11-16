@@ -230,7 +230,8 @@
       <div class="stack" style="gap:6px"><b>Account &amp; sync</b>
         ${!sb ? `<p class="muted">Sync library not loaded. Progress is saved on this device.</p>` :
         u ? `<p class="muted">Signed in as <b>${esc(u.email || "")}</b>. Progress syncs between iPhone and computer (same account as Finanzas).</p>
-             <div><button class="btn small" id="mtgOut">Sign out</button></div>` :
+             <p class="muted" id="mtgSt" style="font-size:.85rem"></p>
+             <div class="row"><button class="btn small" id="mtgNow">Sync now</button> <button class="btn small" id="mtgOut">Sign out</button></div>` :
             `<p class="muted">Sign in with your Finanzas account to sync progress between devices.</p>
              <input class="answer" id="mtgEmail" type="email" autocomplete="username" placeholder="Email">
              <input class="answer" id="mtgPass" type="password" autocomplete="current-password" placeholder="Password">
@@ -250,6 +251,11 @@
       if (error) return msg("#mtgMsg", error.message || "Couldn't sign in.");
       location.reload();
     };
+    const paintSt = () => { const S = window.MTG_SYNC && window.MTG_SYNC.status(), el = $("#mtgSt"); if (!el || !S) return;
+      const t = S.lastOk ? new Date(S.lastOk).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"}) : "never";
+      el.textContent = S.state === "error" ? "✗ Sync error: " + S.err + " (last OK: " + t + ")" : S.state === "synced" ? "✓ Synced · last check " + t + (S.dirty ? " · changes pending" : "") : S.state === "nologin" ? "✗ Session not active on this device: sign out and sign in again." : "Not connected yet. Tap Sync now."; };
+    paintSt();
+    if ($("#mtgNow")) $("#mtgNow").onclick = async () => { $("#mtgSt").textContent = "Syncing…"; try { await window.MTG_SYNC.now(); } catch (e) {} paintSt(); };
     if ($("#mtgOut")) $("#mtgOut").onclick = async () => { try { await sb.auth.signOut(); } catch (e) {} location.reload(); };
     $("#mtgSaveKey").onclick = async () => {
       const v = $("#mtgKey").value.replace(/\s+/g, "");

@@ -1,5 +1,10 @@
 # CHANGELOG · Mind the Gap
 
+## v18 — Diagnóstico y sincronización más fiable
+- Ajustes muestra el estado real de la sincronización (✓ sincronizado + hora, ✗ error con el motivo, o sesión no activa) y un botón **Sync now**.
+- La rueda de ajustes se pone ámbar si este dispositivo no tiene sesión iniciada (antes se veía igual que "solo local").
+- Con la app abierta, mira cada 20 s si el otro dispositivo ha guardado algo; también al recuperar conexión.
+
 ## v17 · Sincronización sin pérdidas (16 nov 2026)
 
 Problema: la sincronización era "gana entero el último que guarda". Si la app quedaba abierta en otro dispositivo (o en segundo plano) con datos antiguos, al tocar cualquier cosa subía ese estado viejo y borraba lo hecho ese día en el otro aparato. Además, lo pendiente de subir se perdía si se cerraba la app antes de 1,5 s.
