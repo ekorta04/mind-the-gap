@@ -597,3 +597,103 @@ BANK.spell = BANK.spell.concat([
   {w:"accessible", s:"The valves must be accessible for maintenance.", tip:"Double c, double s, -ible."},
   {w:"foreseeable", s:"There are no delays in the foreseeable future.", tip:"fore + see + able."}
 ]);
+
+/* ===== Readings estilo examen (C1 Advanced, Reading Parts 5, 6 y 8) =====
+   Temas y formatos típicos del examen: economía, sociedad, trabajo, tecnología.
+   Cambridge evita temas que puedan molestar o angustiar (guerra, religión, juego, drogas)
+   y referencias demasiado locales, así que la "actualidad" del examen es economía,
+   sociedad, ciencia, trabajo, medio ambiente y cultura, no política de partido.
+   Salen en la rotación cada tercera lectura (campo exam). */
+BANK.reading = BANK.reading.concat([
+ {id:"x-gdp", exam:"Part 5", topic:"Economy & society", title:"Can We Measure What Matters?", mins:5,
+  task:"Read the article and choose the answer (A, B, C or D) which you think fits best according to the text.",
+  tip:"Part 5: lee primero la pregunta, localiza el párrafo y descarta las opciones que dicen algo cierto pero que no responde a lo que se pregunta.",
+  body:`Every few months, the publication of a single number sends ripples through newsrooms, trading floors and government departments. When gross domestic product rises, ministers are quick to take the credit; when it falls for two consecutive quarters, the word "recession" appears in the headlines and anxious commentators begin to speak of crisis. Few statistics carry such weight, and fewer still are so widely misunderstood.
+
+The irony is that the economist most closely associated with the measure was among the first to warn against reading too much into it. Simon Kuznets, who produced the first official estimates of national income for the United States in the 1930s, is widely quoted as cautioning that the welfare of a nation could "scarcely be inferred" from a measurement of national income. GDP, after all, simply adds up the value of the goods and services an economy produces. It does not distinguish between spending that improves lives and spending that merely repairs damage: a motorway pile-up, with its tow trucks, hospital treatment and insurance claims, can nudge the figure upwards just as surely as the opening of a new school.
+
+Nor does it see much of what actually keeps a society going. The hours a parent spends caring for a child, or that a neighbour devotes to an elderly man down the road, add nothing to the total, because no money changes hands. Critics have long pointed out the absurdity this creates: if two neighbours were to pay each other to look after one another's children, the economy would appear to grow, even though nobody would be any better off.
+
+None of this has gone unnoticed by governments. In 2010 the UK's Office for National Statistics launched a programme to measure national well-being, and since 2011 it has asked large numbers of people four deceptively simple questions: how satisfied they are with their lives, whether they feel that the things they do are worthwhile, and how happy and how anxious they felt the previous day. The answers, scored from nought to ten, are now published alongside the more familiar economic indicators.
+
+Sceptics are unimpressed. Happiness, they argue, is too subjective and too fickle to guide policy; people adapt to their circumstances, and a population might report feeling perfectly content while its public services crumble around it. There is something in this. Yet the objection cuts both ways, since GDP is hardly free of judgement calls itself: statisticians must decide, for instance, how to value services that are provided free of charge, or how to account for products whose quality improves while their price stays the same. Every measure, in other words, embodies a choice about what counts.
+
+Perhaps the real lesson is not that GDP should be abandoned but that it should be demoted — treated as one useful instrument on the dashboard rather than the speedometer that decides whether the journey is going well. No engineer would judge a plant solely by its output while ignoring the wear on its machinery, yet we routinely judge countries in precisely that way. The difficulty, of course, is that a dashboard full of dials is far harder to squeeze into a headline than a single number, and it is headlines, more often than not, that shape what politicians feel obliged to fix.`,
+  gloss:{"sends ripples through":"provoca reacciones en","take the credit":"atribuirse el mérito","consecutive":"consecutivos","inferred":"deducido","pile-up":"choque múltiple","nudge":"empujar ligeramente","absurdity":"lo absurdo","deceptively simple":"aparentemente sencillo (pero no lo es)","fickle":"voluble, cambiante","crumble":"desmoronarse","cuts both ways":"es un arma de doble filo","judgement calls":"decisiones de criterio","embodies":"encarna, refleja","demoted":"relegado, degradado","feel obliged to":"sentirse obligado a"},
+  q:[
+   {q:"In the first paragraph, the writer suggests that GDP", o:["is reported far more often than it should be.","has an influence out of proportion to how well it is understood.","is mainly of interest to financial specialists.","is deliberately misrepresented by politicians."], a:1, why:"'Few statistics carry such weight, and fewer still are so widely misunderstood.' D exagera: los ministros se atribuyen el mérito, pero no se dice que mientan."},
+   {q:"What point does the writer make with the example of the motorway pile-up?", o:["Road accidents are a major cost to the economy.","GDP can rise as a result of events that make people worse off.","Insurance companies benefit from accidents.","Public services are funded by economic growth."], a:1, why:"El choque 'can nudge the figure upwards' igual que abrir una escuela: GDP no distingue gasto que mejora vidas del que repara daños."},
+   {q:"The example of the two neighbours in the third paragraph is used to illustrate", o:["the value of unpaid care work to society.","how easily statistics can be manipulated.","that the way GDP is calculated can produce illogical results.","why people prefer paid work to voluntary help."], a:2, why:"'Critics have long pointed out the absurdity this creates': el ejemplo muestra un resultado absurdo del cálculo. A es tema del párrafo, no la función del ejemplo."},
+   {q:"What does the phrase 'deceptively simple' suggest about the ONS questions?", o:["They seem easy but measure something complex.","They were designed to mislead the public.","They are too basic to be of any use.","People tend to answer them dishonestly."], a:0, why:"deceptively simple = parece sencillo, pero no lo es. No implica engaño intencionado."},
+   {q:"In the fifth paragraph, the writer regards the sceptics' argument as", o:["entirely mistaken.","valid, but equally applicable to GDP.","based on out-of-date research.","more persuasive than the alternative."], a:1, why:"'There is something in this. Yet the objection cuts both ways': tiene parte de razón, pero también se aplica a GDP."},
+   {q:"In the final paragraph, the writer implies that one obstacle to change is", o:["the technical difficulty of measuring well-being.","engineers' lack of interest in economics.","the media's preference for simple figures.","the cost of collecting additional data."], a:2, why:"Un panel de indicadores es 'harder to squeeze into a headline', y los titulares marcan lo que los políticos quieren arreglar."}
+  ]},
+ {id:"x-fourday", exam:"Part 6", topic:"Work & economy", title:"The Four-Day Week: Four Views", mins:5,
+  task:"You are going to read four extracts in which commentators discuss the four-day working week. For each question, choose from the commentators A–D. The commentators may be chosen more than once.",
+  tip:"Part 6: antes de responder, resume en 3 palabras la opinión de cada autor sobre cada tema (resultados, bienestar, quién participó, ley). Las preguntas comparan autores.",
+  body:`A — Hannah Lewis, labour economist
+
+When the results of Britain's 2022 four-day week pilot were published, the headline figure was hard to ignore: of the 61 organisations that took part, 56 chose to carry on with the shorter week once the six-month trial was over. Sceptics have been quick to dismiss the scheme as a niche experiment, but I see little reason to believe its lessons cannot be applied across much of the economy. What struck me most was how the gains were achieved: not through heroic effort, but by stripping out the habits that quietly eat into the working week — the hour-long meeting that could have been an email, the report that nobody reads. Employees also reported less burnout, which ought to concern any employer worried about holding on to staff. Legislation, however, would be a mistake. Change of this kind only sticks when firms choose it for themselves.
+
+B — Martin Hale, professor of economics
+
+I have no quarrel with the finding that staff felt better rested; it would be remarkable if they had not. My reservations concern who took part. The companies in the pilot volunteered, and organisations that put themselves forward for such an experiment are, almost by definition, those that expect it to succeed. To extrapolate from them to the economy as a whole is to commit an elementary statistical error. Moreover, much of the evidence on performance came from the firms themselves, which is hardly the gold standard. I would want to see a properly randomised study before drawing any firm conclusions, and governments would be wise to resist calls to legislate until we have one.
+
+C — Priya Sharma, management consultant
+
+Having guided several firms through the transition, I have seen at first hand that the shorter week can work, though rarely in the way people imagine. Output held up not because people worked faster, but because managers were forced to confront the clutter in their teams' diaries: routine meetings were scrapped and lengthy approval processes cut back. The benefits for staff are genuine, and with sensible adjustments, such as staggered rotas, I am convinced the model could work in most sectors, hospitals and factories included. Where I part company with many of its advocates is that I believe the state should set a timetable for introducing it. Left to the market, the employers who most need to change will be the last to do so.
+
+D — Tom Gallagher, small-business owner
+
+I introduced a similar scheme in my own company, and for the first few months it was a revelation: morale soared and sick days fell. By the end of the first year, though, the novelty had worn off. Much of the improvement in how people felt had faded, and the pressure to cram five days' work into four had crept back in. I also wonder how representative the national pilot really was, given that any firm that signs up for such a trial is presumably already well suited to it. That said, I would not want politicians making the decision for us. Every business knows its own customers and its own limits.`,
+  gloss:{"carry on with":"continuar con","niche":"de nicho, minoritario","stripping out":"eliminando","burnout":"agotamiento laboral","holding on to":"retener","sticks":"perdura, arraiga","reservations":"reservas, dudas","put themselves forward":"ofrecerse voluntarios","extrapolate":"extrapolar","gold standard":"el referente de calidad","clutter":"desorden, cosas que sobran","scrapped":"eliminado, desechado","staggered rotas":"turnos escalonados","part company with":"discrepar de","worn off":"pasado (el efecto)","cram":"meter a presión, embutir"},
+  q:[
+   {q:"Which commentator shares A's view on whether the pilot's findings could apply across the economy?", o:["B","C","D"], a:1, why:"A: 'little reason to believe its lessons cannot be applied across much of the economy'. C: 'could work in most sectors'. B y D dudan de que sea representativo."},
+   {q:"Which commentator has a different view from the others about the effect of the shorter week on how staff feel?", o:["A","B","C","D"], a:3, why:"A, B y C aceptan que mejora el bienestar. D dice que la mejora 'had faded' al cabo de un año."},
+   {q:"Which commentator expresses a similar opinion to C about how the gains in productivity were achieved?", o:["A","B","D"], a:0, why:"C: se eliminaron reuniones y trámites. A: 'stripping out… the hour-long meeting that could have been an email'."},
+   {q:"Which commentator takes a different position from the others on whether the government should intervene?", o:["A","B","C","D"], a:2, why:"Solo C quiere que 'the state should set a timetable'. A, B y D rechazan legislar (al menos por ahora)."}
+  ]},
+ {id:"x-ai-work", exam:"Part 8", topic:"Technology & society", title:"AI and Me: Four Professionals on the New Tools", mins:6,
+  task:"You are going to read about four professionals who use artificial intelligence in their work. For questions 1–10, choose from the people A–D. The people may be chosen more than once.",
+  tip:"Part 8: lee las preguntas primero y subraya la idea clave de cada una; luego busca sinónimos en el texto, no las mismas palabras.",
+  body:`A — Rachel, solicitor
+
+I'll admit I was deeply sceptical when the firm first brought in a drafting tool; I assumed it would produce bland, error-strewn documents that would take longer to fix than to write from scratch. In fairness, it now produces a perfectly serviceable first draft of a standard contract in minutes. My worry is a different one. When I was a trainee, I learned the job precisely by drafting those dull agreements over and over, and having my mistakes picked apart by a senior partner. If the machine does that work, I'm not sure how the next generation of lawyers will acquire the instincts that only come from repetition. We haven't found an answer to that yet.
+
+B — Daniel, secondary-school teacher
+
+For me, the biggest change has been to my evenings. I used to spend hours adapting worksheets for pupils of different abilities; now I can produce three versions of the same exercise before I've finished my coffee, and I actually get to see my family. The flip side is that some of my students quickly worked out how to get the software to write their homework for them. Our response, as a department, was to move much more of our assessment into the classroom, where pupils write by hand under supervision. It was a hassle at first, but on balance I'm optimistic: used well, the technology frees me to do the part of the job that matters, which is talking to the kids.
+
+C — Amira, maintenance planner at a water company
+
+We use predictive software to decide which pumps and pipes to repair before they fail, and when it works, it's remarkably effective. But the system is only ever as good as the data you feed it, and our records went back decades, entered by different people in different ways. I spent the best part of a year cleaning them up before the predictions were worth trusting. What surprised me was how much we relied on the engineers who'd been on the network for thirty years. They could tell us which records were nonsense and why, and without that hands-on knowledge the whole project would have stalled.
+
+D — Owen, freelance translator
+
+I'd be lying if I said machine translation hadn't hurt my business. Several long-standing clients simply stopped sending me routine documents. Rather than compete on price, I've repositioned myself: I now edit machine output for accuracy and tone, and I focus on marketing and creative texts, where a literal rendering falls flat. I earn less per word than I used to, but the work is more varied and, frankly, more satisfying. My advice to anyone just entering the profession would be to specialise early and to become the person who knows a particular industry inside out, because that is something the software can't yet imitate.`,
+  gloss:{"bland":"insulso, soso","error-strewn":"plagado de errores","serviceable":"útil, aceptable","picked apart":"analizado al detalle (para criticar)","the flip side":"la otra cara","a hassle":"una molestia, un engorro","on balance":"en conjunto, sopesándolo todo","the best part of":"casi (todo)","hands-on":"práctico, de primera mano","stalled":"estancado, paralizado","repositioned myself":"me he reorientado","falls flat":"no funciona, no tiene el efecto buscado","inside out":"al dedillo"},
+  q:[
+   {q:"Which person mentions having to change the way people's work is checked or assessed?", o:["A","B","C","D"], a:1, why:"B: 'move much more of our assessment into the classroom'."},
+   {q:"Which person admits having had doubts about the technology at first?", o:["A","B","C","D"], a:0, why:"A: 'I'll admit I was deeply sceptical when the firm first brought in a drafting tool'."},
+   {q:"Which person says a fall in income has been compensated for in other ways?", o:["A","B","C","D"], a:3, why:"D: 'I earn less per word… but the work is more varied and… more satisfying'."},
+   {q:"Which person stresses that the results depend on the quality of the information used?", o:["A","B","C","D"], a:2, why:"C: 'only ever as good as the data you feed it'."},
+   {q:"Which person is concerned that people starting out may miss valuable learning opportunities?", o:["A","B","C","D"], a:0, why:"A: no sabe cómo aprenderá 'the next generation of lawyers' sin redactar esos contratos. Ojo: D da un consejo a los nuevos, pero no expresa esa preocupación."},
+   {q:"Which person says the technology has given them more personal time?", o:["A","B","C","D"], a:1, why:"B: 'the biggest change has been to my evenings… I actually get to see my family'."},
+   {q:"Which person refers to the importance of colleagues' practical experience?", o:["A","B","C","D"], a:2, why:"C: 'we relied on the engineers who'd been on the network for thirty years… hands-on knowledge'."},
+   {q:"Which person offers advice to newcomers to their field?", o:["A","B","C","D"], a:3, why:"D: 'My advice to anyone just entering the profession…'."},
+   {q:"Which person mentions that the people they work with found a way to misuse the technology?", o:["A","B","C","D"], a:1, why:"B: 'some of my students quickly worked out how to get the software to write their homework'."},
+   {q:"Which person describes changing the kind of service they offer?", o:["A","B","C","D"], a:3, why:"D: 'I've repositioned myself: I now edit machine output… and focus on marketing and creative texts'."}
+  ]}
+]);
+BANK.sources["x-gdp"] = [
+  {t:"ONS — Personal well-being FAQ (programme launched 2010; four questions since 2011; 0–10 scale)", u:"https://www.ons.gov.uk/peoplepopulationandcommunity/wellbeing/methodologies/personalwellbeingfrequentlyaskedquestions"},
+  {t:"European Commission (DG Environment) — Kuznets (1934): 'The welfare of a nation can scarcely be inferred from a measurement of national income'", u:"https://ec.europa.eu/newsroom/env/items/33780/en"},
+  {t:"PRIME Economics — GDP: origin, uses and abuses (Kuznets, National Income 1929–1932, report to the US Senate, 1934)", u:"https://primeeconomics.org/articles/gdp-origin-uses-and-abuses/"},
+  {t:"Format: Cambridge English — C1 Advanced handbook (Reading Part 5)", u:"https://www.cambridgeenglish.org/Images/167804-c1-advanced-handbook.pdf"}];
+BANK.sources["x-fourday"] = [
+  {t:"Autonomy — UK four-day week pilot results (61 organisations, ~2,900 staff, June–Dec 2022; 56 continued)", u:"https://autonomy.work/portfolio/uk4dwpilotresults/"},
+  {t:"The four commentators are fictional; their opinions were written for practice."},
+  {t:"Format: Cambridge English — C1 Advanced handbook (Reading Part 6)", u:"https://www.cambridgeenglish.org/Images/167804-c1-advanced-handbook.pdf"}];
+BANK.sources["x-ai-work"] = [
+  {t:"The four professionals are fictional; the texts were written for practice and cite no data."},
+  {t:"Format: Cambridge English — Developing reading skills for C1 Advanced (Part 8: people discussing their work)", u:"https://www.cambridgeenglish.org/Images/627844-developing-reading-skills-for-c1-advanced-a-guide-for-teachers.pdf"}];

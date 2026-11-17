@@ -1,5 +1,13 @@
 # CHANGELOG · Mind the Gap
 
+## v20 — Textos de examen y método basado en la evidencia
+- **Readings estilo examen (C1 Advanced)**: 3 textos con el formato real: Part 5 (artículo de opinión sobre el PIB y el bienestar, 6 preguntas), Part 6 (cuatro opiniones sobre la semana de cuatro días, 4 preguntas) y Part 8 (cuatro profesionales y la IA, 10 preguntas). Cada pregunta explica el porqué tras responder. Fuentes: ONS, Comisión Europea, Autonomy y el handbook de Cambridge.
+- **Rotación**: la lectura del día alterna dos textos de tus temas y uno de examen. Filtro "All / My interests / Exam style" en Reading.
+- **Second chance**: las preguntas falladas se repiten al final de la misma ronda (además de volver en Review).
+- **From Spanish** (Quick play): ves el significado en castellano y escribes la expresión en inglés, con pista opcional y aviso si fallas solo por ortografía. Las tarjetas de idioms y Work English en Review se repasan así (producir, no reconocer).
+- Arreglo: "New for you" ya no muestra preguntas de puntos del temario aún no presentados.
+- Sin cambios en el formato del progreso guardado (mtg-v1).
+
 ## v19 — Semana del 17 nov 2026: grandes obras y reuniones
 - **Lectura nueva**: "London's Second Super Sewer" (Bazalgette y el Thames Tideway Tunnel), con glosario, 4 preguntas y fuentes oficiales (Thames Water, ficha técnica de Tideway, Costain, London Museum).
 - **Real British**: 5 vídeos nuevos (English at Work 10 "Disagreeing", 6 Minute English "Are you unhappy at work?", Tideway/ICE, Mercedes "My Job in F1", Beyond The Grid con Tom Stallard).

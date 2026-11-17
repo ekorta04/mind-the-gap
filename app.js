@@ -420,7 +420,12 @@ function route() {
 }
 
 /* ---------- daily route ---------- */
-function nextReading() { const all = BANK.reading.concat(S.aiArticles); return all.find(a => !S.read[a.id]) || null; }
+// Rotación: dos textos de tus temas y, cada tercera lectura, uno con formato y temas de examen (C1 Advanced)
+function nextReading() {
+  const all = BANK.reading.concat(S.aiArticles), unread = all.filter(a => !S.read[a.id]);
+  const wantExam = Object.keys(S.read || {}).length % 3 === 2;
+  return unread.find(a => !!a.exam === wantExam) || unread[0] || null;
+}
 function nextListening() { const all = BANK.listening.concat(S.aiListening); return all.find(a => !S.listen[a.id]) || null; }
 /* ---------- views: today ---------- */
 function ring(p) {
@@ -447,7 +452,31 @@ function viewPractice(v) {
 }
 
 /* ---------- game engine ---------- */
+/* ---------- From Spanish: producir la expresión a partir del castellano ---------- */
+const FILL = /\b(someone|somebody|something|sb|sth|one's|oneself|your|yourself|my|his|her|their|him|them|me|us|you|it|a|an|the)\b/g;
+function coreTerm(t) { return norm(String(t || "").replace(/\([^)]*\)/g, " ").replace(/\//g, " ")).replace(/^to /, "").replace(FILL, " ").replace(/[^a-z' -]/g, " ").replace(/\s+/g, " ").trim(); }
+function editDist(a, b) { const d = Array.from({length:a.length + 1}, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j; for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; }
+function esClue(it) {
+  let s = String(it.es || ""); const i = s.indexOf("="); if (i > -1 && i < 70) s = s.slice(i + 1).trim();
+  coreTerm(it.t).split(" ").filter(w => w.length > 3).forEach(w => { s = s.replace(new RegExp("\\b" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\w*", "gi"), "…"); });
+  return s;
+}
+function canEs2en(it) { return (it._t === "idioms" || it._t === "work") && it.es && esClue(it).length > 6; }
+function es2enItem(it, onDone) {
+  const target = coreTerm(it.t), hint = String(it.t).replace(/\([^)]*\)/g, "").replace(/^to /, "").trim().split(/\s+/).map(w => w[0] + "…").join(" ");
+  return {
+    html:`<p class="muted" style="margin:0">Write the English expression that means:</p><p class="qtext"><span class="flag">ES</span> <b>${esc(esClue(it))}</b></p><p class="muted" style="font-size:.9rem">${esc(it.m)}</p><p class="muted" id="h2" hidden>Starts: <b class="mono">${esc(hint)}</b></p><input class="answer" id="ans" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Type it in English" aria-label="Your answer"><div class="row"><button class="btn primary" id="chk">Check</button><button class="btn ghost small" id="hb" type="button">Hint</button></div>`,
+    mount(r) {
+      let hinted = false; $("#hb", r).onclick = () => { hinted = true; $("#h2", r).hidden = false; $("#hb", r).remove(); };
+      typed(r, (val) => { const u = coreTerm(val);
+        if (u === target) return onDone(true, val, hinted ? "Right — with a hint. Next time try without it." : "Produced from memory: the strongest kind of practice.");
+        if (target.length > 6 && editDist(u, target) <= 2) return onDone(false, val, "Nearly — check the spelling, letter by letter: " + it.t);
+        onDone(false, val); });
+    }
+  };
+}
 function renderItem(it, onDone, ro = {}) {
+  if (it._mode === "es2en") return es2enItem(it, onDone);
   // returns {html, mount(root)} ; onDone(ok, given, meh)
   const t = it._t;
   if (t === "wf") return {
@@ -521,7 +550,7 @@ function answerOf(it, html) {
     case "mc": case "pv": case "gram": return it.o[it.a];
     case "err": return it.fix || it.c.map((c, i) => i === it.e ? it.o[it.a] : c).join(" ");
     case "spell": return it.w;
-    case "idioms": case "work": return it.m;
+    case "idioms": case "work": return it._mode === "es2en" ? it.t : it.m;
   }
 }
 function itemAsText(it) {
@@ -541,9 +570,9 @@ function viewGame(v, type, opts = {}) {
   const T = TYPES[type]; if (!T) return viewPractice(v);
   if (type === "idioms" && !opts.items) return viewQuickfire(v);
   const isMock = type === "mock";
-  const items = opts.items || (isMock ? ["mc", "oc", "wf", "kwt"].flatMap(t => pickItems(t, t === "kwt" ? 6 : 8)) : pickItems(type, 8));
+  const items = (opts.items || (isMock ? ["mc", "oc", "wf", "kwt"].flatMap(t => pickItems(t, t === "kwt" ? 6 : 8)) : pickItems(type, 8))).slice();
   let mockEnd = 0, mockTimer = null;
-  const G = {i:0, res:[], combo:0, xp:0};
+  const G = {i:0, res:[], combo:0, xp:0, n:items.length, again:0};
   v.style.setProperty("--c", T.c);
   const intro = () => {
     const p = isMock ? {done:S.mockBest || 0, total:30} : poolProgress(type);
@@ -554,6 +583,7 @@ function viewGame(v, type, opts = {}) {
     $("#bk", v).onclick = () => go("practice");
     $("#start", v).onclick = () => {
       if (!items.length) return toast("No questions yet.");
+      G.n = items.length;
       if (isMock) { mockEnd = Date.now() + 35 * 60000; mockTimer = setInterval(() => { const tm = $("#mockT", v); const left = Math.max(0, mockEnd - Date.now()); if (tm) tm.textContent = Math.floor(left / 60000) + ":" + pad(Math.floor(left / 1000) % 60); if (!left) { clearInterval(mockTimer); while (G.res.length < items.length) G.res.push(false); finish(); } }, 500); cleanup = () => clearInterval(mockTimer); }
       next();
     };
@@ -566,18 +596,22 @@ function viewGame(v, type, opts = {}) {
   };
   const next = () => {
     if (G.over) return;
+    if (!G.n) G.n = items.length;
     if (G.i >= items.length) return finish();
     const it = items[G.i];
     const dots = items.map((_, j) => `<i class="${j < G.i ? (G.res[j] ? "ok" : "ko") : j === G.i ? "cur" : ""}"></i>`).join("");
     v.innerHTML = `<div class="game-head"><button class="icon-btn" id="quit" aria-label="Quit round">${I.back}</button><div class="progress-dots">${dots}</div>${isMock ? `<span class="timer mono" id="mockT"></span>` : G.combo >= 2 ? `<span class="combo">x${Math.min(3, 1 + Math.floor(G.combo / 2))} combo</span>` : ""}</div>
-      <div class="card qcard" id="q" style="--c:${TYPES[it._t].c}"><span class="eyebrow">${isMock ? TYPES[it._t].part + " · " : ""}${esc(TYPES[it._t].name)} · ${G.i + 1} of ${items.length}${it._id.startsWith("ai") ? " · fresh" : ""}</span>${tipBox(it)}</div><div id="fb"></div>`;
+      <div class="card qcard" id="q" style="--c:${TYPES[it._t].c}"><span class="eyebrow">${isMock ? TYPES[it._t].part + " · " : ""}${it._again ? "Second chance · " : ""}${esc(TYPES[it._t].name)} · ${G.i + 1} of ${items.length}${it._id.startsWith("ai") ? " · fresh" : ""}</span>${tipBox(it)}</div><div id="fb"></div>`;
     $("#quit", v).onclick = () => go(opts.back || "practice");
     const r = $("#q", v); bindTips(r);
     const R = renderItem(it, (ok, given, note) => {
-      G.res.push(ok); S.seen[it._id] = ok ? 1 : -1; record((TYPES[it._t] || T).skill, ok);
-      let gained = 0;
-      if (ok) { G.combo++; gained = 10 * Math.min(3, 1 + Math.floor((G.combo - 1) / 2)); G.xp += gained; }
-      else { G.combo = 0; addCard({k:"item", id:"item:" + it._id, t:it._t, ref:it._id, f:TYPES[it._t].name, b:answerOf(it)}); }
+      G.res.push(ok); let gained = 0;
+      if (it._again) { if (ok) { G.again++; gained = 5; G.xp += gained; } }   // segunda oportunidad: no cambia estadísticas; el fallo sigue en el repaso
+      else {
+        S.seen[it._id] = ok ? 1 : -1; record((TYPES[it._t] || T).skill, ok);
+        if (ok) { G.combo++; gained = 10 * Math.min(3, 1 + Math.floor((G.combo - 1) / 2)); G.xp += gained; }
+        else { G.combo = 0; addCard({k:"item", id:"item:" + it._id, t:it._t, ref:it._id, f:TYPES[it._t].name, b:answerOf(it)}); if (!isMock) items.push(Object.assign({}, it, {_again:true})); }   // se repite al final de la ronda
+      }
       save();
       showFeedback($("#fb", v), it, ok, given, note, gained, () => { G.i++; next(); });
     }, {noPF:isMock});
@@ -595,11 +629,12 @@ function viewGame(v, type, opts = {}) {
       v.innerHTML = `<div class="card stack pop" style="align-items:center;text-align:center;padding:32px 18px"><span class="eyebrow">Block complete</span><div class="big-score">${right}/${items.length}</div><p>+${xp} XP</p><div class="stack" style="width:100%;max-width:480px;text-align:left">${byPart}</div><p class="muted">A practice block with the app's own questions: it trains you, it does not measure you. Only official papers feed your score estimate. Your mistakes are in Review.</p><div class="row" style="justify-content:center"><button class="btn" id="home">Back to Today</button></div></div>`;
       $("#home", v).onclick = () => go("today"); return;
     }
-    const bonus = right === items.length ? 30 : 0;
-    addXP(G.xp + bonus + 10); if (!opts.quick) markDone(type); if (opts.quick) { S.quick = S.quick || {}; S.quick[opts.quick] = {d:dayKey(), r:right, n:items.length}; }
+    const right1 = G.res.slice(0, G.n).filter(Boolean).length, retries = items.length - G.n;
+    const bonus = right1 === G.n ? 30 : 0;
+    addXP(G.xp + bonus + 10); if (!opts.quick) markDone(type); if (opts.quick) { S.quick = S.quick || {}; S.quick[opts.quick] = {d:dayKey(), r:right1, n:G.n}; }
     S.days[dayKey()].min = (S.days[dayKey()].min || 0) + 5; save();
     v.innerHTML = `<div class="card stack pop" style="text-align:center;align-items:center;padding:32px 18px"><span class="eyebrow">${esc(opts.title || T.name)} · ${opts.quick ? "done" : "round complete"}</span>
-      <div class="big-score">${right}/${items.length}</div><p class="muted">+${G.xp + bonus + 10} XP${bonus ? " · perfect round bonus" : ""}. ${right === items.length ? "Flawless." : right >= 6 ? "Strong round." : right >= 4 ? "Solid. Mistakes are now in your review deck." : "Tough one. These will come back in Review until they stick."}</p>
+      <div class="big-score">${right1}/${G.n}</div><p class="muted">+${G.xp + bonus + 10} XP${bonus ? " · perfect round bonus" : ""}. ${right1 === G.n ? "Flawless." : right1 >= 6 ? "Strong round." : right1 >= 4 ? "Solid. Mistakes are now in your review deck." : "Tough one. These will come back in Review until they stick."}</p>${retries ? `<p class="muted">Second chance: <b>${G.again}/${retries}</b> fixed at the end of the round. They'll still come back in Review in a day or two — that second look is what makes them stick.</p>` : ""}
       <div class="row" style="justify-content:center"><button class="btn red" id="again">Another round</button><button class="btn" id="home">Back to Today</button></div></div>`;
     $("#again", v).onclick = () => route(); $("#home", v).onclick = () => go(opts.back === "quick" ? "quick" : "today");
     if (opts.back === "quick") { $("#again", v).textContent = "Another one"; $("#home", v).textContent = "Quick play"; }
@@ -730,13 +765,16 @@ async function generateItems(type) {
 
 /* ---------- reading ---------- */
 function allArticles() { return BANK.reading.concat(S.aiArticles); }
+let readFilter = "all";
 function viewReadList(v) {
-  const arts = allArticles();
-  v.innerHTML = `<div class="hello"><span class="eyebrow" style="color:var(--navy)">Reading</span><h1>Read things you care about</h1><p class="muted">C1–C2 texts on engineering, project management, personal development, money and sport. Tap any word for its meaning; save it to your deck.</p></div>
+  const arts = allArticles().filter(a => readFilter === "all" || (readFilter === "exam") === !!a.exam);
+  v.innerHTML = `<div class="hello"><span class="eyebrow" style="color:var(--navy)">Reading</span><h1>Read things you care about</h1><p class="muted">C1–C2 texts on engineering, project management, personal development, money and sport — and, every third text, an <b>exam-style</b> piece on the kind of topics and formats Cambridge uses (Parts 5, 6 and 8). Tap any word for its meaning; save it to your deck.</p></div>
+  <div class="seg-ctl" id="rf" role="group" aria-label="Filter texts">${[["all", "All"], ["mine", "My interests"], ["exam", "Exam style"]].map(([k, l]) => `<button data-f="${k}" aria-pressed="${readFilter === k}">${l}</button>`).join("")}</div>
   ${aiOn() ? `<div class="card stack"><h3>Fresh article</h3><div class="row"><select id="topic" aria-label="Topic">${INTERESTS.map(t => `<option>${t}</option>`).join("")}<option value="">surprise me</option></select><select id="lvl" aria-label="Level"><option value="C1">C1</option><option value="C2">C2</option></select><input type="text" id="custom" placeholder="or a specific subject…" aria-label="Specific subject" style="flex:1;min-width:160px"><button class="btn ai" id="gen">${I.sparkle} Write it</button></div><p class="muted" id="genMsg"></p></div>` : ""}
-  <div class="list">${arts.slice().reverse().map(a => `<button class="card item" data-id="${esc(a.id)}" style="--c:var(--navy)"><span class="badge">${I.book}</span><span class="txt"><b>${esc(a.title)}</b><small>${esc(a.topic)} · ${a.mins || 4} min${a.ai ? " · fresh" : ""}</small></span>${S.read[a.id] ? `<span class="check">${S.read[a.id].score}/${(a.q || []).length}</span>` : `<span class="go muted">${I.arrow}</span>`}</button>`).join("")}</div>
+  <div class="list">${arts.slice().reverse().map(a => `<button class="card item" data-id="${esc(a.id)}" style="--c:var(--navy)"><span class="badge">${I.book}</span><span class="txt"><b>${esc(a.title)}</b><small>${a.exam ? `<b style="color:var(--red)">Exam · ${esc(a.exam)}</b> · ` : ""}${esc(a.topic)} · ${a.mins || 4} min${a.ai ? " · fresh" : ""}</small></span>${S.read[a.id] ? `<span class="check">${S.read[a.id].score}/${(a.q || []).length}</span>` : `<span class="go muted">${I.arrow}</span>`}</button>`).join("")}</div>
   <div class="card stack"><h3>Real British audio, video & news</h3><p class="muted">Native material to stretch you between sessions. Opens in a new tab.</p><div class="list">${BANK.links.map(l => `<a class="item" href="${l.u}" target="_blank" rel="noopener" style="--c:var(--green);text-decoration:none;color:inherit"><span class="badge">${I.link}</span><span class="txt"><b>${esc(l.t)}</b><small>${esc(l.d)}</small></span></a>`).join("")}</div></div>`;
   $$(".item[data-id]", v).forEach(b => b.onclick = () => go("read-" + b.dataset.id));
+  $$("#rf button", v).forEach(b => b.onclick = () => { readFilter = b.dataset.f; viewReadList(v); });
   const gb = $("#gen", v); if (gb) gb.onclick = async () => {
     gb.disabled = true; gb.innerHTML = `<span class="spin"></span> Writing… (≈30 s)`; $("#genMsg", v).textContent = "";
     const topic = $("#custom", v).value.trim() || $("#topic", v).value || shuffle(INTERESTS)[0];
@@ -775,7 +813,8 @@ function viewArticle(v, id) {
   const paras = a.body.split(/\n\s*\n/).map(p => `<p>${paraHTML(p.trim())}</p>`).join("");
   const prev = S.read[a.id];
   v.innerHTML = `<div class="row"><button class="btn ghost small" id="bk">${I.back} Reading</button><span class="spacer"></span><button class="btn small" id="listen">${I.speaker} Listen</button><button class="btn small" id="stopA" hidden>${I.stop} Stop</button></div>
-  <div class="hello"><span class="eyebrow" style="color:var(--navy)">${esc(a.topic)} · ${a.mins || 4} min read</span><h1>${esc(a.title)}</h1><p class="muted">Highlighted phrases have notes. Tap any word for help.</p></div>
+  <div class="hello"><span class="eyebrow" style="color:${a.exam ? "var(--red)" : "var(--navy)"}">${a.exam ? "Exam style · Reading " + esc(a.exam) + " · " : ""}${esc(a.topic)} · ${a.mins || 4} min read</span><h1>${esc(a.title)}</h1><p class="muted">Highlighted phrases have notes. Tap any word for help.</p></div>
+  ${a.task ? `<div class="card stack" style="--c:var(--red)"><p style="margin:0"><b>Exam task:</b> ${esc(a.task)}</p>${a.tip ? `<p class="es" style="margin:0"><span class="flag">ES</span> ${esc(a.tip)}</p>` : ""}</div>` : ""}
   <article class="card article" id="art">${paras}</article>
   ${srcBlock(a)}
   <div class="card stack" id="quiz"><h2>Check your understanding</h2>${prev ? `<p class="muted">Last time: ${prev.score}/${a.q.length}. Try again to beat it.</p>` : ""}
@@ -813,11 +852,12 @@ function viewArticle(v, id) {
     $$(".opt", box).forEach(b => b.onclick = () => {
       if (ans[qi] != null) return; const j = +b.dataset.j; ans[qi] = j === q.a;
       $$(".opt", box).forEach(x => { x.disabled = true; if (+x.dataset.j === q.a) x.classList.add("right"); }); if (j !== q.a) b.classList.add("wrong");
+      if (q.why) box.insertAdjacentHTML("beforeend", `<p class="muted" style="font-size:.9rem;margin:0"><b>Why:</b> ${esc(q.why)}</p>`);
       record("reading", j === q.a);
       if (Object.keys(ans).length === a.q.length) {
         const score = Object.values(ans).filter(Boolean).length; const xp = score * 15 + 20;
         S.read[a.id] = {score, at:dayKey()}; addXP(xp); markDone("read");
-        $("#qres", v).innerHTML = `<div class="feedback ${score >= 3 ? "ok" : "ko"} pop"><b class="t">${score}/${a.q.length} · +${xp} XP</b><p>${score === a.q.length ? "Perfect reading." : "Re-read the paragraph each wrong answer refers to — the clue is always in the text."}</p><div class="row"><button class="btn primary" id="toToday">Back to Today</button></div></div>`;
+        $("#qres", v).innerHTML = `<div class="feedback ${score >= a.q.length / 2 ? "ok" : "ko"} pop"><b class="t">${score}/${a.q.length} · +${xp} XP</b><p>${score === a.q.length ? "Perfect reading." : "Re-read the paragraph each wrong answer refers to — the clue is always in the text."}</p><div class="row"><button class="btn primary" id="toToday">Back to Today</button></div></div>`;
         $("#toToday", v).onclick = () => go("today");
       }
     });
@@ -1137,6 +1177,7 @@ const QUICK_MODES = [
   {id:"mini", n:"Mini exam", t:"One of each type · ≈5 min", c:"var(--navy)"},
   {id:"fix", n:"Fix my mistakes", t:"5 questions you got wrong", c:"var(--amber)"},
   {id:"new", n:"New for you", t:"5 questions you've never seen · ≈2 min", c:"var(--green)"},
+  {id:"es2en", n:"From Spanish", t:"See it in Spanish, write it in English · ≈2 min", c:"var(--plum)"},
   {id:"pv", n:"Phrasal verbs", t:"5 questions · ≈1 min", c:TYPES.pv.c, type:"pv"},
   {id:"gram", n:"Grammar flash", t:"5 questions · ≈1 min", c:TYPES.gram.c, type:"gram"},
   {id:"mc", n:"Collocations", t:"5 questions · ≈1 min", c:TYPES.mc.c, type:"mc"},
@@ -1148,18 +1189,21 @@ const QUICK_MODES = [
   {id:"work", n:"Work English", t:"5 questions · ≈1 min", c:TYPES.work.c, type:"work"},
   {id:"spell", n:"Spelling", t:"5 words · ≈2 min", c:TYPES.spell.c, type:"spell"}
 ];
+function unseenShort() { const pts = c1s().pts; return SHORT_TYPES.flatMap(t => pool(t).filter(x => S.seen[x._id] == null && (!x.pt || pts[x.pt]))); }
 function quickItems(id) {
   const m = QUICK_MODES.find(x => x.id === id); if (!m) return [];
   if (m.type) return pickItems(m.type, m.n_ || 5);
   if (id === "five") { const ts = shuffle(SHORT_TYPES.slice()).slice(0, 5); return shuffle(ts.flatMap(t => pickItems(t, 1))); }
   if (id === "mini") return ["mc", "oc", "wf", "kwt", "gram", "pv", "err", "idioms"].flatMap(t => pickItems(t, 1));
   if (id === "fix") return shuffle(SHORT_TYPES.flatMap(t => pool(t).filter(x => S.seen[x._id] === -1))).slice(0, 5);
-  if (id === "new") return shuffle(SHORT_TYPES.flatMap(t => pool(t).filter(x => S.seen[x._id] == null))).slice(0, 5);
+  if (id === "new") return shuffle(unseenShort()).slice(0, 5);
+  if (id === "es2en") { const all = ["idioms", "work"].flatMap(t => pool(t)).filter(canEs2en); const met = shuffle(all.filter(x => S.seen[x._id] != null)), fresh = shuffle(all.filter(x => S.seen[x._id] == null));
+    return met.slice(0, 3).concat(fresh, met.slice(3)).slice(0, 5).map(x => Object.assign({}, x, {_mode:"es2en"})); }
   return [];
 }
 function viewQuick(v) {
   const wrong = SHORT_TYPES.reduce((a, t) => a + pool(t).filter(x => S.seen[x._id] === -1).length, 0);
-  const fresh = SHORT_TYPES.reduce((a, t) => a + pool(t).filter(x => S.seen[x._id] == null).length, 0);
+  const fresh = unseenShort().length;
   const last = S.quick || {};
   const card = m => { const l = last[m.id]; const dis = (m.id === "fix" && !wrong) || (m.id === "new" && !fresh);
     return `<button class="card tile" data-q="${m.id}" style="--c:${m.c}" ${dis ? "disabled" : ""}><h3>${esc(m.n)}</h3><p class="muted">${esc(m.id === "fix" ? (wrong ? `${Math.min(5, wrong)} of your ${wrong} mistakes · ≈2 min` : "No mistakes to fix yet") : m.id === "new" ? (fresh ? `${fresh} unseen questions left · ≈2 min` : "You've seen them all!") : m.t)}</p>${l ? `<div class="meta"><span class="mono">Last: ${l.r}/${l.n}${l.d === dayKey() ? " · today" : ""}</span></div>` : ""}</button>`; };
@@ -1170,6 +1214,7 @@ function viewQuick(v) {
 }
 function startQuick(v, id) {
   const m = QUICK_MODES.find(x => x.id === id); if (!m) return go("quick");
+  if (id === "es2en") return viewGame(v, "idioms", {items:quickItems(id), autostart:true, back:"quick", quick:id, title:m.n});
   if (id === "spell") return viewGame(v, "spell", {items:pickItems("spell", 5), autostart:true, back:"quick", quick:id, title:m.n});
   const items = quickItems(id);
   if (!items.length) { toast("Nothing to practise here yet."); return go("quick"); }
@@ -1482,7 +1527,8 @@ function viewToday(v) {
 /* ---------- tarjeta de repaso: siempre producir antes de ver ---------- */
 function cardUI(box, c, onDone) {
   if (c.k === "item") {
-    const it = findItem(c.t, c.ref); if (!it) return onDone(null);
+    let it = findItem(c.t, c.ref); if (!it) return onDone(null);
+    if (canEs2en(it)) it = Object.assign({}, it, {_mode:"es2en"});   // repasar = producir, no reconocer
     box.innerHTML = `<div class="card qcard" id="q" style="--c:${TYPES[c.t].c}"><span class="eyebrow">${esc(TYPES[c.t].name)}${c.tmp ? "" : " · from your mistakes · box " + c.box}</span>${tipBox(it)}</div><div id="fb"></div>`;
     const q = $("#q", box); bindTips(q);
     const R = renderItem(it, (ok, given, note) => { record(TYPES[c.t].skill, ok); showFeedback($("#fb", box), it, ok, given, note, ok ? 6 : 0, () => onDone(ok)); });
