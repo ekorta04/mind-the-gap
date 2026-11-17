@@ -496,3 +496,104 @@ BANK.oc = BANK.oc.concat([
   {s:"The manager objected ___ being left out of the decision.", a:["to"], why:"object TO + -ing (to is a preposition).", es:"object TO + -ing: aquí to es preposición."},
   {s:"On no ___ should this door be left open.", a:["account"], why:"On no account + inversion = under no circumstances.", es:"On no account + inversión = bajo ningún concepto."}
 ]);
+
+/* ===== Iteración semanal · 17 nov 2026 =====
+   Grandes obras (Tideway), reuniones (discrepar con educación) y vocabulario de obra británico. */
+
+/* Real British: 5 vídeos nuevos (IDs vistos en resultados de búsqueda de YouTube) */
+BANK.real = BANK.real.concat([
+  {yt:"F5h3tLtgVrI", t:"Disagreeing — English at Work 10", src:"BBC Learning English", topic:"Work", mins:5},
+  {yt:"V2eW5jGQe8I", t:"Are you unhappy at work? — 6 Minute English", src:"BBC Learning English", topic:"Work", mins:6},
+  {yt:"t8QTLHUeAvc", t:"The Tideway Super Sewer — ICE People and Projects", src:"Tideway London", topic:"Engineering"},
+  {yt:"xk4warT0sMo", t:"My Job in F1: Dom, race support team leader and test engineer", src:"Mercedes-AMG F1", topic:"F1"},
+  {yt:"SgS1UAcClkk", t:"Tom Stallard, McLaren race engineer — Beyond The Grid", src:"Formula 1", topic:"F1", mins:45, long:true}
+]);
+
+/* Reading: grandes obras */
+BANK.reading = BANK.reading.concat([
+ {id:"r-tideway", topic:"Engineering", title:"London's Second Super Sewer", mins:4,
+  body:`In the summer of 1858, the stench rising from the Thames became so unbearable that Parliament could no longer ignore it. The "Great Stink", as it came to be known, finally pushed the authorities into funding a radical plan by the engineer Joseph Bazalgette: a network of intercepting sewers that would carry London's waste away from the centre and release it further downstream. His system was officially opened in 1865 and completed a decade later. It took some 318 million bricks, and Bazalgette deliberately built his tunnels larger than the city needed at the time, on the assumption that London would keep growing.
+
+He was right, but not even he could have foreseen by how much. A network designed in the 1850s now serves more than twice the population it was built for. Crucially, it is a combined system: rainwater and sewage share the same pipes. When a heavy downpour overwhelms them, the Victorian design does exactly what it was meant to do and overflows into the river. For decades, that meant tens of millions of tonnes of untreated sewage entering the Thames every year.
+
+The answer, after years of debate, was the Thames Tideway Tunnel. Work began in 2016 and, over roughly a decade, crews bored a tunnel 25 kilometres long and 7.2 metres wide, running largely beneath the river itself at depths of up to 67 metres. Six tunnel boring machines were used, and millions of tonnes of spoil and materials were moved by barge rather than by lorry, sparing the capital's congested streets. Instead of replacing Bazalgette's work, the new tunnel intercepts the overflow points along the river and links up with the existing Lee Tunnel to carry the excess to a treatment works in east London. The combined system can hold around 1.6 million cubic metres.
+
+The project, which cost roughly £4.5 billion, was fully connected in 2025 and is expected to cut the sewage reaching the tidal Thames by about 95 per cent. It has been designed to last at least 120 years.
+
+For anyone who manages infrastructure, the story holds a lesson that goes beyond engineering. Bazalgette's greatest decision was not technical brilliance but generosity of scale: he planned for a future he would never see. The Tideway engineers have, in effect, repaid the compliment. Whether their margin proves as generous will only become clear long after they, too, have handed over the keys.`,
+  gloss:{"stench":"hedor, peste","unbearable":"insoportable","intercepting sewers":"colectores interceptores","downstream":"río abajo","foreseen":"previsto","downpour":"chaparrón, aguacero","overwhelms":"desborda, supera","bored":"perforaron (con tuneladora)","spoil":"tierras de excavación, escombro","barge":"barcaza","sparing":"ahorrando, evitando (a)","repaid the compliment":"devolvieron el favor","handed over the keys":"entregado (la obra)"},
+  q:[
+   {q:"Why did Bazalgette build his tunnels larger than necessary?", o:["Larger bricks were cheaper","He expected London's population to grow","Parliament required it by law","To carry rainwater separately"], a:1},
+   {q:"Why does sewage still reach the river in heavy rain?", o:["The Victorian tunnels have collapsed","Rainwater and sewage share the same pipes, which overflow","The treatment works close during storms","Barges dump it there"], a:1},
+   {q:"How does the Tideway Tunnel relate to Bazalgette's network?", o:["It replaces it completely","It intercepts its overflow points and works alongside it","It diverts all rainwater into the sea","It was built before the Lee Tunnel"], a:1},
+   {q:"What is the writer's main point in the final paragraph?", o:["Engineering projects are always over budget","Good infrastructure planning allows for a future beyond its builders' lifetime","The Tideway margin is too small","Engineers rarely receive compliments"], a:1}
+  ]}
+]);
+BANK.sources["r-tideway"] = [
+  {t:"Thames Water — Thames Tideway Tunnel (25 km, up to 67 m deep, cost, Lee Tunnel connection)", u:"https://www.thameswater.co.uk/about-us/investing-in-our-region/thames-tideway-tunnel"},
+  {t:"Tideway factsheet, Sept 2024 (7.2 m wide, six TBMs, 1.6 million m³, 95% reduction, 120-year design life) — PDF via CPRE London", u:"https://www.cprelondon.org.uk/wp-content/uploads/sites/10/2025/01/Tideway-Factsheet-Sep-2024.pdf"},
+  {t:"Costain press release (2025) — London's super sewer now fully connected", u:"https://www.costain.com/news/press-releases/2025/london-s-super-sewer-now-fully-connected-promising-a-greener-healthier-river-thames/"},
+  {t:"London Museum — How Bazalgette built London's first super-sewer (1858, 1865, 318 million bricks)", u:"https://londonmuseum.org.uk/collections/london-stories/how-bazalgette-built-londons-first-super-sewer/"}
+];
+
+/* Quick play: phrasal verbs, gramática C1 y colocaciones (con explicación en castellano) */
+BANK.pv = BANK.pv.concat([
+  {s:"Legal will ___ a new maintenance contract by the end of the month.", o:["draw up","draw out","draw in","draw back"], a:0, why:"draw up = prepare a formal document.", es:"draw up = redactar (un contrato, un plan, una lista). Muy usado con documentos formales."},
+  {s:"We're going to ___ the old halon systems over the next two years.", o:["phase out","phase in","phase down","phase off"], a:0, why:"phase out = gradually stop using.", es:"phase out = retirar poco a poco. Lo contrario: phase in (introducir por fases)."},
+  {s:"We can't ___ a design fault until the lab results come back.", o:["rule out","rule over","rule off","rule in"], a:0, why:"rule out = exclude a possibility.", es:"rule out = descartar una posibilidad. Ej.: we can't rule out sabotage."},
+  {s:"Take some time to ___ the pros and cons before you sign.", o:["weigh up","weigh down","weigh in","weigh on"], a:0, why:"weigh up = consider carefully (BrE).", es:"weigh up = sopesar, valorar los pros y contras. Muy británico."},
+  {s:"The cable delivery was ___ at the port for three days.", o:["held up","held out","held off","held over"], a:0, why:"hold up = delay.", es:"be held up = retrasarse, quedarse retenido. También 'a hold-up' = un retraso."},
+  {s:"Don't forget to ___ the cost of scaffolding when you price the job.", o:["factor in","factor out","factor on","factor up"], a:0, why:"factor in = include in a calculation.", es:"factor in = tener en cuenta en un cálculo o presupuesto."}
+]);
+BANK.gram = BANK.gram.concat([
+  {s:"The outage is believed ___ by a loose connection in the switchboard.", o:["to have been caused","to be caused","having been caused","to have caused"], a:0, why:"Passive reporting about the past: is believed + to have been + past participle.", es:"Pasiva de opinión sobre el pasado: is believed TO HAVE BEEN caused = se cree que fue causado."},
+  {s:"It's no use ___ the supplier now; their office closes at five.", o:["ringing","to ring","ring","for ringing"], a:0, why:"It's no use / It's no good + -ing.", es:"It's no use + -ing = no sirve de nada. Siempre con gerundio."},
+  {s:"Under no circumstances ___ the panel be opened while it is live.", o:["should","it should","would","it must"], a:0, why:"Negative adverbial at the start + inversion.", es:"Under no circumstances + inversión (should + sujeto): bajo ningún concepto debe abrirse."},
+  {s:"So complex ___ the design that two contractors withdrew from the tender.", o:["was","did","had","it was"], a:0, why:"So + adjective + inverted verb + that…", es:"So + adjetivo + inversión (was the design) + that: tan complejo era que… Muy formal."},
+  {s:"Scarcely ___ the drill started when the sprinklers activated.", o:["had","has","did","was"], a:0, why:"Scarcely/Hardly + had + subject + past participle + when.", es:"Scarcely had… WHEN (no 'than'): apenas había empezado cuando…"}
+]);
+BANK.mc = BANK.mc.concat([
+  {s:"We need to ___ a balance between cost and safety.", o:["strike","hit","make","get"], a:0, why:"strike a balance = find a fair compromise.", es:"strike a balance = encontrar el equilibrio. Siempre 'strike', no 'make'."},
+  {s:"The project ___ a major milestone when the tunnel broke through.", o:["reached","arrived","came","got"], a:0, why:"reach a milestone.", es:"reach a milestone = alcanzar un hito. 'arrive' necesitaría 'at' y no se usa así."},
+  {s:"Corroded valves ___ a serious risk to the whole system.", o:["pose","make","do","put"], a:0, why:"pose a risk/threat/problem.", es:"pose a risk / a threat = suponer un riesgo. Formal y muy frecuente en informes."},
+  {s:"Please ___ all the necessary precautions before entering the shaft.", o:["take","make","do","put"], a:0, why:"take precautions.", es:"take precautions = tomar precauciones. Se dice 'take', nunca 'make'."}
+]);
+
+/* Work English: obra e instalaciones en el Reino Unido */
+BANK.work = BANK.work.concat([
+  {t:"a kick-off meeting", m:"the first meeting that formally starts a project", d:["a meeting to end a contract","a football training session","a disciplinary meeting"], ex:"The kick-off meeting with the client is on Monday at ten.", es:"kick-off meeting = reunión de arranque del proyecto."},
+  {t:"to put (something) on hold", m:"to stop something temporarily", d:["to cancel something permanently","to speed something up","to sign something"], ex:"The upgrade has been put on hold until the budget is approved.", es:"put on hold = dejar en suspenso, aparcar temporalmente."},
+  {t:"the critical path", m:"the sequence of tasks that determines the earliest finish date", d:["the safest route on site","the most expensive task","the client's priority list"], ex:"The switchgear delivery is on the critical path, so any delay moves the handover.", es:"critical path = ruta crítica: si una tarea se retrasa, se retrasa el final."},
+  {t:"a contingency", m:"money or time kept in reserve for unexpected problems", d:["a fixed penalty","a type of insurance policy","an emergency exit"], ex:"We've built a ten per cent contingency into the budget.", es:"contingency = partida o margen para imprevistos."},
+  {t:"RAMS", m:"risk assessment and method statement for a task", d:["a monthly sales report","a type of crane","a quality certificate for materials"], ex:"No one starts work until the RAMS have been reviewed and signed.", es:"RAMS = evaluación de riesgos y procedimiento de trabajo. Término británico de obra."},
+  {t:"a hot works permit", m:"authorisation for welding, cutting or other work that produces heat or sparks", d:["a permit to work in summer","a heating installation licence","a pay rise for night shifts"], ex:"Welding near the sprinkler pipes needs a hot works permit and a fire watch.", es:"hot works permit = permiso de trabajos en caliente (soldadura, corte)."},
+  {t:"to isolate (a circuit)", m:"to disconnect it safely from its energy source", d:["to test it under load","to label it","to install it on its own"], ex:"Make sure the circuit is isolated and locked off before you open the board.", es:"isolate = aislar, dejar sin tensión (consignar) un circuito o equipo."},
+  {t:"a variation", m:"(UK contracts) a formal change to the agreed scope or price", d:["a small mistake","a seasonal discount","a spare part"], ex:"Moving the plant room is a variation, so we'll need it instructed in writing.", es:"variation = modificación de contrato (término británico; en EE. UU., change order)."},
+  {t:"to get buy-in", m:"to obtain people's support and commitment", d:["to buy materials in bulk","to get a discount","to pay a deposit"], ex:"We need buy-in from the operators before we change the shift pattern.", es:"get buy-in = conseguir el apoyo y compromiso de las personas implicadas."},
+  {t:"to pick up the slack", m:"to do the work that someone else is not doing", d:["to tighten a cable","to relax after a deadline","to collect rubbish on site"], ex:"With two engineers off sick, the rest of the team had to pick up the slack.", es:"pick up the slack = cubrir el trabajo que falta (de otros)."}
+]);
+
+/* Speaking: shadowing de reuniones y dos preguntas nuevas */
+BANK.speak.shadow = BANK.speak.shadow.concat([
+  {s:"Sorry, can I just come in here for a second?", f:"come in here"},
+  {s:"I take your point, but the figures tell a slightly different story.", f:"I take your point"},
+  {s:"So where do we stand on the fire alarm upgrade?", f:"where do we stand on"},
+  {s:"Let's not lose sight of the bigger picture here.", f:"lose sight of · the bigger picture"},
+  {s:"I'll need to run it past the client before I commit to anything.", f:"run it past"}
+]);
+BANK.speak.prompts = BANK.speak.prompts.concat([
+  {id:"sp-disagree", part:"Work scenario", level:"C1", q:"In a meeting, your director proposes postponing the annual fire-alarm inspection to save money. Disagree politely but firmly, give two reasons and suggest a compromise."},
+  {id:"sp-infra", part:"Discussion", level:"C1", q:"Projects like London's super sewer cost billions and take a decade. Who should pay for major infrastructure — taxpayers, customers or private investors? Justify your view."}
+]);
+
+/* Spelling */
+BANK.spell = BANK.spell.concat([
+  {w:"tunnelling", s:"Tunnelling under the river took four years.", tip:"British: double l (American: tunneling)."},
+  {w:"fulfilment", s:"Order fulfilment is handled by a separate team.", tip:"British: one l in the middle, one at the end (American: fulfillment)."},
+  {w:"manageable", s:"Split the job into manageable phases.", tip:"Keep the 'e' after g: manage-able."},
+  {w:"recurring", s:"It's a recurring fault on the same pump.", tip:"Double r before -ing: recur → recurring."},
+  {w:"harass", s:"Please don't harass the supplier every hour.", tip:"One r, double s."},
+  {w:"occasionally", s:"The alarm occasionally trips in wet weather.", tip:"Double c, single s, double l."},
+  {w:"accessible", s:"The valves must be accessible for maintenance.", tip:"Double c, double s, -ible."},
+  {w:"foreseeable", s:"There are no delays in the foreseeable future.", tip:"fore + see + able."}
+]);

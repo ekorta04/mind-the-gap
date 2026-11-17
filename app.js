@@ -1136,6 +1136,7 @@ const QUICK_MODES = [
   {id:"five", n:"Quick 5", t:"5 mixed questions · ≈2 min", c:"var(--red)"},
   {id:"mini", n:"Mini exam", t:"One of each type · ≈5 min", c:"var(--navy)"},
   {id:"fix", n:"Fix my mistakes", t:"5 questions you got wrong", c:"var(--amber)"},
+  {id:"new", n:"New for you", t:"5 questions you've never seen · ≈2 min", c:"var(--green)"},
   {id:"pv", n:"Phrasal verbs", t:"5 questions · ≈1 min", c:TYPES.pv.c, type:"pv"},
   {id:"gram", n:"Grammar flash", t:"5 questions · ≈1 min", c:TYPES.gram.c, type:"gram"},
   {id:"mc", n:"Collocations", t:"5 questions · ≈1 min", c:TYPES.mc.c, type:"mc"},
@@ -1153,16 +1154,18 @@ function quickItems(id) {
   if (id === "five") { const ts = shuffle(SHORT_TYPES.slice()).slice(0, 5); return shuffle(ts.flatMap(t => pickItems(t, 1))); }
   if (id === "mini") return ["mc", "oc", "wf", "kwt", "gram", "pv", "err", "idioms"].flatMap(t => pickItems(t, 1));
   if (id === "fix") return shuffle(SHORT_TYPES.flatMap(t => pool(t).filter(x => S.seen[x._id] === -1))).slice(0, 5);
+  if (id === "new") return shuffle(SHORT_TYPES.flatMap(t => pool(t).filter(x => S.seen[x._id] == null))).slice(0, 5);
   return [];
 }
 function viewQuick(v) {
   const wrong = SHORT_TYPES.reduce((a, t) => a + pool(t).filter(x => S.seen[x._id] === -1).length, 0);
+  const fresh = SHORT_TYPES.reduce((a, t) => a + pool(t).filter(x => S.seen[x._id] == null).length, 0);
   const last = S.quick || {};
-  const card = m => { const l = last[m.id]; const dis = m.id === "fix" && !wrong;
-    return `<button class="card tile" data-q="${m.id}" style="--c:${m.c}" ${dis ? "disabled" : ""}><h3>${esc(m.n)}</h3><p class="muted">${esc(m.id === "fix" ? (wrong ? `${Math.min(5, wrong)} of your ${wrong} mistakes · ≈2 min` : "No mistakes to fix yet") : m.t)}</p>${l ? `<div class="meta"><span class="mono">Last: ${l.r}/${l.n}${l.d === dayKey() ? " · today" : ""}</span></div>` : ""}</button>`; };
+  const card = m => { const l = last[m.id]; const dis = (m.id === "fix" && !wrong) || (m.id === "new" && !fresh);
+    return `<button class="card tile" data-q="${m.id}" style="--c:${m.c}" ${dis ? "disabled" : ""}><h3>${esc(m.n)}</h3><p class="muted">${esc(m.id === "fix" ? (wrong ? `${Math.min(5, wrong)} of your ${wrong} mistakes · ≈2 min` : "No mistakes to fix yet") : m.id === "new" ? (fresh ? `${fresh} unseen questions left · ≈2 min` : "You've seen them all!") : m.t)}</p>${l ? `<div class="meta"><span class="mono">Last: ${l.r}/${l.n}${l.d === dayKey() ? " · today" : ""}</span></div>` : ""}</button>`; };
   v.innerHTML = `<div class="hello"><span class="eyebrow" style="color:var(--red)">Quick play</span><h1>Got two minutes?</h1><p class="muted">Short grammar and vocabulary rounds. No reading, listening or writing — just quick answers. Everything counts towards your XP and streak, and mistakes go to your review deck.</p></div>
-  <h2>Mixed</h2><div class="grid">${QUICK_MODES.slice(0, 3).map(card).join("")}</div>
-  <h2 style="margin-top:8px">One skill</h2><div class="grid quickgrid">${QUICK_MODES.slice(3).map(card).join("")}</div>`;
+  <h2>Mixed</h2><div class="grid">${QUICK_MODES.slice(0, 4).map(card).join("")}</div>
+  <h2 style="margin-top:8px">One skill</h2><div class="grid quickgrid">${QUICK_MODES.slice(4).map(card).join("")}</div>`;
   $$("[data-q]", v).forEach(b => b.onclick = () => go("quick-" + b.dataset.q));
 }
 function startQuick(v, id) {

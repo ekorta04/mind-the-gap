@@ -1,5 +1,11 @@
 # CHANGELOG · Mind the Gap
 
+## v19 — Semana del 17 nov 2026: grandes obras y reuniones
+- **Lectura nueva**: "London's Second Super Sewer" (Bazalgette y el Thames Tideway Tunnel), con glosario, 4 preguntas y fuentes oficiales (Thames Water, ficha técnica de Tideway, Costain, London Museum).
+- **Real British**: 5 vídeos nuevos (English at Work 10 "Disagreeing", 6 Minute English "Are you unhappy at work?", Tideway/ICE, Mercedes "My Job in F1", Beyond The Grid con Tom Stallard).
+- **Quick play**: 15 preguntas nuevas con explicación en castellano (6 phrasal verbs, 5 de gramática C1 con inversión y pasivas de opinión, 4 colocaciones) y nueva ronda **New for you**: 5 preguntas que nunca has visto.
+- **Work English**: 10 términos de obra británicos (RAMS, hot works permit, variation, critical path…). 5 frases de shadowing para reuniones, 2 preguntas de speaking y 8 palabras de spelling.
+
 ## v18 — Diagnóstico y sincronización más fiable
 - Ajustes muestra el estado real de la sincronización (✓ sincronizado + hora, ✗ error con el motivo, o sesión no activa) y un botón **Sync now**.
 - La rueda de ajustes se pone ámbar si este dispositivo no tiene sesión iniciada (antes se veía igual que "solo local").
