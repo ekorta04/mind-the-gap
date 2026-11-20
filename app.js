@@ -61,7 +61,7 @@ const INTERVALS = [0, 1, 3, 7, 16, 35];
 
 /* ---------- state ---------- */
 const LS_KEY = "mtg-state-v1";
-const blank = () => ({v:1, xp:0, streak:0, best:0, lastActive:null, days:{}, stats:{}, seen:{}, deck:[], read:{}, listen:{}, writings:[], ai:{}, aiArticles:[], aiListening:[], settings:{rate:0.95, voice:"", goal:300, tips:true, examDate:"", produce:true}, c1:{}, bad:{}, pb:[], updatedAt:0});
+const blank = () => ({v:1, xp:0, streak:0, best:0, lastActive:null, days:{}, stats:{}, seen:{}, deck:[], read:{}, listen:{}, writings:[], ai:{}, aiArticles:[], aiListening:[], settings:{rate:0.95, voice:"", goal:300, tips:true, examDate:"", produce:true, centre:"", deadline:""}, c1:{}, bad:{}, pb:[], updatedAt:0});
 let S = blank();
 try { const raw = localStorage.getItem(LS_KEY); if (raw) S = Object.assign(blank(), JSON.parse(raw)); } catch (e) {}
 S.settings = Object.assign(blank().settings, S.settings || {});
@@ -110,7 +110,12 @@ function mergeState(R) {
   for (const t in S.ai) S.ai[t] = S.ai[t].filter(x => !S.bad[x._id]);
   const a = S.c1 || (S.c1 = {}), b = R.c1 || {}; a.pts = a.pts || {}; a.mocks = a.mocks || []; a.week = a.week || {};
   for (const k in b.pts || {}) if (!a.pts[k]) a.pts[k] = b.pts[k];
-  a.mocks = uni(a.mocks, b.mocks, m => m.id).filter(m => !del["m:" + m.id]);
+  // simulacros, acciones y catálogo: por id, gana la versión editada más tarde (u)
+  const byU = (A, B) => { const m = new Map((A || []).map(x => [x.id, x])); (B || []).forEach(x => { const y = m.get(x.id); if (!y) m.set(x.id, x); else if ((x.u || 0) > (y.u || 0)) Object.assign(y, x); }); return [...m.values()]; };
+  a.mocks = byU(a.mocks, b.mocks).filter(m => !del["m:" + m.id]);
+  a.actions = byU(a.actions, b.actions).filter(x => !del["x:" + x.id]);
+  a.myPapers = byU(a.myPapers, b.myPapers).filter(x => !del["q:" + x.id]);
+  a.papers = a.papers || {}; for (const k in b.papers || {}) { const x = b.papers[k], y = a.papers[k]; if (!y) { a.papers[k] = x; continue; } const [o, n] = (x.u || 0) > (y.u || 0) ? [y, x] : [x, y]; a.papers[k] = {have:n.have, used:Object.assign({}, o.used, n.used), u:Math.max(x.u || 0, y.u || 0)}; }
   if (b.start && (!a.start || b.start < a.start)) a.start = b.start;
   a.diagDone = a.diagDone || b.diagDone; a.humanMarked = a.humanMarked || b.humanMarked;
   if ((b.human || "") > (a.human || "")) a.human = b.human;
@@ -1379,7 +1384,12 @@ const PT_ITEMS = C1.POINTS.flatMap(p => p.items.map((it, i) => Object.assign({_i
 const escRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const fmtDay = (k) => new Date(k + "T12:00:00").toLocaleDateString("en-GB", {day:"numeric", month:"short"});
 const daysBetween = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 864e5);
-function c1s() { const c = S.c1 || (S.c1 = {}); c.pts = c.pts || {}; c.mocks = c.mocks || []; c.week = c.week || {}; if (!c.start) c.start = dayKey(); return c; }
+function c1s() {
+  const c = S.c1 || (S.c1 = {}); c.pts = c.pts || {}; c.mocks = c.mocks || []; c.week = c.week || {}; if (!c.start) c.start = dayKey();
+  c.actions = c.actions || []; c.papers = c.papers || {}; c.myPapers = c.myPapers || [];
+  if (!c.papers.dig1) c.papers.dig1 = {have:true, used:{rue:"2026-11-20"}, u:1};   // Reading & UoE del sample digital, hecho el 20/11/2026
+  return c;
+}
 const examDate = () => (S.settings && S.settings.examDate) || C1.DEFAULT_EXAM;
 const daysToExam = () => daysBetween(dayKey(), examDate());
 const itemCard = (it) => ({k:"item", id:"item:" + it._id, t:it._t, ref:it._id, f:TYPES[it._t].name, b:answerOf(it)});
@@ -1392,15 +1402,41 @@ function toScale(area, raw) {
   return 210;
 }
 const hasRaw = (m, k) => m.r && m.r[k] != null && m.r[k] !== "";
+const revealed = (m) => m.revealed !== false;   // los simulacros antiguos no tienen el campo: ya están a la vista
 const officialMocks = () => c1s().mocks.filter(m => m.off).sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
+/* Un examen se puede hacer en días distintos: las entradas del mismo examen del catálogo se juntan en una sola "pasada". */
+function officialRuns() {
+  const out = [], byPaper = {};
+  officialMocks().filter(revealed).forEach(m => {
+    if (!m.paper) return out.push({d:m.d, r:Object.assign({}, m.r), paper:null});
+    const x = byPaper[m.paper] || (byPaper[m.paper] = {d:m.d, r:{}, paper:m.paper}); if (!out.includes(x)) out.push(x);
+    Object.assign(x.r, m.r); if (m.d > x.d) x.d = m.d;
+  });
+  return out.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
+}
 function estimates() {
-  const off = officialMocks(), out = {};
+  const off = officialMocks().filter(revealed), out = {};
   for (const k in C1.AREAS) { const m = off.slice().reverse().find(x => hasRaw(x, k)); out[k] = m ? {raw:+m.r[k], sc:toScale(k, m.r[k]), d:m.d} : null; }
   return out;
 }
 function mockAvg(m) { const v = Object.keys(C1.AREAS).map(k => hasRaw(m, k) ? (toScale(k, m.r[k]) || 141) : null); return v.every(x => x != null) ? Math.round(v.reduce((a, b) => a + b, 0) / 5) : null; }
 function overall() { const v = Object.values(estimates()).filter(Boolean).map(x => x.sc || 141); return v.length ? {avg:Math.round(v.reduce((a, b) => a + b, 0) / v.length), n:v.length} : null; }
 const scTxt = (sc) => sc == null ? "<142" : sc + " " + scaleLabel(sc);
+const light = (n) => n == null ? null : n >= C1.GREEN ? "green" : n >= C1.AMBER ? "amber" : "red";
+const LIGHT = {green:{n:"Green", c:"var(--green)"}, amber:{n:"Amber", c:"var(--amber)"}, red:{n:"Red", c:"var(--red)"}};
+
+/* ---------- catálogo de exámenes oficiales ---------- */
+const allPapers = () => C1.MOCK_PAPERS.concat(c1s().myPapers.map(p => ({id:p.id, n:p.n, src:"Added by you", mine:true})));
+const paperById = (id) => allPapers().find(p => p.id === id) || null;
+const paperSt = (id) => c1s().papers[id] || {used:{}};
+const hasPaper = (p) => { const st = c1s().papers[p.id]; return st && st.have != null ? !!st.have : !!(p.free || p.mine); };
+const usedIn = (p, comp) => !!((paperSt(p.id).used || {})[comp]);
+function setPaper(id, patch) {
+  const c = c1s(), p = paperById(id) || {}, st = c.papers[id] || {have:hasPaper(p), used:{}};
+  c.papers[id] = {have:patch.have != null ? patch.have : (st.have != null ? st.have : hasPaper(p)), used:Object.assign({}, st.used, patch.used || {}), u:Date.now()};
+}
+const unusedPapers = (comp) => allPapers().filter(p => hasPaper(p) && !usedIn(p, comp));
+const nextPaper = (comp = "rue") => unusedPapers(comp)[0] || null;
 
 /* ---------- fases hasta el examen ---------- */
 function phase() {
@@ -1414,19 +1450,45 @@ function phase() {
 }
 function mockDue() {
   const ph = phase().id, gap = {diag:0, base:45, consol:24, exam:10}[ph]; if (gap == null) return null;
+  const np = nextPaper("rue"), npTxt = np ? ` Next paper: ${np.n}.` : " You have no unused official paper left: add one in Official mocks.";
   const last = officialMocks().map(m => m.d).pop();
-  if (!last) return {overdue:true, txt:"No official mock entered yet."};
+  if (!last) return {overdue:true, txt:"No official mock entered yet." + npTxt};
   const next = addDays(last, gap);
-  return {overdue:ph !== "diag" && next <= dayKey(), next, txt:next <= dayKey() ? "An official mock is due now." : `Next official mock around ${fmtDay(next)}.`};
+  return {overdue:ph !== "diag" && next <= dayKey(), next, txt:(next <= dayKey() ? "An official mock is due now." : `Next official mock around ${fmtDay(next)}.`) + npTxt};
+}
+/* ---------- decisión: ligada al plazo de inscripción del centro ---------- */
+const entryDeadline = () => (S.settings && S.settings.deadline) || "";
+function decisionWindow() {
+  const dl = entryDeadline();
+  if (dl) { const l = daysBetween(dayKey(), dl); return {dl, start:addDays(dl, -C1.DECIDE_DAYS), open:l >= 0 && l <= C1.DECIDE_DAYS, left:l}; }
+  const l = daysToExam(); return {dl:"", start:addDays(examDate(), -45), open:l >= 0 && l <= 45, left:null};
+}
+function verdict() {
+  const av = officialRuns().map(r => mockAvg(r)).filter(x => x != null).slice(-2);
+  if (!av.length) return null;
+  const m = Math.round(av.reduce((a, b) => a + b, 0) / av.length);
+  const tr = av.length < 2 ? null : av[1] - av[0] >= 2 ? "rising" : av[0] - av[1] >= 2 ? "falling" : "flat";
+  return {m, n:av.length, lv:light(m), tr};
 }
 function decision() {
-  const left = daysToExam(); if (left > 45 || left < 0) return null;
-  const av = officialMocks().map(mockAvg).filter(x => x != null).slice(-2);
-  if (!av.length) return {bad:true, t:"Decision point: there is no complete official mock yet, so there is nothing to base the decision on. Sit one this week."};
-  const m = Math.round(av.reduce((a, b) => a + b, 0) / av.length);
-  return m < C1.GO
-    ? {bad:true, t:`Decision point: your last ${av.length === 2 ? "two official mocks average" : "official mock scored"} ${m}, below the ${C1.GO} safety line. Seriously consider a June paper date (5, 9, 19 or 26 June 2027) and check your centre's entry deadline.`}
-    : {bad:false, t:`Decision point passed: your last official mocks average ${m} (safety line ${C1.GO}). Stay on course.`};
+  const w = decisionWindow(); if (!w.open) return null;
+  const v = verdict(), dl = w.dl ? ` Entry closes on ${fmtDay(w.dl)}.` : "";
+  if (!v) return {lv:"red", bad:true, t:"Decision point: there is no complete official mock yet (all five areas), so there is nothing to base the decision on. Sit one this week." + dl};
+  const base = `your last ${v.n === 2 ? "two complete official mocks average" : "complete official mock scored"} ${v.m}${v.tr ? ", trend " + v.tr : ""}.`;
+  const caveat = " Practice scores within about 3 points of a threshold are not reliable.";
+  if (v.lv === "green") return {lv:"green", bad:false, t:`Decision: green. ${base[0].toUpperCase() + base.slice(1)} Enter for this date.${dl}`};
+  if (v.lv === "amber") return {lv:"amber", bad:true, t:`Decision: amber. ${base[0].toUpperCase() + base.slice(1)} Borderline: enter only if your trend is rising; otherwise take your centre's next session.${caveat}${dl}`};
+  return {lv:"red", bad:true, t:`Decision: red. ${base[0].toUpperCase() + base.slice(1)} Don't enter for this date: take your centre's next session.${dl}`};
+}
+/* ---------- plan de acción tras cada simulacro ---------- */
+const pendingActions = () => c1s().actions.filter(x => !x.done).sort((a, b) => a.due < b.due ? -1 : 1);
+function doneAction(id) { const x = c1s().actions.find(a => a.id === id); if (x) { x.done = dayKey(); x.u = Date.now(); save(); } }
+function actionsHTML(list) {
+  return list.map(x => `<label class="errline actrow" style="grid-template-columns:auto 1fr auto;align-items:center;gap:10px;cursor:pointer${x.due < dayKey() ? ";background:var(--bad-bg)" : ""}"><input type="checkbox" data-actdone="${x.id}" style="width:20px;height:20px"><span>${esc(x.t)}<br><small class="muted">${x.due < dayKey() ? "<b style='color:var(--bad)'>Overdue</b> · was due " : "Due "}${fmtDay(x.due)}</small></span>${x.to ? `<button class="btn small" data-actgo="${x.to}">Open</button>` : "<span></span>"}</label>`).join("");
+}
+function bindActions(v) {
+  $$("[data-actdone]", v).forEach(b => b.onchange = () => { doneAction(b.dataset.actdone); toast("Action done."); route(); });
+  $$("[data-actgo]", v).forEach(b => b.onclick = (e) => { e.preventDefault(); go(b.dataset.actgo); });
 }
 
 /* ---------- plan del día ---------- */
@@ -1507,6 +1569,7 @@ function viewToday(v) {
       <p class="muted" style="font-size:.8rem;margin-top:10px">Each stop starts its own countdown. Short on time? Do the mix only: five minutes a day beats an hour once a week.</p>
     </div>
     <div class="stack">
+      ${pendingActions().length ? `<div class="card stack"><h3>Mock action plan</h3>${actionsHTML(pendingActions().slice(0, 4))}</div>` : ""}
       <div class="card goal">${ring(d.xp / S.settings.goal)}<div><h3>Daily goal</h3><p class="muted"><span class="mono">${d.xp}</span> / <span class="mono">${S.settings.goal}</span> XP today · streak <span class="mono">${liveStreak()}</span> (best <span class="mono">${S.best || 0}</span>)</p></div></div>
       <div class="card stack"><div class="row"><h3>Syllabus</h3><span class="spacer"></span><span class="mono muted">${Object.keys(c.pts).length}/${C1.POINTS.length} points</span></div><div class="bar" style="--c:var(--red)"><i style="--p:${Object.keys(c.pts).length / C1.POINTS.length * 100}%"></i></div><p class="muted" style="font-size:.85rem">One new point per session, then it comes back mixed with the others.</p></div>
       <div class="card wotd stack"><span class="eyebrow">Chunk of the day</span><div class="row"><span class="term">${esc(idiom.t)}</span><button class="icon-btn" id="sayIdiom" aria-label="Listen">${I.speaker}</button></div><p>${esc(idiom.m)}.</p><p class="muted"><i>“${esc(idiom.ex)}”</i></p><div><button class="btn small" id="saveIdiom">Add to review</button></div></div>
@@ -1519,6 +1582,7 @@ function viewToday(v) {
   $$(".alertbtn", v).forEach(b => b.onclick = () => go(b.dataset.to));
   $("#goSession", v).onclick = () => { if (!next) return toast("Today's session is complete."); if (!c.sess || c.sess.d !== dayKey()) { c.sess = {d:dayKey(), t0:Date.now()}; save(); } open(next); };
   $("#goMix", v).onclick = () => go("mix");
+  bindActions(v);
   $("#goDash", v).onclick = () => go(ov ? "progress" : "mocks");
   $("#sayIdiom", v).onclick = () => TTS.speak(`${idiom.t}. ${idiom.ex}`);
   $("#saveIdiom", v).onclick = () => { addCard({k:"word", f:idiom.t, b:idiom.m, ex:idiom.ex}) ? toast("Added to your review queue.") : toast("Already in your queue."); };
@@ -1979,8 +2043,19 @@ function viewP2(v) {
 }
 
 /* ---------- simulacros oficiales y diagnóstico ---------- */
+const LINKS_TO = [["", "No link"], ["play-oc", "Open Cloze (UoE Part 2)"], ["play-wf", "Word Formation (UoE Part 3)"], ["play-kwt", "Key Word Transformation (UoE Part 4)"], ["play-mc", "Collocation Cloze (UoE Part 1)"], ["play-mock", "Use of English block"], ["read", "Reading"], ["listen", "Listening"], ["write", "Writing"], ["speak-432", "Speaking 4/3/2"], ["mix", "5-minute mix"]];
+const PART_TIP = {r1:["3 Collocation Cloze rounds this week", "play-mc"], u2:["3 Open Cloze rounds this week", "play-oc"], u3:["3 Word Formation rounds this week", "play-wf"], u4:["3 Key Word Transformation rounds this week", "play-kwt"], r5:["2 exam-style readings on the clock", "read"], r6:["2 exam-style readings on the clock", "read"], r7:["2 exam-style readings on the clock", "read"], r8:["2 exam-style readings on the clock", "read"], l1:["2 listenings with transcript and dictation", "listen"], l2:["2 listenings with transcript and dictation", "listen"], l3:["2 listenings with transcript and dictation", "listen"], l4:["2 listenings with transcript and dictation", "listen"], w1:["One full writing, marked and rewritten", "write"], w2:["One full writing, marked and rewritten", "write"], s:["One speaking practice with a person", "speak-432"]};
+const AREA_TIP = {reading:"r5", uoe:"u2", writing:"w1", listening:"l1", speaking:"s"};
+const partName = (area, k) => { const P = (C1.PARTS[area] || []).find(x => x.k === k); return C1.AREAS[area].n + (P && area !== "speaking" ? " " + P.n.replace(" · essay", "") : ""); };
+/* La parte más floja de un simulacro (por porcentaje), para sugerir la primera acción. */
+function weakestOf(m) {
+  let best = null;
+  if (m.p) for (const area in C1.PARTS) C1.PARTS[area].forEach(P => { const x = m.p[P.k]; if (x == null || x === "") return; const r = +x / P.q; if (!best || r < best.r) best = {r, k:P.k, area}; });
+  if (!best) for (const area in C1.AREAS) if (hasRaw(m, area)) { const sc = toScale(area, m.r[area]) || 141; if (!best || sc < best.r) best = {r:sc, k:AREA_TIP[area], area}; }
+  return best;
+}
 function viewMocks(v) {
-  const c = c1s(), ph = phase(), keys = Object.keys(C1.AREAS);
+  const c = c1s(), ph = phase(), keys = Object.keys(C1.AREAS), totalsOnly = !!c.totalsOnly;
   const checks = [
     ["Marks of your last mock entered", c.mocks.length > 0, "mocks"],
     ["Use of English Parts 1–4, timed", (S.mocks || []).some(m => m.d >= c.start), "play-mock"],
@@ -1989,25 +2064,85 @@ function viewMocks(v) {
     ["One full writing, marked", S.writings.some(w => w.date >= c.start), "write"],
     ["One speaking task", (c.talks || 0) + (c.p2 || 0) > 0 || Object.values(S.speak || {}).some(x => x.date >= c.start), "speak"]
   ];
+  const pend = c.mocks.find(m => m.revealed === false);                       // 5. reflexión antes de ver la nota
+  const toPlan = c.mocks.find(m => m.revealed !== false && m.planDue);          // 6. plan de acción tras ver la nota
+  const owned = allPapers().filter(hasPaper), np = nextPaper("rue");
+  const partInput = (area, P) => `<label class="score" style="padding:8px"><small class="muted">${esc(P.n)} · ${P.pts ? "points" : "correct"} /${P.q}${P.w > 1 ? " (×" + P.w + ")" : ""}</small><input type="number" inputmode="numeric" min="0" max="${P.q}" data-part="${P.k}" data-area="${area}" style="width:100%"></label>`;
+  const formHTML = totalsOnly
+    ? `<div class="scores">${keys.map(k => `<label class="score"><small class="muted">${C1.AREAS[k].n} /${C1.AREAS[k].max}</small><input type="number" inputmode="numeric" min="0" max="${C1.AREAS[k].max}" data-tot="${k}" style="width:100%"></label>`).join("")}</div>`
+    : keys.map(k => `<div class="stack" style="gap:6px"><div class="row"><b>${C1.AREAS[k].n}</b><span class="spacer"></span><small class="mono muted" data-sum="${k}">— /${C1.AREAS[k].max}</small></div><div class="scores">${C1.PARTS[k].map(P => partInput(k, P)).join("")}</div></div>`).join("");
+  const reflectHTML = (m) => { const opts = []; if (m.p) for (const area in C1.PARTS) C1.PARTS[area].forEach(P => { if (m.p[P.k] != null && m.p[P.k] !== "") opts.push([P.k, partName(area, P.k)]); }); if (!opts.length) keys.filter(k => hasRaw(m, k)).forEach(k => opts.push([AREA_TIP[k], C1.AREAS[k].n]));
+    return `<div class="card stack" style="--c:var(--red);border:2px solid var(--red)"><span class="eyebrow">Step 1 of 2 · ${fmtDay(m.d)}${m.paper && paperById(m.paper) ? " · " + esc(paperById(m.paper).n) : ""}</span><h3>Reflect before you see your score</h3><p class="muted" style="font-size:.85rem">Cambridge advises holding back the grade so you look at what went wrong, not only at the number. Two minutes.</p>
+    <label class="stack" style="gap:4px"><b>Which part was hardest?</b><select id="rfPart">${opts.map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join("")}</select></label>
+    <div class="stack" style="gap:4px"><b>Main cause</b><div class="row">${[["time", "Time"], ["level", "Level"], ["strategy", "Strategy"], ["careless", "Careless"]].map(([k, n]) => `<label class="chip" style="cursor:pointer"><input type="radio" name="rfCause" value="${k}"> ${n}</label>`).join("")}</div></div>
+    <div class="stack" style="gap:6px"><b>1–3 concrete mistakes</b><small class="muted">What you wrote and the right answer. Those with both go to your review queue.</small>${[0, 1, 2].map(i => `<div class="row"><input type="text" class="answer" data-rfw="${i}" placeholder="What I wrote" autocapitalize="off" spellcheck="false" style="flex:1;min-width:140px;margin:0"><input type="text" class="answer" data-rfc="${i}" placeholder="Correct version" autocapitalize="off" spellcheck="false" style="flex:1;min-width:140px;margin:0"></div>`).join("")}</div>
+    <div><button class="btn primary" id="rfGo">Show my score</button></div></div>`; };
+  const resultHTML = (m) => { const run = m.paper ? officialRuns().find(r => r.paper === m.paper) : (m.off ? {r:m.r} : null), av = run ? mockAvg(run) : null, lv = light(av);
+    return `<div class="stack">${keys.filter(k => hasRaw(m, k)).map(k => { const sc = toScale(k, m.r[k]); return `<div class="row"><span style="flex:1">${C1.AREAS[k].n}</span><span class="mono">${m.r[k]}/${C1.AREAS[k].max}</span><b class="mono" style="width:80px;text-align:right;color:${sc == null || sc < C1.PASS ? "var(--bad)" : "var(--good)"}">${scTxt(sc)}</b></div>`; }).join("")}
+    <div class="row"><b>Overall</b><span class="spacer"></span>${av != null ? `<b class="mono" style="font-size:1.4rem">${av}</b><span class="chip" style="color:${LIGHT[lv].c}">● ${LIGHT[lv].n}</span>` : `<span class="muted">Incomplete: ${keys.filter(k => !(run && hasRaw(run, k))).map(k => C1.AREAS[k].n).join(", ")} still missing${m.paper ? " for this paper" : ""}</span>`}</div></div>`; };
+  const planHTML = (m) => { const w = weakestOf(m), tip = w && PART_TIP[w.k];
+    return `<div class="card stack" style="border:2px solid var(--navy)"><span class="eyebrow">Step 2 of 2 · ${fmtDay(m.d)}</span><h3>Your result</h3>${resultHTML(m)}
+    <h3 style="margin-top:8px">Action plan</h3><p class="muted" style="font-size:.85rem">Two or three concrete actions with a date. They show up on Today until you tick them off.${w ? ` Weakest part: <b>${esc(partName(w.area, w.k))}</b>.` : ""}</p>
+    ${[0, 1, 2].map(i => `<div class="row"><input type="text" class="answer" data-apt="${i}" value="${i === 0 && tip ? esc(tip[0]) : ""}" placeholder="${i < 2 ? "Action " + (i + 1) : "Action 3 (optional)"}" style="flex:2;min-width:180px;margin:0"><input type="date" data-apd="${i}" value="${addDays(dayKey(), 14)}"><select data-apl="${i}">${LINKS_TO.map(([k, n]) => `<option value="${k}" ${i === 0 && tip && tip[1] === k ? "selected" : ""}>${n}</option>`).join("")}</select></div>`).join("")}
+    <div><button class="btn primary" id="apGo">Save plan</button></div></div>`; };
+  const histRow = (m) => { const av = mockAvg(m), pp = m.paper && paperById(m.paper), acts = c.actions.filter(x => x.mock === m.id), rv = revealed(m);
+    return `<div class="errline"><span><b class="mono">${m.d}</b> ${pp ? esc(pp.n) + " · " : ""}${m.off ? "" : `<span class="typepill">not official</span>`} ${rv ? keys.filter(k => hasRaw(m, k)).map(k => `${C1.AREAS[k].n} <b class="mono">${m.r[k]}</b> → ${scTxt(toScale(k, m.r[k]))}`).join(" · ") : `<i>Score hidden until you reflect</i>`}</span>
+    ${m.refl ? `<small class="muted">Hardest: ${esc(m.refl.partN || "")} · cause: ${esc(m.refl.cause || "")}${(m.refl.errs || []).length ? " · " + m.refl.errs.length + " mistake" + (m.refl.errs.length > 1 ? "s" : "") + " logged" : ""}</small>` : ""}
+    <small class="muted">${rv ? (av != null ? "Overall " + av + " · " + LIGHT[light(av)].n.toLowerCase() : "Incomplete on its own: no overall score") : ""}${acts.length ? ` · actions ${acts.filter(x => x.done).length}/${acts.length} done` : ""} <button class="btn small ghost" data-del="${m.id}">Delete</button></small></div>`; };
   v.innerHTML = `<div class="row"><button class="btn ghost small" id="bk">${I.back} Mission control</button></div>
   <div class="hello"><span class="eyebrow">Official mocks</span><h1>The only numbers that count</h1><p class="muted">Your level is measured only with official Cambridge practice tests, sat under exam conditions. The app's own questions are for practice and never feed these estimates.</p></div>
+  ${pend ? reflectHTML(pend) : toPlan ? planHTML(toPlan) : ""}
+  ${pendingActions().length ? `<div class="card stack"><h3>Open actions</h3>${actionsHTML(pendingActions())}</div>` : ""}
   ${ph.id === "diag" ? `<div class="card stack" style="--c:var(--red)"><h3>Diagnostic week</h3>${checks.map(([n, ok, to]) => `<button class="stop ${ok ? "done" : ""}" data-go="${to}" style="--c:var(--red)"><span class="dot">${ok ? I.check : ""}</span><span class="lbl"><b>${n}</b></span><span class="go">${I.arrow}</span></button>`).join("")}<div><button class="btn primary" id="diagDone">Close the diagnostic and start the plan</button></div></div>` : ""}
   <div class="card stack"><h3>Enter a result</h3>
-    <p class="muted" style="font-size:.85rem">Raw marks, as you count them with the answer key. Reading: Parts 1 and 8 one mark each, Parts 5, 6 and 7 two marks each (50). Use of English: Parts 2 and 3 one mark, Part 4 up to two (28). Writing: two texts out of 20. Leave blank what you did not sit; Speaking needs a teacher or a partner to mark it.</p>
+    <p class="muted" style="font-size:.85rem">${totalsOnly ? "Raw marks per area, as you count them with the answer key. Reading: Parts 1 and 8 one mark each, Parts 5, 6 and 7 two marks each (50). Use of English: Parts 2 and 3 one mark, Part 4 up to two (28)." : "Type what you count with the answer key: correct answers per part, or points where it says so (Use of English Part 4: 0–2 per question; Writing: each text out of 20). The app works out the marks. An area counts only when all its parts are filled."} Leave blank what you did not sit. You see the score after a short reflection.</p>
     <div class="row"><label>Date <input type="date" id="mD" value="${dayKey()}"></label><label class="row" style="gap:6px"><input type="checkbox" id="mOff" checked style="width:18px;height:18px"> Official Cambridge paper</label></div>
-    <div class="scores">${keys.map(k => `<label class="score"><small class="muted">${C1.AREAS[k].n} /${C1.AREAS[k].max}</small><input type="number" inputmode="numeric" min="0" max="${C1.AREAS[k].max}" data-area="${k}" style="width:100%"><small class="mono muted" data-prev="${k}">—</small></label>`).join("")}</div>
+    <label class="stack" style="gap:4px"><b>Which paper?</b><select id="mPaper"><option value="">Not in the list</option>${owned.map(p => { const u = Object.keys(C1.COMPONENTS).filter(k => usedIn(p, k)); return `<option value="${p.id}" ${np && np.id === p.id ? "selected" : ""}>${esc(p.n)}${u.length ? " · used: " + u.map(k => C1.COMPONENTS[k].n.split(" ")[0]).join(", ") : ""}</option>`; }).join("")}</select><small class="muted">Parts of the same paper sat on different days are added together.</small></label>
+    ${formHTML}
+    <label class="row" style="gap:8px;cursor:pointer"><input type="checkbox" id="mTot" ${totalsOnly ? "checked" : ""} style="width:18px;height:18px"><small>Enter totals only</small></label>
     <div class="row"><button class="btn primary" id="mSave">Save result</button><a class="btn ghost" href="${C1.LINKS.samples}" target="_blank" rel="noopener">${I.link || ""} Free official sample papers</a></div>
     <p class="muted" style="font-size:.8rem">Conversion from Cambridge's guide to converting practice test scores (anchors at 142, 160, 180 and 200; values in between are interpolated). It applies only to official practice tests.</p></div>
-  <div class="card stack"><h3>History</h3>${c.mocks.length ? c.mocks.slice().sort((a, b) => a.d < b.d ? 1 : -1).map(m => { const av = mockAvg(m); return `<div class="errline"><span><b class="mono">${m.d}</b> ${m.off ? "" : `<span class="typepill">not official</span>`} ${keys.filter(k => hasRaw(m, k)).map(k => `${C1.AREAS[k].n} <b class="mono">${m.r[k]}</b> → ${scTxt(toScale(k, m.r[k]))}`).join(" · ")}</span><small class="muted">${av != null ? "Overall " + av + (av >= 180 ? " · pass" : " · below 180") : "Incomplete: no overall score"} <button class="btn small ghost" data-del="${m.id}">Delete</button></small></div>`; }).join("") : `<p class="muted">Nothing yet. Start with the mock you have already done.</p>`}</div>`;
+  <div class="card stack"><div class="row"><h3>Official papers</h3><span class="spacer"></span><small class="muted">${unusedPapers("rue").length} unused for Reading & UoE</small></div>
+    <p class="muted" style="font-size:.85rem">Never sit the same paper twice: you remember the answers and the score comes out inflated. Tick the ones you have; the free samples are on Cambridge's website.${np ? ` Next: <b>${esc(np.n)}</b>.` : ""}</p>
+    ${allPapers().map(p => `<div class="errline" style="grid-template-columns:auto 1fr;align-items:center;gap:10px"><input type="checkbox" data-have="${p.id}" ${hasPaper(p) ? "checked" : ""} style="width:20px;height:20px" aria-label="I have it"><span><b>${esc(p.n)}</b> <small class="muted">${esc(p.src)}</small><br><small>${Object.keys(C1.COMPONENTS).map(k => usedIn(p, k) ? `<span class="typepill" style="color:var(--good)">✓ ${C1.COMPONENTS[k].n.split(" ")[0]} ${fmtDay(paperSt(p.id).used[k])}</span>` : `<span class="typepill">${C1.COMPONENTS[k].n.split(" ")[0]}</span>`).join("")}</small></span></div>`).join("")}
+    <div class="row"><input type="text" class="answer" id="newPaper" placeholder="Add another official paper (e.g. Authentic Digital Practice Test)" style="flex:1;min-width:200px;margin:0"><button class="btn small" id="addPaper">Add</button></div></div>
+  <div class="card stack"><h3>History</h3>${c.mocks.length ? c.mocks.slice().sort((a, b) => a.d < b.d ? 1 : -1).map(histRow).join("") : `<p class="muted">Nothing yet. Start with the mock you have already done.</p>`}</div>`;
   $("#bk", v).onclick = () => go("progress");
   $$("[data-go]", v).forEach(b => b.onclick = () => go(b.dataset.go));
+  bindActions(v);
   const dd = $("#diagDone", v); if (dd) dd.onclick = () => { c.diagDone = dayKey(); save(); toast("Baseline set. The plan starts now."); go("today"); };
-  $$("[data-area]", v).forEach(inp => inp.oninput = () => { const k = inp.dataset.area; $(`[data-prev="${k}"]`, v).textContent = inp.value === "" ? "—" : scTxt(toScale(k, inp.value)); });
+  $("#mTot", v).onchange = (e) => { c.totalsOnly = e.target.checked; save(); route(); };
+  // suma en directo de los puntos de cada área (sin la escala: la nota se ve tras reflexionar)
+  const areaRaw = (k) => { const P = C1.PARTS[k], vals = P.map(x => $(`[data-part="${x.k}"]`, v).value); if (vals.every(x => x === "")) return {empty:true}; if (vals.some(x => x === "")) return {partial:true, sum:P.reduce((a, x, i) => a + (vals[i] === "" ? 0 : Math.min(x.q, Math.max(0, +vals[i])) * x.w), 0)}; return {sum:P.reduce((a, x, i) => a + Math.min(x.q, Math.max(0, +vals[i])) * x.w, 0)}; };
+  $$("[data-part]", v).forEach(inp => inp.oninput = () => { const k = inp.dataset.area, r = areaRaw(k), el = $(`[data-sum="${k}"]`, v); el.textContent = r.empty ? `— /${C1.AREAS[k].max}` : r.partial ? `${r.sum} so far · fill all parts` : `${r.sum} /${C1.AREAS[k].max} marks`; el.style.color = r.partial ? "var(--amber)" : ""; });
   $("#mSave", v).onclick = () => {
-    const r = {}; $$("[data-area]", v).forEach(inp => { if (inp.value !== "") r[inp.dataset.area] = Math.max(0, Math.min(C1.AREAS[inp.dataset.area].max, +inp.value)); });
-    if (!Object.keys(r).length) return toast("Enter at least one mark.");
-    c.mocks.push({id:Date.now().toString(36), d:$("#mD", v).value || dayKey(), off:$("#mOff", v).checked, r}); save(); toast("Saved."); route();
+    const r = {}, pp = {}; let bad = "";
+    if (totalsOnly) $$("[data-tot]", v).forEach(inp => { if (inp.value !== "") r[inp.dataset.tot] = Math.max(0, Math.min(C1.AREAS[inp.dataset.tot].max, +inp.value)); });
+    else for (const k of keys) { const P = C1.PARTS[k], rr = areaRaw(k); if (rr.empty) continue; if (rr.partial) { bad = `${C1.AREAS[k].n}: fill every part (0 is fine) or leave the whole area blank.`; break; } for (const x of P) { const val = +$(`[data-part="${x.k}"]`, v).value; if (val > x.q || val < 0) { bad = `${C1.AREAS[k].n} ${x.n}: the maximum is ${x.q}.`; break; } pp[x.k] = val; } if (bad) break; r[k] = rr.sum; }
+    if (bad) return toast(bad);
+    if (!Object.keys(r).length) return toast("Enter at least one area.");
+    const paper = $("#mPaper", v).value || null, d = $("#mD", v).value || dayKey();
+    c.mocks.push(Object.assign({id:Date.now().toString(36), d, off:$("#mOff", v).checked, r, revealed:false, u:Date.now()}, paper ? {paper} : {}, totalsOnly ? {} : {p:pp}));
+    if (paper) { const used = {}; for (const k in C1.COMPONENTS) if (C1.COMPONENTS[k].areas.some(a => r[a] != null)) used[k] = d; setPaper(paper, {used}); }
+    save(); route(); scrollTo(0, 0);
   };
+  const rf = $("#rfGo", v); if (rf) rf.onclick = () => {
+    const cause = ($('input[name="rfCause"]:checked', v) || {}).value; if (!cause) return toast("Pick the main cause.");
+    const sel = $("#rfPart", v), errs = [];
+    [0, 1, 2].forEach(i => { const w = $(`[data-rfw="${i}"]`, v).value.trim(), cc = $(`[data-rfc="${i}"]`, v).value.trim(); if (w || cc) errs.push({w, c:cc}); });
+    const pn = pend.paper && paperById(pend.paper) ? paperById(pend.paper).n : "official mock";
+    errs.forEach(e => { if (e.w && e.c) addCard({k:"mistake", f:e.w, b:e.c, ex:"Mock · " + pn}); });
+    pend.refl = {part:sel.value, partN:sel.options[sel.selectedIndex].text, cause, errs}; pend.revealed = true; pend.planDue = true; pend.u = Date.now();
+    save(); route(); scrollTo(0, 0);
+  };
+  const ap = $("#apGo", v); if (ap) ap.onclick = () => {
+    const rows = [0, 1, 2].map(i => ({t:$(`[data-apt="${i}"]`, v).value.trim(), due:$(`[data-apd="${i}"]`, v).value || addDays(dayKey(), 14), to:$(`[data-apl="${i}"]`, v).value})).filter(x => x.t);
+    if (rows.length < 2) return toast("Write at least two actions.");
+    rows.forEach((x, i) => c.actions.push(Object.assign({id:Date.now().toString(36) + i, mock:toPlan.id, done:null, u:Date.now()}, x)));
+    delete toPlan.planDue; toPlan.u = Date.now(); save(); toast("Plan saved. You'll see it on Today."); route(); scrollTo(0, 0);
+  };
+  $$("[data-have]", v).forEach(b => b.onchange = () => { setPaper(b.dataset.have, {have:b.checked}); save(); route(); });
+  $("#addPaper", v).onclick = () => { const n = $("#newPaper", v).value.trim(); if (!n) return; c.myPapers.push({id:"my" + Date.now().toString(36), n, u:Date.now()}); save(); route(); };
   $$("[data-del]", v).forEach(b => b.onclick = () => { tomb("m:" + b.dataset.del); c.mocks = c.mocks.filter(m => m.id !== b.dataset.del); save(); route(); });
 }
 
@@ -2029,6 +2164,10 @@ function risks() {
   const c = c1s(), out = [], ph = phase().id, e = estimates(), due = dueCards().length;
   const dec = decision(); if (dec && dec.bad) out.push({t:dec.t, to:"mocks"});
   const md = mockDue(); if (md && md.overdue && !(dec && dec.bad)) out.push({t:md.txt + " Sit an official sample paper under exam conditions and enter the marks.", to:"mocks"});
+  const pm = c.mocks.find(m => m.revealed === false); if (pm) out.push({t:"A mock result is waiting for its reflection: its score doesn't count until you do it.", to:"mocks"});
+  const od = pendingActions().filter(x => x.due < dayKey()); if (od.length) out.push({t:`${od.length} overdue action${od.length > 1 ? "s" : ""} from your mock plan: ${od.map(x => x.t).join("; ")}.`, to:"mocks"});
+  if (!entryDeadline() && ph !== "done") out.push({t:"Add your exam centre and its entry deadline in Settings (⚙): the go / no-go decision is timed from it."});
+  const left = unusedPapers("rue").length; if (left < 3 && ph !== "done") out.push({t:`Only ${left} unused official paper${left === 1 ? "" : "s"} left for Reading & Use of English. Get C1 Advanced 5 or 4 (Authentic Practice Tests) and tick it in Official mocks.`, to:"mocks"});
   const weak = Object.keys(e).filter(k => e[k] && (e[k].sc || 0) < C1.PASS); if (weak.length) out.push({t:"Below 180 in your last official mock: " + weak.map(k => C1.AREAS[k].n).join(", ") + "."});
   const pw = pendingRewrite(); if (pw && pw.date < dayKey()) out.push({t:`Unfinished correction: your ${pw.type.toLowerCase()} of ${fmtDay(pw.date)} has not been rewritten.`, to:"rewrite"});
   if (c.pendingMark) out.push({t:"A text is waiting in the marking queue.", to:"write-" + c.pendingMark.task});
@@ -2042,14 +2181,17 @@ function risks() {
 function dashHTML() {
   const c = c1s(), ph = phase(), left = daysToExam(), ex = examDate(), e = estimates(), ov = overall(), R = risks(), k = dayKey();
   const top = S.deck.filter(x => (x.lapses || 0) >= 1).sort((a, b) => (b.lapses || 0) - (a.lapses || 0)).slice(0, 5);
-  const ms = [[c.start, "Plan started"], [addDays(ex, -97), "Consolidation begins"], [addDays(ex, -45), "Go / no-go decision"], [addDays(ex, -38), "Exam mode"], [addDays(ex, -10), "Final 10 days: no new content"], [ex, "C1 Advanced, paper-based"]];
+  const dw = decisionWindow(), vd = verdict();
+  const ms = [[c.start, "Plan started"], [addDays(ex, -97), "Consolidation begins"], [dw.start, "Go / no-go decision"], ...(dw.dl ? [[dw.dl, "Entry deadline" + (S.settings.centre ? " · " + S.settings.centre : "")]] : []), [addDays(ex, -38), "Exam mode"], [addDays(ex, -10), "Final 10 days: no new content"], [ex, "C1 Advanced, paper-based"]].sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
   const rw = S.writings.filter(w => w.rw).length, mk = S.writings.filter(w => w.fb).length;
   return `<div class="card examhero"><div class="examdays"><div class="big-score">${Math.max(0, left)}</div><span class="muted">days to go</span></div>
     <div class="stack" style="flex:1"><span class="eyebrow">C1 Advanced · paper · ${new Date(ex + "T12:00:00").toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long", year:"numeric"})}</span><h2>${esc(ph.n)}</h2><p class="muted">${esc(ph.s)}</p>
+    ${dw.dl ? `<p>${dw.left >= 0 ? `<b class="mono">${dw.left}</b> days to the entry deadline (${fmtDay(dw.dl)})${S.settings.centre ? " · " + esc(S.settings.centre) : ""}` : `Entry deadline passed (${fmtDay(dw.dl)})`}</p>` : `<p class="muted">No entry deadline set: add it in Settings.</p>`}
+    ${vd ? `<p><span class="chip" style="color:${LIGHT[vd.lv].c}">● ${LIGHT[vd.lv].n}</span> last complete mocks: <b class="mono">${vd.m}</b>${vd.tr ? " · trend " + vd.tr : ""}</p>` : ""}
     <div class="row"><button class="btn small" data-go="mocks">Official mocks</button><button class="btn small ghost" data-go="today">Today's session</button></div></div></div>
   <div class="card stack"><div class="row"><h3>Estimated score by area</h3><span class="spacer"></span><span class="muted" style="font-size:.8rem">pass ${C1.PASS} · target ${C1.TARGET}</span></div><p class="muted" style="font-size:.85rem">From your latest official practice test in each area. Five areas, 20% each; the result is their average and you don't need to pass each one.</p>
     <div class="stack">${Object.keys(C1.AREAS).map(a => { const x = e[a], sc = x ? (x.sc || 141) : null; return `<div class="skillrow"><span>${C1.AREAS[a].n}</span><div class="bar" style="--c:${sc == null ? "var(--muted)" : sc >= C1.TARGET ? "var(--green)" : sc >= C1.PASS ? "var(--amber)" : "var(--red)"}"><i style="--p:${sc == null ? 0 : Math.max(4, (sc - 140) / 70 * 100)}%"></i></div><span class="mono">${x ? scTxt(x.sc) : "—"}</span></div>`; }).join("")}</div>
-    <div class="row"><b>Overall${ov && ov.n < 5 ? ` (${ov.n} of 5 areas)` : ""}</b><span class="spacer"></span><b class="mono" style="font-size:1.5rem">${ov ? ov.avg : "—"}</b><span class="chip">${ov ? (ov.avg >= C1.TARGET ? "on target" : ov.avg >= C1.PASS ? "pass, no margin yet" : (C1.PASS - ov.avg) + " below the pass mark") : "no official mock yet"}</span></div></div>
+    <div class="row"><b>Overall${ov && ov.n < 5 ? ` (${ov.n} of 5 areas)` : ""}</b><span class="spacer"></span><b class="mono" style="font-size:1.5rem">${ov ? ov.avg : "—"}</b><span class="chip" style="${ov ? "color:" + LIGHT[light(ov.avg)].c : ""}">${ov ? "● " + (ov.avg >= C1.TARGET ? "on target" : ov.avg >= C1.GREEN ? "pass with some margin" : ov.avg >= C1.AMBER ? "borderline" : ov.avg >= C1.PASS ? "pass, no margin" : (C1.PASS - ov.avg) + " below the pass mark") : "no official mock yet"}</span></div></div>
   <div class="grid-2"><div class="card stack"><h3>Milestones</h3>${ms.map(([d, n]) => `<div class="row"><span class="mono muted" style="width:64px">${fmtDay(d)}</span><span style="flex:1">${d <= k ? "<b>" + n + "</b>" : n}</span><span class="muted">${d <= k ? I.check : daysBetween(k, d) + " d"}</span></div>`).join("")}</div>
     <div class="card stack"><h3>Risks</h3>${R.length ? R.map(r => `<div class="errline"><span>${esc(r.t)}</span><small>${r.to ? `<button class="btn small" data-go="${r.to}">Open</button>` : ""}${r.act ? `<button class="btn small" data-act="${r.act}">${r.lbl}</button>` : ""}</small></div>`).join("") : `<p class="muted">No open risks.</p>`}<small class="muted" id="dashMsg"></small></div></div>
   <div class="grid-2"><div class="card stack"><h3>Status</h3><div class="scores">
@@ -2169,7 +2311,8 @@ function settingsSheet() {
   <div class="stack" style="gap:6px"><b>British voice</b><div class="row"><select id="voiceSel"></select><button class="btn small" id="t">${I.speaker} Test</button></div><small class="muted" id="voiceNote"></small></div>
   <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="tipsOn" ${S.settings.tips ? "checked" : ""} style="width:20px;height:20px"><span><b>Consejos en los ejercicios</b><br><small class="muted">Método y consejo clave encima de cada pregunta.</small></span></label>
   <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="pfOn" ${S.settings.produce !== false ? "checked" : ""} style="width:20px;height:20px"><span><b>Answer before the options</b><br><small class="muted">In multiple-choice questions, type your answer first. Harder, and it sticks better.</small></span></label>
-  <div class="stack" style="gap:6px"><b>Exam date · C1 Advanced on paper</b><div class="row"><input type="date" id="examD" value="${examDate()}"><select id="examPick"><option value="">Official paper dates 2027…</option>${C1.PAPER_DATES.map(d => `<option value="${d}">${fmtDay(d)}</option>`).join("")}</select></div><small class="muted">Phases, review dates and the countdown are all calculated from this date. Check your centre's entry deadline.</small></div>
+  <div class="stack" style="gap:6px"><b>Exam date · C1 Advanced on paper</b><div class="row"><input type="date" id="examD" value="${examDate()}"><select id="examPick"><option value="">Official paper dates 2027…</option>${C1.PAPER_DATES.map(d => `<option value="${d}">${fmtDay(d)}</option>`).join("")}</select></div><small class="muted">Phases, review dates and the countdown are all calculated from this date.</small></div>
+  <div class="stack" style="gap:6px"><b>Exam centre and entry deadline</b><div class="row"><input type="text" id="centre" value="${esc(S.settings.centre || "")}" placeholder="Exam centre" style="flex:1;min-width:140px"><input type="date" id="deadline" value="${S.settings.deadline || ""}"></div><small class="muted">Each centre chooses its own sessions and closes entries several weeks before. The go / no-go decision opens ${C1.DECIDE_DAYS} days before this deadline.</small></div>
   <details><summary><b>Weekly plan</b></summary><div class="stack" style="gap:6px;margin-top:8px">${[1, 2, 3, 4, 5, 6, 0].map(d => `<div class="row"><span style="width:96px">${["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][d]}</span><select data-wk="${d}">${Object.keys(C1.BLOCKS).map(b => `<option value="${b}" ${(c1s().week[d] || C1.WEEK[d]) === b ? "selected" : ""}>${C1.BLOCKS[b].n}</option>`).join("")}</select></div>`).join("")}</div></details>
   <div class="stack" style="gap:6px"><b>AI usage</b><small class="muted">${aiCount()} request${aiCount() === 1 ? "" : "s"} today from this device. The free Gemini quota is small and changes without notice; see your real limits in Google AI Studio. On the free tier Google may use what you send to improve its products, so keep private data out of your texts.</small><div class="row"><button class="btn small ai" id="stock" ${aiOn() ? "" : "disabled"}>${I.sparkle} Stock up for offline</button><small class="muted" id="stockMsg"></small></div></div>
   <div id="mtgBackend" class="stack"></div>
@@ -2182,6 +2325,8 @@ function settingsSheet() {
   $("#tipsOn", bg).onchange = (e) => { S.settings.tips = e.target.checked; save(); };
   $("#pfOn", bg).onchange = (e) => { S.settings.produce = e.target.checked; save(); };
   const setExam = (d) => { if (!d) return; S.settings.examDate = d; $("#examD", bg).value = d; save(); route(); toast("Exam date set: " + fmtDay(d) + "."); };
+  $("#centre", bg).onchange = (e) => { S.settings.centre = e.target.value.trim(); save(); route(); };
+  $("#deadline", bg).onchange = (e) => { S.settings.deadline = e.target.value; save(); route(); toast(e.target.value ? "Entry deadline set: " + fmtDay(e.target.value) + "." : "Entry deadline removed."); };
   $("#examD", bg).onchange = (e) => setExam(e.target.value); $("#examPick", bg).onchange = (e) => setExam(e.target.value);
   $$("[data-wk]", bg).forEach(s => s.onchange = () => { c1s().week[s.dataset.wk] = s.value; save(); route(); });
   $("#stock", bg).onclick = async (e) => { e.target.disabled = true; await stockUp(t => { $("#stockMsg", bg).textContent = t; }); e.target.disabled = false; };

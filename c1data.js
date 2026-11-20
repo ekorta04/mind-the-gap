@@ -14,7 +14,31 @@ C1.AREAS = {
   listening:{n:"Listening", max:30, pts:[[11,142],[13,160],[18,180],[26,200],[30,210]], parts:"4 parts, 30 questions"},
   speaking: {n:"Speaking", max:75, pts:[[17,142],[30,160],[45,180],[66,200],[75,210]], parts:"4 parts, in pairs"}
 };
-C1.PASS = 180; C1.TARGET = 190; C1.GO = 185;
+C1.PASS = 180; C1.TARGET = 190;
+/* Semáforo de la decisión (media de los dos últimos simulacros oficiales completos).
+   Cambridge avisa de que una nota de práctica a unos 3 puntos de un umbral no es fiable. */
+C1.GREEN = 186; C1.AMBER = 181;
+C1.DECIDE_DAYS = 14;   // la decisión se abre 14 días antes del plazo de inscripción del centro
+
+/* Partes de cada destreza para introducir las notas parte por parte.
+   q = preguntas (o puntos máximos si pts), w = puntos por acierto. */
+C1.PARTS = {
+  reading:  [{k:"r1", n:"Part 1", q:8, w:1}, {k:"r5", n:"Part 5", q:6, w:2}, {k:"r6", n:"Part 6", q:4, w:2}, {k:"r7", n:"Part 7", q:6, w:2}, {k:"r8", n:"Part 8", q:10, w:1}],
+  uoe:      [{k:"u2", n:"Part 2", q:8, w:1}, {k:"u3", n:"Part 3", q:8, w:1}, {k:"u4", n:"Part 4", q:12, w:1, pts:true}],
+  writing:  [{k:"w1", n:"Part 1 · essay", q:20, w:1, pts:true}, {k:"w2", n:"Part 2", q:20, w:1, pts:true}],
+  listening:[{k:"l1", n:"Part 1", q:6, w:1}, {k:"l2", n:"Part 2", q:8, w:1}, {k:"l3", n:"Part 3", q:6, w:1}, {k:"l4", n:"Part 4", q:10, w:1}],
+  speaking: [{k:"s", n:"Total", q:75, w:1, pts:true}]
+};
+/* Pruebas del examen (se pueden hacer en días distintos) y catálogo de exámenes oficiales.
+   Solo nombre y fuente: el contenido está en la web de Cambridge o en los libros. */
+C1.COMPONENTS = {rue:{n:"Reading & Use of English", areas:["reading", "uoe"]}, writing:{n:"Writing", areas:["writing"]}, listening:{n:"Listening", areas:["listening"]}, speaking:{n:"Speaking", areas:["speaking"]}};
+C1.MOCK_PAPERS = [
+  {id:"dig1", n:"Digital sample test 1", src:"Cambridge website · free", free:true},
+  {id:"ps1", n:"Paper-based sample 1", src:"Cambridge website · free", free:true},
+  {id:"ps2", n:"Paper-based sample 2", src:"Cambridge website · free", free:true},
+  ...[1, 2, 3, 4].map(i => ({id:"a5t" + i, n:"C1 Advanced 5 · Test " + i, src:"Authentic Practice Tests (Cambridge, 2025)"})),
+  ...[1, 2, 3, 4].map(i => ({id:"a4t" + i, n:"C1 Advanced 4 · Test " + i, src:"Authentic Practice Tests (Cambridge, 2021)"}))
+];
 C1.DEFAULT_EXAM = "2027-05-08";
 C1.PAPER_DATES = ["2027-05-08", "2027-05-11", "2027-05-15", "2027-06-05", "2027-06-09", "2027-06-19", "2027-06-26"];
 C1.LINKS = {

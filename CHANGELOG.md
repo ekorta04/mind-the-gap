@@ -1,5 +1,14 @@
 # CHANGELOG · Mind the Gap
 
+## v21 — Simulacros oficiales y decisión de presentarse
+- **Plazo de inscripción**: en Ajustes, centro de examen y fecha límite de matrícula. La decisión se abre 14 días antes de ese plazo (antes, 45 días antes del examen, sin mirar el centro). Cuenta atrás e hito "Entry deadline" en el panel. Sin plazo, se mantiene lo anterior y aparece un aviso en Riesgos.
+- **Semáforo**: verde ≥ 186 (inscríbete), ámbar 181–185 (solo si la tendencia sube) y rojo ≤ 180 (siguiente convocatoria), con la media de los dos últimos simulacros completos y su tendencia. Motivo: Cambridge avisa de que una nota de práctica a unos 3 puntos de un umbral no es fiable.
+- **Notas por parte**: se escriben aciertos por parte (o puntos en UoE Part 4, Writing y Speaking) y la app suma con los pesos oficiales (2 puntos en Reading Parts 5–7). Un área cuenta solo con todas sus partes. Interruptor "Enter totals only" para el formulario anterior.
+- **Catálogo de exámenes oficiales**: samples gratuitos y C1 Advanced 5 y 4 (Authentic Practice Tests), marca de "lo tengo" y de usado por prueba, exámenes propios y sugerencia del siguiente. Las pruebas del mismo examen hechas en días distintos se juntan para la nota global. Aviso si quedan menos de 3 sin usar. Reading & UoE del Digital sample test 1 marcado como hecho (20/11/2026).
+- **Reflexión antes de la nota**: tras guardar un resultado, parte más difícil, causa (tiempo, nivel, estrategia, despiste) y hasta 3 errores (los que llevan corrección pasan al repaso). La nota no se ve ni cuenta hasta hacerla. Motivo: recomendación de Cambridge de retrasar la nota en los simulacros.
+- **Plan de acción**: 2–3 acciones con fecha (14 días por defecto) y enlace a la sección; la primera se sugiere según la parte más floja. Aparecen en Hoy y en Riesgos (en rojo si vencen) hasta marcarlas.
+- Sincronización: simulacros, acciones y catálogo se fusionan por elemento y versión; los simulacros antiguos se ven y cuentan igual.
+
 ## v20 — Textos de examen y método basado en la evidencia
 - **Readings estilo examen (C1 Advanced)**: 3 textos con el formato real: Part 5 (artículo de opinión sobre el PIB y el bienestar, 6 preguntas), Part 6 (cuatro opiniones sobre la semana de cuatro días, 4 preguntas) y Part 8 (cuatro profesionales y la IA, 10 preguntas). Cada pregunta explica el porqué tras responder. Fuentes: ONS, Comisión Europea, Autonomy y el handbook de Cambridge.
 - **Rotación**: la lectura del día alterna dos textos de tus temas y uno de examen. Filtro "All / My interests / Exam style" en Reading.
