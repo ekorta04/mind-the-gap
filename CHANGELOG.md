@@ -1,5 +1,11 @@
 # CHANGELOG · Mind the Gap
 
+## v22 — Expresiones sacadas de textos: primero aprender, luego recuperar con pistas
+- Antes, una expresión minada de un texto se repasaba como un hueco en blanco sin significado: casi imposible si solo la habías visto una vez.
+- Ahora la primera vez se **aprende**: expresión completa, significado, castellano, frase con la expresión resaltada, audio y copiarla una vez.
+- Desde el día siguiente se **recupera** desde su significado (como "Say it in English"), con la frase y la primera letra de cada palabra en el hueco (r__ t__ r___ o_). Tras responder se ve el castellano.
+- Al minar se puede escribir el significado (también en castellano). Si no, con clave de IA la app pide en una sola petición el significado y la traducción de todas las expresiones que no lo tienen.
+
 ## v21 — Simulacros oficiales y decisión de presentarse
 - **Plazo de inscripción**: en Ajustes, centro de examen y fecha límite de matrícula. La decisión se abre 14 días antes de ese plazo (antes, 45 días antes del examen, sin mirar el centro). Cuenta atrás e hito "Entry deadline" en el panel. Sin plazo, se mantiene lo anterior y aparece un aviso en Riesgos.
 - **Semáforo**: verde ≥ 186 (inscríbete), ámbar 181–185 (solo si la tendencia sube) y rojo ≤ 180 (siguiente convocatoria), con la media de los dos últimos simulacros completos y su tendencia. Motivo: Cambridge avisa de que una nota de práctica a unos 3 puntos de un umbral no es fiable.
