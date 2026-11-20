@@ -1604,8 +1604,11 @@ function cardUI(box, c, onDone) {
   if (dict) { label = "Dictation · listen and type"; front = "Listen"; speak = c.b; target = shown = c.b; }
   else if (c.k === "mistake") { label = c.cat === "micro" ? "Say it better" : "Fix this"; front = esc(c.f); sub = c.ex && c.ex !== c.f && c.ex.length > 12 ? esc(c.ex) : ""; target = String(c.b).split(" — ")[0]; shown = c.b; }
   else if (c.k !== "pron") {
-    const gapEx = c.ex && new RegExp(escRe(c.f), "i").test(c.ex) ? c.ex.replace(new RegExp(escRe(c.f), "i"), "_____") : "";
     const meaning = c.b && c.b !== "(look it up)" ? c.b : "";
+    if (c.k === "chunk" && !c.learned) return learnUI(box, c, meaning, onDone);   // primero se aprende la expresión entera, luego se recupera
+    // pista en el hueco: primera letra de cada palabra (b___ s________ f______), así se recupera sin adivinar a ciegas
+    const hint = c.k === "chunk" ? c.f.split(/\s+/).map(w => w[0] + "_".repeat(Math.max(1, w.length - 1))).join(" ") : "_____";
+    const gapEx = c.ex && new RegExp(escRe(c.f), "i").test(c.ex) ? c.ex.replace(new RegExp(escRe(c.f), "i"), hint) : "";
     if (meaning || gapEx) { label = "Say it in English"; front = esc(meaning || gapEx); sub = meaning && gapEx ? esc(gapEx) : ""; target = shown = c.f; }
   }
   if (!label) {   // sin pista para producir (pronunciación o palabra sin definición): autoevaluación
@@ -1620,7 +1623,7 @@ function cardUI(box, c, onDone) {
   const inp = $("#ans", box), back = $("#back", box);
   const reveal = (given) => {
     inp.disabled = true; $("#chk", box).remove(); $("#idk", box).remove(); back.hidden = false;
-    const full = `<p>Answer: <b>${esc(shown)}</b></p>${c.k !== "mistake" && c.ex ? `<p class="muted"><i>${esc(c.ex)}</i></p>` : ""}`;
+    const full = `<p>Answer: <b>${esc(shown)}</b></p>${c.k !== "mistake" && c.ex ? `<p class="muted"><i>${esc(c.ex)}</i></p>` : ""}${c.es ? `<p class="es"><span class="flag">ES</span> ${esc(c.es)}</p>` : ""}`;
     const nextBtn = (ok) => { back.insertAdjacentHTML("beforeend", `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn primary" id="nx">Next ${I.arrow}</button></div>`); const b = $("#nx", box); b.onclick = () => onDone(ok); setTimeout(() => b.focus({preventScroll:true}), 30); };
     if (given && strip(given) === strip(target)) { back.innerHTML = `<p style="color:var(--green)"><b>Correct</b></p>${full}`; return nextBtn(true); }
     if (!given) { back.innerHTML = full; return nextBtn(false); }
@@ -1632,6 +1635,34 @@ function cardUI(box, c, onDone) {
   $("#idk", box).onclick = () => reveal("");
   if (speak) { $("#say", box).onclick = () => TTS.speak(speak); setTimeout(() => TTS.speak(speak), 300); }
   setTimeout(() => { if (matchMedia("(pointer:fine)").matches) inp.focus(); }, 50);
+}
+/* Primera vez de una expresión de un texto: verla entera, con su significado, oírla y copiarla una vez.
+   Solo después se pide recuperarla (principio 5: enseñar la forma correcta antes de pedirla). */
+function learnUI(box, c, meaning, onDone) {
+  const sent = c.ex ? esc(c.ex).replace(new RegExp(escRe(esc(c.f)), "i"), m => `<b style="color:var(--plum)">${m}</b>`) : "";
+  box.innerHTML = `<div class="card flash"><span class="eyebrow">New expression · learn it first</span><div class="front">${esc(c.f)}</div>
+    ${meaning ? `<p><b>Meaning:</b> ${esc(meaning)}</p>` : `<p class="muted">No meaning saved yet${SAMPLE ? ": fetching one…" : ". Add your AI key in Settings to get meanings automatically."}</p>`}
+    ${c.es ? `<p class="es"><span class="flag">ES</span> ${esc(c.es)}</p>` : ""}${sent ? `<p class="muted"><i>${sent}</i></p>` : ""}
+    <div class="row" style="justify-content:center"><button class="btn small" id="say">${I.speaker} Play</button></div>
+    <input class="answer" id="ans" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Copy it once: ${esc(c.f)}" aria-label="Copy the expression">
+    <div class="row" style="justify-content:center"><button class="btn primary" id="chk">Got it</button></div>
+    <p class="muted" style="font-size:.8rem">Tomorrow you'll be asked for it from its meaning, with the first letters as a hint.</p></div>`;
+  const inp = $("#ans", box), norm2 = s => norm(s).replace(/[^a-z' ]/g, "");
+  $("#say", box).onclick = () => TTS.speak(c.ex || c.f);
+  const ok = () => { if (norm2(inp.value) !== norm2(c.f)) { inp.classList.add("shake"); setTimeout(() => inp.classList.remove("shake"), 300); return toast("Copy it exactly: " + c.f); } c.learned = dayKey(); c.u = Date.now(); save(); onDone(true); };
+  $("#chk", box).onclick = ok; inp.onkeydown = (e) => { if (e.key === "Enter") ok(); };
+  if (!meaning) fillMeanings().then(n => { if (n && box.isConnected && c.b) learnUI(box, c, c.b, onDone); });
+  setTimeout(() => { if (matchMedia("(pointer:fine)").matches) inp.focus(); }, 50);
+}
+/* Significados para expresiones sacadas de textos que no tienen: una sola petición para todas las pendientes. */
+let _fillingMeanings = null;
+function fillMeanings() {
+  if (!SAMPLE) return Promise.resolve(0);
+  if (_fillingMeanings) return _fillingMeanings;
+  const todo = S.deck.filter(c => c.k === "chunk" && !c.b).slice(0, 25); if (!todo.length) return Promise.resolve(0);
+  const prompt = `For each English expression below, as used in its sentence, give a short plain-English definition a C1 learner understands (max 10 words, do not use the expression itself) and a natural Spanish equivalent (max 8 words). British English. Reply with only a JSON array, same order, of objects {"en": ..., "es": ...}.\n\n${todo.map((c, i) => `${i + 1}. "${c.f}" — ${c.ex || "(no sentence)"}`).join("\n")}`;
+  _fillingMeanings = aiJSON(prompt).then(arr => { let n = 0; (Array.isArray(arr) ? arr : []).forEach((x, i) => { const c = todo[i]; if (c && x && x.en) { c.b = String(x.en).trim(); if (x.es) c.es = String(x.es).trim(); c.u = Date.now(); n++; } }); if (n) save(); return n; }).catch(() => 0).finally(() => { _fillingMeanings = null; });
+  return _fillingMeanings;
 }
 // Intercalado: nunca dos tarjetas seguidas del mismo tipo si se puede evitar
 function interleave(cards) {
@@ -1799,12 +1830,14 @@ function viewClose(v) {
 function sentenceWith(body, f) { const m = String(body || "").replace(/\s+/g, " ").match(new RegExp(`[^.!?]*${escRe(f)}[^.!?]*[.!?]?`, "i")); return m ? m[0].trim() : ""; }
 function chunkMiner(src, body) {
   return {
-    html:`<div class="card stack miner" style="--c:var(--plum)"><h3>Mine 3–5 chunks</h3><p class="muted">Copy whole expressions exactly as they appear (collocations, phrasal verbs, linkers), not single words. Each one goes to your review queue as a gap-fill in its own sentence.</p><div class="row"><input type="text" class="answer" id="mineIn" placeholder="e.g. run the risk of" autocapitalize="off" autocorrect="off" spellcheck="false" style="flex:1;min-width:180px;margin:0"><button class="btn" id="mineAdd">Add</button></div><div id="mineList" class="stack"></div></div>`,
+    html:`<div class="card stack miner" style="--c:var(--plum)"><h3>Mine 3–5 chunks</h3><p class="muted">Copy whole expressions exactly as they appear (collocations, phrasal verbs, linkers), not single words. You'll first see each one with its meaning; from then on you'll be asked for it from its meaning, with the first letters as a hint.</p><div class="row"><input type="text" class="answer" id="mineIn" placeholder="e.g. run the risk of" autocapitalize="off" autocorrect="off" spellcheck="false" style="flex:1;min-width:180px;margin:0"><input type="text" class="answer" id="mineMean" placeholder="Meaning (optional, Spanish OK)" autocapitalize="off" spellcheck="false" style="flex:1;min-width:160px;margin:0"><button class="btn" id="mineAdd">Add</button></div><div id="mineList" class="stack"></div></div>`,
     mount(r) {
       let n = 0;
       const add = () => {
         const inp = $("#mineIn", r), f = inp.value.trim().replace(/[.,;:!?]+$/, ""); if (words(f) < 2) return toast("Pick an expression of two words or more.");
-        const sent = sentenceWith(body, f), isNew = addCard({k:"chunk", f, b:"", ex:sent || ""});
+        const mean = ($("#mineMean", r).value || "").trim(); $("#mineMean", r).value = "";
+        const sent = sentenceWith(body, f), isNew = addCard({k:"chunk", f, b:mean, ex:sent || ""});
+        if (!mean) fillMeanings();
         if (!sent) toast("Saved, but I couldn't find it in the text. Copy it exactly to get a gap-fill.");
         else toast(isNew ? `Added (${n + 1}). Aim for 3–5.` : "Already in your queue: reset to today.");
         n++; inp.value = ""; $("#mineList", r).insertAdjacentHTML("beforeend", `<div class="errline"><b>${esc(f)}</b><small class="muted">${esc(sent)}</small></div>`);
