@@ -1,5 +1,11 @@
 # CHANGELOG · Mind the Gap
 
+## v24 — Phrasebook más a mano y "Add something you saw"; Quick play compacto en el ordenador
+- **Phrasebook** en el menú lateral del ordenador (en el móvil sigue en la lupa de arriba).
+- **Add something you saw**, arriba del todo en el Phrasebook: escribes lo que has visto (y, si quieres, la frase donde salía) y Gemini dice qué es (phrasal verb, idiom, collocation…), qué significa en inglés, cómo se dice en castellano, un ejemplo, el registro y si lo habías escrito mal. Lo aceptas, lo editas o lo descartas. Al aceptarlo va a My phrases y al repaso (primero lo aprendes y luego se pregunta desde el significado en inglés). Sin clave de IA se añade a mano.
+- Las frases propias muestran el tipo, el significado en inglés y el castellano.
+- **Quick play** en Games: en el ordenador ya no ocupa toda la pantalla (el icono no tenía tamaño); ahora es una franja compacta.
+
 ## v23 — Botón ♡ "Save it" en las correcciones
 - Tras responder cualquier pregunta, encima de Next: "♡ Save it · show me more often". La pregunta entra en el repaso (o se marca si ya estaba) y vuelve con intervalos cortos (1 y 2 días) mientras la aprendes.
 - Cuando la aciertas 3 veces seguidas, pasa al ciclo normal (7, 16 y 35 días). Si la fallas, vuelve a 1 día como cualquier tarjeta y recupera el ritmo rápido hasta que la vuelvas a acertar 3 veces seguidas.

@@ -359,7 +359,8 @@ const NAV = [
   {id:"listen", n:"Listen", i:"ear", c:"var(--green)"},
   {id:"write", n:"Write", i:"pen", c:"var(--amber)"},
   {id:"speak", n:"Speak", i:"mic", c:"var(--red)"},
-  {id:"review", n:"Review", i:"cards", c:"var(--plum)"}
+  {id:"review", n:"Review", i:"cards", c:"var(--plum)"},
+  {id:"phrases", n:"Phrasebook", i:"search", c:"var(--navy)", desk:true}   // en el móvil sigue en la lupa de arriba
 ];
 function shell() {
   document.getElementById("root").innerHTML = `
@@ -374,7 +375,7 @@ function shell() {
         <button class="icon-btn" id="btnSettings" aria-label="Settings"><span id="sync">${I.gear}</span></button>
       </div>
     </div></header>
-    <nav class="nav" aria-label="Sections">${NAV.map(n => `<button data-nav="${n.id}" style="--c:${n.c}">${I[n.i]}<span>${n.n}</span></button>`).join("")}</nav>
+    <nav class="nav" aria-label="Sections">${NAV.map(n => `<button data-nav="${n.id}" style="--c:${n.c}"${n.desk ? ' class="deskonly"' : ""}>${I[n.i]}<span>${n.n}</span></button>`).join("")}</nav>
     <main id="main" tabindex="-1"></main>
   </div>`;
   $$(".nav button").forEach(b => b.onclick = () => go(b.dataset.nav));
@@ -2264,7 +2265,7 @@ function pbAll() {
   const add = (f, m, ex, cat, extra) => { f = String(f || "").trim(); const k = fold(f); if (!f || seen.has(k)) return; seen.add(k); out.push(Object.assign({f, m:String(m || ""), ex:String(ex || ""), cat}, extra)); };
   const split = (why, alt) => { const w = String(why || "").trim().replace(/\.$/, ""), i = w.indexOf(" = "); const par = w.match(/^([^()]+?) \(([^()]+)\)$/); if (i < 0 && par) return [par[1], par[2]]; return i > 0 ? [w.slice(0, i), w.slice(i + 3)] : words(w) <= 8 && w ? [w, ""] : [alt, w]; };
   const fill = (x) => String(x.s).replace(/_{3,}/, x.o[x.a]);
-  (S.pb || []).forEach(e => add(e.f, e.m, e.ex, "My phrases", {mine:e.id, note:e.note || ""}));
+  (S.pb || []).forEach(e => add(e.f, e.m, e.ex, "My phrases", {mine:e.id, note:e.note || "", en:e.en || "", kind:e.kind || ""}));
   S.deck.filter(c => c.k === "chunk" && !/^ph:/.test(c.id)).forEach(c => add(c.f, c.b, c.ex, "My phrases", {}));
   for (const cat in PHRASES) PHRASES[cat].forEach(p => add(p[0], p[1], p[2], cat));
   pool("idioms").forEach(x => add(x.t, x.m, x.ex, "Idioms"));
@@ -2282,10 +2283,16 @@ function viewPhrases(v) {
   const cats = () => { const n = {}; all.forEach(e => n[e.cat] = (n[e.cat] || 0) + 1); return Object.keys(n).sort((a, b) => a === "My phrases" ? -1 : b === "My phrases" ? 1 : a < b ? -1 : 1).map(c => [c, n[c]]); };
   v.innerHTML = `<div class="hello"><span class="eyebrow" style="color:var(--navy)">Phrasebook · works offline</span><h1>Look it up. <span>Keep it.</span></h1>
     <p class="muted">Every expression in the app in one place, plus your own. Search in English or Spanish, then tap Learn to send it to your review queue.</p></div>
+  <div class="card stack" style="border-top:6px solid var(--navy)"><h3>Add something you saw</h3>
+    <p class="muted" style="font-size:.85rem">Seen or heard something interesting? Type it ${aiOn() ? "and Gemini tells you what it is (phrasal verb, idiom, collocation…), what it means and how to say it in Spanish. Accept it and it goes to your phrases and your review queue." : "with its meaning and save it. With a free Gemini key (Settings) the app analyses it for you."}</p>
+    <input class="answer" id="seeF" placeholder="What you saw: e.g. but for, run out of steam" autocapitalize="off" spellcheck="false" style="margin:0">
+    <input class="answer" id="seeCtx" placeholder="The sentence it was in (optional, helps)" spellcheck="false" style="margin:0">
+    <div class="row">${aiOn() ? `<button class="btn ai" id="seeGo">${I.sparkle} Analyse it · 1 request</button>` : ""}<button class="btn${aiOn() ? "" : " primary"}" id="seeOwn">${aiOn() ? "Add it myself" : "Add it"}</button></div>
+    <div id="seeOut" class="stack"></div></div>
   <div class="card stack pbsearch"><input type="search" class="answer" id="pbQ" placeholder="Search: deadline, a pesar de, put off…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="margin:0" aria-label="Search the phrasebook">
     <div class="pbcats" id="pbCats"></div></div>
   <div id="pbList" class="stack"></div>
-  <details class="card stack methodcard" id="pbAddBox"><summary><b>Add your own expression</b></summary>
+  <details class="card stack methodcard" id="pbAddBox"><summary><b>Add your own expression by hand</b></summary>
     <input class="answer" id="nF" placeholder="Expression in English" autocapitalize="off" spellcheck="false" style="margin:0">
     <input class="answer" id="nM" placeholder="Meaning (Spanish or English)" style="margin:0">
     <input class="answer" id="nE" placeholder="Example sentence (optional)" spellcheck="false" style="margin:0">
@@ -2293,14 +2300,15 @@ function viewPhrases(v) {
   const list = $("#pbList", v);
   const saveMine = (e, learn) => {
     S.pb = S.pb || []; const k = fold(e.f);
-    if (!S.pb.some(x => fold(x.f) === k)) S.pb.push({id:Date.now().toString(36) + Math.random().toString(36).slice(2, 5), f:e.f.trim(), m:(e.m || "").trim(), ex:(e.ex || "").trim(), note:(e.note || "").trim(), d:dayKey()});
-    if (learn && !inDeck().has(k)) addCard({k:"chunk", f:e.f.trim(), b:(e.m || "").trim(), ex:(e.ex || "").trim()});
+    if (!S.pb.some(x => fold(x.f) === k)) S.pb.push({id:Date.now().toString(36) + Math.random().toString(36).slice(2, 5), f:e.f.trim(), m:(e.m || "").trim(), en:(e.en || "").trim(), kind:(e.kind || "").trim(), ex:(e.ex || "").trim(), note:(e.note || "").trim(), d:dayKey()});
+    // en el repaso se pregunta desde el significado en inglés (y el castellano se ve al corregir)
+    if (learn && !inDeck().has(k)) addCard(Object.assign({k:"chunk", f:e.f.trim(), b:(e.en || e.m || "").trim(), ex:(e.ex || "").trim()}, e.en && e.m ? {es:e.m.trim()} : {}));
     save(); all = pbAll();
   };
   const rowHTML = (e, i, deck) => { const c = deck.get(fold(e.f));
     return `<div class="card pbrow" data-i="${i}"><div class="row"><b class="pbf">${esc(e.f)}</b><button class="icon-btn" data-say aria-label="Listen">${I.speaker}</button><span class="spacer"></span>${e.noLearn ? "" : c ? `<span class="chip">${I.check} In review · box ${c.box}</span>` : `<button class="btn small primary" data-learn>Learn</button>`}</div>
-      ${e.m ? `<p>${esc(e.m)}</p>` : ""}${e.ex ? `<p class="muted"><i>${esc(e.ex)}</i></p>` : ""}${e.note ? `<p class="muted" style="font-size:.85rem">${esc(e.note)}</p>` : ""}
-      <div class="row"><span class="typepill">${esc(e.cat)}</span><span class="spacer"></span>${e.mine ? `<button class="btn small ghost" data-del>Delete</button>` : ""}</div></div>`; };
+      ${e.en ? `<p>${esc(e.en)}</p>` : ""}${e.m ? `<p${e.en ? ' class="es"' : ""}>${e.en ? '<span class="flag">ES</span> ' : ""}${esc(e.m)}</p>` : ""}${e.ex ? `<p class="muted"><i>${esc(e.ex)}</i></p>` : ""}${e.note ? `<p class="muted" style="font-size:.85rem">${esc(e.note)}</p>` : ""}
+      <div class="row"><span class="typepill">${esc(e.cat)}</span>${e.kind ? `<span class="typepill">${esc(e.kind)}</span>` : ""}<span class="spacer"></span>${e.mine ? `<button class="btn small ghost" data-del>Delete</button>` : ""}</div></div>`; };
   const paint = () => {
     const deck = inDeck(), toks = fold(q).split(/\s+/).filter(Boolean);
     $("#pbCats", v).innerHTML = `<button class="pbcat ${!cat && !onlyRev ? "on" : ""}" data-cat="">All <span class="mono">${all.length}</span></button><button class="pbcat ${onlyRev ? "on" : ""}" data-rev="1">In review</button>` + cats().map(([c, n]) => `<button class="pbcat ${cat === c ? "on" : ""}" data-cat="${esc(c)}">${esc(c)} <span class="mono">${n}</span></button>`).join("");
@@ -2333,6 +2341,30 @@ function viewPhrases(v) {
       $$("[data-keep]", box).forEach(b => b.onclick = () => { saveMine(es[+b.dataset.keep], true); b.disabled = true; b.textContent = "Saved"; toast("Saved to My phrases and to your review queue."); });
     } catch (e) { box.innerHTML = `<p>${esc(aiErr(e))}</p>`; btn.disabled = false; }
   };
+  // "Add something you saw": Gemini dice qué es; se acepta, se edita o se descarta
+  const analyse = (f, ctx) => aiJSON(`${LEARNER}\nThe learner saw or heard this and wants to learn it: "${f}"${ctx ? ` in the sentence: "${ctx}"` : ""}. It may be misspelt, incomplete, or a Spanish idea they want to say in English. Identify the English expression in its dictionary form (with "sb/sth" where needed).\nReply with only a JSON object: {"f": the expression in dictionary form, "kind": one of "phrasal verb", "idiom", "collocation", "fixed expression", "linker", "word", "grammar pattern", "en": its meaning in plain English for a C1 learner (max 12 words, without using the expression), "es": a natural Spanish equivalent (max 10 words), "ex": a natural example sentence in British English, "note": register or usage in Spanish, e.g. formal/informal, typical mistakes (max 18 words) or "", "fix": if what they typed was wrong or not quite the real expression, explain in Spanish in max 15 words, otherwise ""}`, {modelTier:"quick", cache:false});
+  const seeOut = $("#seeOut", v);
+  const seeGo = $("#seeGo", v); if (seeGo) seeGo.onclick = async () => {
+    const f = $("#seeF", v).value.trim(), ctx = $("#seeCtx", v).value.trim(); if (!f) return toast("Type what you saw first.");
+    seeGo.disabled = true; seeOut.innerHTML = `<p class="muted"><span class="spin"></span> Analysing…</p>`;
+    try {
+      const e = await analyse(f, ctx); if (!e || !e.f || !(e.en || e.es)) throw {code:"invalid_json"};
+      const known = all.find(x => fold(x.f) === fold(e.f));
+      seeOut.innerHTML = `<div class="card pbrow stack" style="--c:var(--navy);gap:6px"><div class="row"><b class="pbf">${esc(e.f)}</b><button class="icon-btn" id="seeSay" aria-label="Listen">${I.speaker}</button><span class="spacer"></span>${e.kind ? `<span class="typepill">${esc(e.kind)}</span>` : ""}</div>
+        ${e.fix ? `<p class="notice" style="margin:0">${esc(e.fix)}</p>` : ""}${e.en ? `<p>${esc(e.en)}</p>` : ""}${e.es ? `<p class="es"><span class="flag">ES</span> ${esc(e.es)}</p>` : ""}${e.ex ? `<p class="muted"><i>${esc(e.ex)}</i></p>` : ""}${e.note ? `<p class="muted" style="font-size:.85rem">${esc(e.note)}</p>` : ""}
+        ${known ? `<p class="muted" style="font-size:.85rem">Already in the phrasebook (${esc(known.cat)}). Accepting adds it to your phrases too.</p>` : ""}
+        <div class="row"><button class="btn primary" id="seeOk">Accept and learn</button><button class="btn" id="seeEdit">Edit first</button><button class="btn ghost" id="seeNo">Discard</button></div>
+        <p class="muted" style="font-size:.8rem">Written by Gemini: usually right, not infallible.</p></div>`;
+      $("#seeSay", v).onclick = () => TTS.speak(e.ex ? `${e.f}. ${e.ex}` : e.f);
+      const entry = {f:e.f, m:e.es || "", en:e.en || "", kind:e.kind || "", ex:e.ex || ctx, note:e.note || ""};
+      $("#seeOk", v).onclick = () => { saveMine(entry, true); seeOut.innerHTML = ""; $("#seeF", v).value = ""; $("#seeCtx", v).value = ""; cat = "My phrases"; q = ""; $("#pbQ", v).value = ""; paint(); toast("Saved to My phrases and to your review queue."); };
+      $("#seeEdit", v).onclick = () => { const d = $("#pbAddBox", v); d.open = true; $("#nF", v).value = entry.f; $("#nM", v).value = entry.m || entry.en; $("#nE", v).value = entry.ex; seeOut.innerHTML = ""; d.scrollIntoView({behavior:"smooth", block:"center"}); };
+      $("#seeNo", v).onclick = () => { seeOut.innerHTML = ""; };
+    } catch (e) { seeOut.innerHTML = `<p>${esc(aiErr(e))}</p>`; }
+    seeGo.disabled = false;
+  };
+  $("#seeOwn", v).onclick = () => { const d = $("#pbAddBox", v); d.open = true; $("#nF", v).value = $("#seeF", v).value.trim(); $("#nE", v).value = $("#seeCtx", v).value.trim(); d.scrollIntoView({behavior:"smooth", block:"center"}); $("#nM", v).focus(); };
+  $("#seeF", v).onkeydown = (e) => { if (e.key === "Enter") (seeGo || $("#seeOwn", v)).click(); };
   let t; $("#pbQ", v).oninput = (e) => { q = e.target.value; if (q.trim()) { cat = ""; onlyRev = false; } limit = 40; clearTimeout(t); t = setTimeout(paint, 120); };
   $("#nSave", v).onclick = () => {
     const f = $("#nF", v).value.trim(); if (!f) return toast("Type the expression first.");
@@ -2399,7 +2431,7 @@ function boot() {
   document.addEventListener("click", (e) => { if (popEl && !popEl.contains(e.target)) closePop(); });
   const C = window.claude;
   if (C && C.use) {
-    C.use("sample").then(s => { SAMPLE = s; if (s) { const h = location.hash.slice(1); if (["", "today", "practice", "read", "listen", "write", "speak", "real"].includes(h) || /^(listen|read|write|speak|real)-/.test(h) || (h.startsWith("play-") && $("#start"))) route(); } }).catch(() => {});
+    C.use("sample").then(s => { SAMPLE = s; if (s) { const h = location.hash.slice(1); if (["", "today", "practice", "read", "listen", "write", "speak", "real", "phrases"].includes(h) || /^(listen|read|write|speak|real)-/.test(h) || (h.startsWith("play-") && $("#start"))) route(); } }).catch(() => {});
     C.use("tts").then(t => { TTSCAP = t; }).catch(() => {});
     Promise.all([C.use("db"), C.use("user")]).then(async ([db, user]) => {
       if (!db || !user) return; const id = await user.id(); if (!id) { syncState = "nologin"; paintSync(); return; }
