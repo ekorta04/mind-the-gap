@@ -1,5 +1,9 @@
 # CHANGELOG · Mind the Gap
 
+## v23 — Botón ♡ "Save it" en las correcciones
+- Tras responder cualquier pregunta, encima de Next: "♡ Save it · show me more often". La pregunta entra en el repaso (o se marca si ya estaba) y vuelve con intervalos más cortos (1, 2, 4, 8 y 16 días en vez de 1, 3, 7, 16 y 35). Se repasa produciendo la respuesta, como el resto.
+- Volver a pulsarlo la quita de favoritos (y del repaso si solo estaba por el ♥).
+
 ## v22 — Expresiones sacadas de textos: primero aprender, luego recuperar con pistas
 - Antes, una expresión minada de un texto se repasaba como un hueco en blanco sin significado: casi imposible si solo la habías visto una vez.
 - Ahora la primera vez se **aprende**: expresión completa, significado, castellano, frase con la expresión resaltada, audio y copiarla una vez.
