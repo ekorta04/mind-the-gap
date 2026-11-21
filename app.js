@@ -58,7 +58,8 @@ const LEVELS = [{n:"B2", xp:0}, {n:"B2+", xp:1500}, {n:"C1", xp:4000}, {n:"C1+",
 const INTERESTS = ["Formula 1 and motorsport", "major engineering works", "project management", "aeronautics", "industrial maintenance", "technology", "sport"];
 // Repaso espaciado sencillo: al fallar vuelve a 1 día; al acertar 1, 3, 7, 16 y 35 días
 const INTERVALS = [0, 1, 3, 7, 16, 35];
-const FAV_INTERVALS = [0, 1, 2, 4, 8, 16];   // lo que marcas con ♥ vuelve el doble de a menudo
+const FAV_INTERVALS = [0, 1, 2, 4, 8, 16];   // lo que marcas con ♥ vuelve el doble de a menudo…
+const FAV_KNOWN = 3;                          // …hasta acertarlo 3 veces seguidas; entonces pasa al ciclo normal
 
 /* ---------- state ---------- */
 const LS_KEY = "mtg-state-v1";
@@ -217,7 +218,9 @@ const dueCards = () => S.deck.filter(c => c.due <= dayKey());
 function grade(card, ok) {
   card.box = ok ? Math.min(card.box + 1, INTERVALS.length - 1) : 0;
   if (!ok) card.lapses = (card.lapses || 0) + 1;
-  let due = addDays(dayKey(), ok ? (card.fav ? FAV_INTERVALS : INTERVALS)[card.box] : 1);
+  card.run = ok ? (card.run || 0) + 1 : 0;   // aciertos seguidos; un fallo lo pone a cero y el ♥ vuelve a ir rápido
+  const fast = card.fav && card.run < FAV_KNOWN;
+  let due = addDays(dayKey(), ok ? (fast ? FAV_INTERVALS : INTERVALS)[card.box] : 1);
   const cap = addDays(examDate(), -3);   // todo vuelve a salir antes del examen
   if (due > cap && cap > dayKey()) due = cap;
   card.due = due; card.u = Date.now(); save();
@@ -662,11 +665,11 @@ function showFeedback(box, it, ok, given, note, gained, onNext) {
   const bd = $("#bad", box); if (bd) bd.onclick = () => { (S.bad = S.bad || {})[it._id] = 1; tomb("d:item:" + it._id); S.deck = S.deck.filter(c => c.id !== "item:" + it._id); if (S.ai[it._t]) S.ai[it._t] = S.ai[it._t].filter(x => x._id !== it._id); save(); bd.disabled = true; toast("Removed. You won't see this question again."); };
   // ♥: la pregunta entra en el repaso (o ya estaba) y sale el doble de a menudo; volver a pulsar la quita
   const fv = $("#fav", box), cid = "item:" + it._id;
-  const paint = () => { const c = S.deck.find(x => x.id === cid), on = !!(c && c.fav); fv.textContent = on ? "♥ Saved · it'll come up more often" : "♡ Save it · show me more often"; fv.setAttribute("aria-pressed", on); fv.style.color = on ? "var(--red)" : ""; fv.style.borderColor = on ? "var(--red)" : ""; };
+  const paint = () => { const c = S.deck.find(x => x.id === cid), on = !!(c && c.fav); fv.textContent = !on ? "♡ Save it · show me more often" : (c.run || 0) >= FAV_KNOWN ? "♥ Saved · you know it: normal reviews now" : "♥ Saved · it'll come up more often until you know it"; fv.setAttribute("aria-pressed", on); fv.style.color = on ? "var(--red)" : ""; fv.style.borderColor = on ? "var(--red)" : ""; };
   if (it._id && TYPES[it._t]) { paint(); fv.onclick = () => {
     let c = S.deck.find(x => x.id === cid);
     if (c && c.fav) { if (c.likedOnly) { tomb("d:" + cid); S.deck = S.deck.filter(x => x.id !== cid); } else { delete c.fav; c.u = Date.now(); } save(); toast("Removed from your favourites."); }
-    else { if (!c) { if (S.del) delete S.del["d:" + cid]; S.deck.push(Object.assign(itemCard(it), {box:0, due:addDays(dayKey(), 1), added:dayKey(), u:Date.now(), fav:true, likedOnly:true})); toast("Saved. It'll come up in your reviews from tomorrow, twice as often."); } else { c.fav = true; c.u = Date.now(); toast("Saved. It'll come up in your reviews twice as often."); } save(); }
+    else { if (!c) { if (S.del) delete S.del["d:" + cid]; S.deck.push(Object.assign(itemCard(it), {box:0, due:addDays(dayKey(), 1), added:dayKey(), u:Date.now(), fav:true, likedOnly:true})); toast(`Saved. It'll come up twice as often from tomorrow until you get it right ${FAV_KNOWN} times in a row.`); } else { c.fav = true; c.u = Date.now(); c.run = 0; toast(`Saved. Twice as often until you get it right ${FAV_KNOWN} times in a row.`); } save(); }
     paint();
   }; } else fv.parentNode.remove();
   const nx = $("#nx", box); nx.onclick = onNext; setTimeout(() => nx.focus({preventScroll:true}), 30);

@@ -1,7 +1,8 @@
 # CHANGELOG · Mind the Gap
 
 ## v23 — Botón ♡ "Save it" en las correcciones
-- Tras responder cualquier pregunta, encima de Next: "♡ Save it · show me more often". La pregunta entra en el repaso (o se marca si ya estaba) y vuelve con intervalos más cortos (1, 2, 4, 8 y 16 días en vez de 1, 3, 7, 16 y 35). Se repasa produciendo la respuesta, como el resto.
+- Tras responder cualquier pregunta, encima de Next: "♡ Save it · show me more often". La pregunta entra en el repaso (o se marca si ya estaba) y vuelve con intervalos cortos (1 y 2 días) mientras la aprendes.
+- Cuando la aciertas 3 veces seguidas, pasa al ciclo normal (7, 16 y 35 días). Si la fallas, vuelve a 1 día como cualquier tarjeta y recupera el ritmo rápido hasta que la vuelvas a acertar 3 veces seguidas.
 - Volver a pulsarlo la quita de favoritos (y del repaso si solo estaba por el ♥).
 
 ## v22 — Expresiones sacadas de textos: primero aprender, luego recuperar con pistas
