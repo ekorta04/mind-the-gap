@@ -1,5 +1,12 @@
 # CHANGELOG · Mind the Gap
 
+## v25 — Puesta en marcha de obras (Heathrow T5), finanzas y 29 preguntas nuevas
+- **Lectura nueva**: "On Time, On Budget — and Still a Fiasco", sobre la apertura de la Terminal 5 de Heathrow (2008) y la preparación para operar. Datos comprobados en el informe del Transport Committee de la Cámara de los Comunes y la respuesta oficial de BAA.
+- **Real British**: 5 vídeos nuevos (English at Work 56 "Setting priorities", tres 6 Minute English de trabajo y dinero, y Dave Robson, ingeniero de carrera de Williams).
+- **Quick play**: 15 preguntas nuevas con explicación en castellano (7 phrasal verbs, 4 de gramática C1 y 4 colocaciones).
+- **Work English**: 10 entradas de puesta en marcha y finanzas (go-live, dry run, O&M manuals, break even, overheads…).
+- **Speaking**: 5 frases de shadowing para dar avances y 2 preguntas nuevas. **Spelling**: 6 palabras.
+
 ## v24 — Phrasebook más a mano y "Add something you saw"; Quick play compacto en el ordenador
 - **Phrasebook** en el menú lateral del ordenador (en el móvil sigue en la lupa de arriba).
 - **Add something you saw**, arriba del todo en el Phrasebook: escribes lo que has visto (y, si quieres, la frase donde salía) y Gemini dice qué es (phrasal verb, idiom, collocation…), qué significa en inglés, cómo se dice en castellano, un ejemplo, el registro y si lo habías escrito mal. Lo aceptas, lo editas o lo descartas. Al aceptarlo va a My phrases y al repaso (primero lo aprendes y luego se pregunta desde el significado en inglés). Sin clave de IA se añade a mano.

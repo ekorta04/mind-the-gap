@@ -697,3 +697,102 @@ BANK.sources["x-fourday"] = [
 BANK.sources["x-ai-work"] = [
   {t:"The four professionals are fictional; the texts were written for practice and cite no data."},
   {t:"Format: Cambridge English — Developing reading skills for C1 Advanced (Part 8: people discussing their work)", u:"https://www.cambridgeenglish.org/Images/627844-developing-reading-skills-for-c1-advanced-a-guide-for-teachers.pdf"}];
+
+/* ===== Iteración semanal · 24 nov 2026 =====
+   Puesta en marcha y entrega de obras (Heathrow T5), finanzas y prioridades en el trabajo. */
+
+/* Real British: 5 vídeos nuevos (IDs vistos en resultados de búsqueda de YouTube) */
+BANK.real = BANK.real.concat([
+  {yt:"UQIVqy0so5E", t:"Setting priorities — English at Work 56", src:"BBC Learning English", topic:"Work", mins:5},
+  {yt:"ktgDXNML2uI", t:"No more bosses — 6 Minute English", src:"BBC Learning English", topic:"Business", mins:6},
+  {yt:"FKwmUNffu7M", t:"Why are prices going up? — 6 Minute English", src:"BBC Learning English", topic:"Business", mins:6},
+  {yt:"c5Ppkvg7xHI", t:"How green is your money? — 6 Minute English", src:"BBC Learning English", topic:"Business", mins:6},
+  {yt:"3NATL63Gh5s", t:"A chat with Felipe Massa's race engineer Dave Robson", src:"Williams Racing", topic:"F1"}
+]);
+
+/* Reading: gestión de proyectos (entrega y puesta en marcha) */
+BANK.reading = BANK.reading.concat([
+ {id:"r-t5-opening", topic:"Project management", title:"On Time, On Budget — and Still a Fiasco", mins:4,
+  body:`By most of the measures project managers are taught to worship, Heathrow's Terminal 5 was a triumph. After six years of construction, it was delivered at a cost of £4.3 billion, on time and within budget — no small feat for a British megaproject. Then, on 27 March 2008, the doors opened to the public, and within hours the new terminal had become a byword for chaos.
+
+Staff car parks and security searches failed to cope, queues built up, and a state-of-the-art baggage system seemed to have a mind of its own. According to British Airways, 23,205 bags had to be sorted by hand before they could be returned to their owners, and a parliamentary committee later put the number of passengers affected on the first day alone at 36,584.
+
+When the House of Commons Transport Committee examined what had gone wrong, its verdict was blunt. What should have been "an occasion of national pride", the MPs wrote, had turned into "an occasion of national embarrassment". Most of the problems, they concluded, could be traced back to two factors: insufficient communication between the airport's owner, BAA, and its operator, British Airways, and poor staff training and system testing.
+
+What is striking is how little of this had to do with concrete and steel. The terminal had been engineered as a collection of physical assets; it had not been fully prepared as a working operation, staffed by thousands of people who knew exactly what to do when something unexpected cropped up.
+
+For anyone who manages maintenance or handovers, the lesson is uncomfortably familiar. A fire alarm system can pass every factory test and still let you down if the people on site have never rehearsed an evacuation with it. A new compressor house is not finished when the last pipe is welded, but when the operators can run it, troubleshoot it and isolate it safely at three in the morning. Yet training, trial operations and handover documentation are routinely treated as the tidying-up at the end of a programme, precisely when budgets have been spent and patience is wearing thin.
+
+The real measure of success, then, is not the day the contractor walks away but the moment the asset performs reliably in the hands of those who have to live with it. In time, Terminal 5 settled into normal operation. Its opening, however, remains a textbook reminder that "on time and on budget" describes a project, not an outcome — and that the gap between the two is usually bridged by people rather than technology.`,
+  gloss:{"worship":"venerar, idolatrar","no small feat":"todo un logro","a byword for":"sinónimo de","a mind of its own":"vida propia","verdict":"veredicto, conclusión","blunt":"directo, tajante","traced back to":"atribuirse a, tener su origen en","cropped up":"surgió (de improviso)","let you down":"fallarte","rehearsed":"ensayado","troubleshoot":"diagnosticar y resolver averías","isolate":"aislar, consignar","wearing thin":"agotándose","bridged":"salvado, cubierto (un hueco)"},
+  q:[
+   {q:"Why does the writer begin by describing T5 as 'a triumph'?", o:["To show that the media exaggerated its problems","To contrast its success as a construction project with its failure on opening","To praise British engineering in general","To explain why it went over budget"], a:1, why:"Fue un éxito según las medidas clásicas (plazo y coste), y por eso el caos de la apertura resulta tan llamativo."},
+   {q:"According to the Committee, most of the problems were caused by", o:["faulty construction and poor materials","a lack of money for the baggage system","weak communication between BAA and BA, and inadequate training and testing","unexpectedly high passenger numbers"], a:2, why:"'insufficient communication between… owner… and… operator, and poor staff training and system testing'."},
+   {q:"What does the writer mean by saying the terminal 'had not been fully prepared as a working operation'?", o:["The building was not finished","The people and procedures were not ready to run it","The airlines had not signed their contracts","The equipment had not been delivered"], a:1, why:"El edificio estaba, pero no las personas ni los procedimientos para hacerlo funcionar."},
+   {q:"What is the main point of the final paragraph?", o:["Contractors should stay on site for longer","Technology is the key to a smooth handover","Success should be judged by how well an asset works for its users, not just by delivery on time and on budget","Terminal 5 never recovered from its opening"], a:2, why:"'on time and on budget' describes a project, not an outcome: lo que cuenta es que funcione en manos de quien lo usa."}
+  ]}
+]);
+BANK.sources["r-t5-opening"] = [
+  {t:"House of Commons Transport Committee — The opening of Heathrow Terminal 5, Twelfth Report 2007–08: Introduction (27 March, six years, £4.3bn on time and within budget, 36,584 passengers, 23,205 bags, 'national embarrassment', causes)", u:"https://publications.parliament.uk/pa/cm200708/cmselect/cmtran/543/54303.htm"},
+  {t:"Heathrow media centre — BAA response to the Transport Select Committee's T5 report", u:"https://mediacentre.heathrow.com/pressrelease/detail/3873"}
+];
+
+/* Quick play: phrasal verbs, gramática C1 y colocaciones (con explicación en castellano) */
+BANK.pv = BANK.pv.concat([
+  {s:"Let's ___ the details at Thursday's meeting; for now, I just need a rough plan.", o:["flesh out","fill up","flesh in","bulk out"], a:0, why:"flesh out = add detail to a plan or idea.", es:"flesh out = desarrollar, dar detalle a una idea o plan que está solo esbozado."},
+  {s:"In the end, the whole dispute ___ to a single clause in the contract.", o:["boiled down","boiled over","came down on","narrowed out"], a:0, why:"boil down to = be essentially about.", es:"boil down to = reducirse a, en el fondo ser cuestión de. Ej.: it boils down to money."},
+  {s:"The new booking system will be ___ across all our sites next spring.", o:["rolled out","rolled up","rolled over","rolled back"], a:0, why:"roll out = introduce gradually across an organisation.", es:"roll out = implantar, desplegar (un sistema, un producto) en varias fases o lugares."},
+  {s:"Before we commit, I'd like to ___ the operators about the new shift pattern.", o:["sound out","sound off","speak out","sound up"], a:0, why:"sound someone out = find out their opinion informally.", es:"sound someone out = tantear a alguien, sondear su opinión de forma informal."},
+  {s:"The negotiations ___ for months before both sides finally signed.", o:["dragged on","dragged out","held on","dragged up"], a:0, why:"drag on = continue for longer than expected or wanted.", es:"drag on = alargarse, eternizarse (algo pesado). Sin complemento: the meeting dragged on."},
+  {s:"Can you ___ some time next week to review the risk register with me?", o:["set aside","set off","put aside of","set back"], a:0, why:"set aside = reserve time or money for a purpose.", es:"set aside = reservar (tiempo o dinero) para algo concreto."},
+  {s:"The new pressure regulator only ___ when demand exceeds 80 per cent.", o:["kicks in","kicks off","kicks up","comes on in"], a:0, why:"kick in = start to take effect.", es:"kick in = entrar en funcionamiento, empezar a hacer efecto (un sistema, un fármaco, una norma)."}
+]);
+BANK.gram = BANK.gram.concat([
+  {s:"Only when the system had been fully tested ___ to open the terminal.", o:["should they have decided","they should have decided","they decided","should have they decided"], a:0, why:"Only when + clause + inversion in the main clause.", es:"Only when… + inversión en la oración principal: should they have decided = solo entonces deberían haber decidido."},
+  {s:"Were it not for the backup generator, the whole site ___ dark last night.", o:["would have gone","would go","had gone","will have gone"], a:0, why:"Mixed conditional: present 'were it not for' + past result.", es:"Condicional mixta: were it not for (si no existiera) + would have gone (habría quedado a oscuras ayer)."},
+  {s:"The handover was a success, ___ a fortnight later than planned.", o:["albeit","although it","despite","however"], a:0, why:"albeit + adjective/adverbial phrase = although.", es:"albeit = aunque, si bien. Va seguido de un adjetivo o complemento, no de una oración completa."},
+  {s:"The compressor in bay 3 badly needs ___ before the winter.", o:["servicing","to service","service","be serviced"], a:0, why:"need + -ing has a passive meaning (BrE).", es:"need + -ing = necesita que lo revisen (sentido pasivo). Muy británico: the car needs washing."}
+]);
+BANK.mc = BANK.mc.concat([
+  {s:"Training and trial runs are often the first things to ___ the axe when budgets are tight.", o:["face","meet","take","give"], a:0, why:"face the axe = be at risk of being cut.", es:"face the axe = estar amenazado de recorte o cierre. También 'get the axe'."},
+  {s:"The project ___ to a halt when the main contractor went into administration.", o:["ground","came down","fell","stood"], a:0, why:"grind to a halt = gradually stop completely.", es:"grind to a halt = paralizarse, quedarse detenido del todo (pasado: ground)."},
+  {s:"We need to ___ lessons from the last shutdown before planning the next one.", o:["draw","take out","make","pull"], a:0, why:"draw lessons from.", es:"draw lessons from = sacar lecciones de algo. También 'learn lessons from'."},
+  {s:"Inflation has ___ into our margins on every fixed-price contract.", o:["eaten","bitten","chewed","swallowed"], a:0, why:"eat into = gradually reduce (money, time).", es:"eat into = ir mermando, comerse (márgenes, ahorros, tiempo)."}
+]);
+
+/* Work English: puesta en marcha, entrega y dinero */
+BANK.work = BANK.work.concat([
+  {t:"go-live", m:"the moment a new system starts being used for real", d:["a live TV broadcast","the end of a contract","a safety drill"], ex:"Go-live for the new CMMS is the first Monday in March.", es:"go-live = puesta en marcha real de un sistema (fecha de arranque)."},
+  {t:"a dry run", m:"a practice rehearsal before the real event", d:["a period without rain","a cheap trial product","a delivery with no load"], ex:"Let's do a dry run of the evacuation before the client's audit.", es:"dry run = ensayo general, prueba previa antes de hacerlo de verdad."},
+  {t:"teething problems", m:"small problems at the start of something new", d:["dental insurance claims","problems with young staff","long-standing faults"], ex:"There are a few teething problems with the new access control, but nothing serious.", es:"teething problems = problemas iniciales, de rodaje (de algo nuevo)."},
+  {t:"operational readiness", m:"being fully prepared — people, procedures, spares — to run a new asset", d:["the readiness of the building's structure","a type of insurance","the speed of a machine"], ex:"Operational readiness means trained operators and spares on the shelf, not just a finished building.", es:"operational readiness = preparación para operar: personal formado, procedimientos y repuestos listos."},
+  {t:"O&M manuals", m:"operation and maintenance documents handed over with a new installation", d:["office and management rules","overtime and meal allowances","orders and materials lists"], ex:"We can't sign off the handover until the O&M manuals are complete.", es:"O&M manuals = manuales de operación y mantenimiento que se entregan con la instalación."},
+  {t:"a cash-flow forecast", m:"a prediction of money coming in and going out over time", d:["a profit target","a list of overdue invoices","a bank loan"], ex:"The cash-flow forecast shows we'll be tight in February.", es:"cash-flow forecast = previsión de tesorería (cobros y pagos en el tiempo)."},
+  {t:"overheads", m:"the regular costs of running a business that aren't tied to one job", d:["costs above budget","overtime payments","ceiling installations"], ex:"Once you add overheads, that contract barely breaks even.", es:"overheads = gastos generales o fijos (alquiler, oficina, administración). En plural en BrE."},
+  {t:"to break even", m:"to make neither a profit nor a loss", d:["to fix a broken machine","to divide costs equally","to end a contract"], ex:"We should break even on the job by the end of the second quarter.", es:"break even = cubrir costes, no ganar ni perder."},
+  {t:"to write off (a debt or asset)", m:"to accept that money or equipment is lost and remove it from the accounts", d:["to sign a document","to reply in writing","to cancel a meeting"], ex:"The flooded switchgear had to be written off.", es:"write off = dar por perdido, amortizar del todo (una deuda o un equipo)."},
+  {t:"to be on the back foot", m:"to be in a defensive, disadvantaged position", d:["to be ahead of schedule","to be injured","to be standing at the back"], ex:"After the audit findings we were on the back foot in the negotiation.", es:"be on the back foot = estar a la defensiva, en desventaja (viene del críquet)."}
+]);
+
+/* Speaking: shadowing (dar avances y gestionar problemas) y dos preguntas nuevas */
+BANK.speak.shadow = BANK.speak.shadow.concat([
+  {s:"Just to flag it early: the switchgear delivery is looking tight.", f:"Just to flag it early"},
+  {s:"Broadly speaking, we're on track, with a couple of caveats.", f:"Broadly speaking · a couple of caveats"},
+  {s:"I'd rather over-communicate now than apologise later.", f:"I'd rather … than"},
+  {s:"With hindsight, we should have built more time into the commissioning phase.", f:"With hindsight · built more time into"},
+  {s:"Could we do a dry run on Friday, just to iron out any kinks?", f:"iron out any kinks"}
+]);
+BANK.speak.prompts = BANK.speak.prompts.concat([
+  {id:"sp-golive", part:"Work scenario", level:"C1", q:"A new fire detection system goes live on Monday, but the operators haven't been fully trained. Brief your director: explain the risk, propose two options and recommend one."},
+  {id:"sp-ontime", part:"Discussion", level:"C1", q:"'On time and on budget' is the usual definition of a successful project. Is it a good definition? What would you add, and why?"}
+]);
+
+/* Spelling */
+BANK.spell = BANK.spell.concat([
+  {w:"unforeseen", s:"The delay was caused by unforeseen ground conditions.", tip:"un + fore + seen: keep both e's of 'seen'."},
+  {w:"embarrassment", s:"The opening was a national embarrassment.", tip:"Double r AND double s."},
+  {w:"inconvenience", s:"We apologise for any inconvenience caused.", tip:"-ence at the end, not -ance."},
+  {w:"indispensable", s:"Experienced operators proved indispensable.", tip:"-able, not -ible: indispens-able."},
+  {w:"cancelled", s:"Several flights were cancelled.", tip:"British: double l (American: canceled)."},
+  {w:"withheld", s:"Payment was withheld until the snags were fixed.", tip:"with + held: two h's together."}
+]);
