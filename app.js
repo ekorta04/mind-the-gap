@@ -35,7 +35,11 @@ const I = {
   gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
   slow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>',
   mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
-  link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>'
+  link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+  house:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5 12 4l8.5 6.5V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></svg>',
+  target:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>',
+  practice:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z"/></svg>',
+  close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>'
 };
 const MARK = '<svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M3 22h8M21 22h8" stroke="var(--navy)" stroke-width="4" stroke-linecap="round"/><path d="M6 13c3-6 17-6 20 0" fill="none" stroke="var(--red)" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="0.1 5.4"/><circle cx="26" cy="13" r="3" fill="var(--red)"/><circle cx="6" cy="13" r="3" fill="var(--navy)"/></svg>';
 
@@ -63,7 +67,7 @@ const FAV_KNOWN = 3;                          // …hasta acertarlo 3 veces segu
 
 /* ---------- state ---------- */
 const LS_KEY = "mtg-state-v1";
-const blank = () => ({v:1, xp:0, streak:0, best:0, lastActive:null, days:{}, stats:{}, seen:{}, deck:[], read:{}, listen:{}, writings:[], ai:{}, aiArticles:[], aiListening:[], settings:{rate:0.95, voice:"", goal:300, tips:true, examDate:"", produce:true, centre:"", deadline:""}, c1:{}, bad:{}, pb:[], updatedAt:0});
+const blank = () => ({v:1, xp:0, streak:0, best:0, lastActive:null, days:{}, stats:{}, seen:{}, deck:[], read:{}, listen:{}, writings:[], ai:{}, aiArticles:[], aiListening:[], settings:{rate:0.95, voice:"", goal:300, tips:true, examDate:"", produce:true, centre:"", deadline:"", theme:"light"}, c1:{}, bad:{}, pb:[], updatedAt:0});
 let S = blank();
 try { const raw = localStorage.getItem(LS_KEY); if (raw) S = Object.assign(blank(), JSON.parse(raw)); } catch (e) {}
 S.settings = Object.assign(blank().settings, S.settings || {});
@@ -94,7 +98,7 @@ function mergeState(R) {
   S.xp = Math.max(S.xp || 0, R.xp || 0); S.best = Math.max(S.best || 0, R.best || 0); S.mockBest = Math.max(S.mockBest || 0, R.mockBest || 0);
   if ((R.lastActive || "") > (S.lastActive || "")) { S.lastActive = R.lastActive; S.streak = R.streak || 0; }
   else if (R.lastActive && R.lastActive === S.lastActive) S.streak = Math.max(S.streak || 0, R.streak || 0);
-  for (const k in R.days || {}) { const a = S.days[k], b = R.days[k]; if (!a) S.days[k] = b; else { a.xp = Math.max(a.xp || 0, b.xp || 0); a.min = Math.max(a.min || 0, b.min || 0); a.done = Object.assign({}, b.done, a.done); a.goalHit = a.goalHit || b.goalHit; } }
+  for (const k in R.days || {}) { const a = S.days[k], b = R.days[k]; if (!a) S.days[k] = b; else { a.xp = Math.max(a.xp || 0, b.xp || 0); a.min = Math.max(a.min || 0, b.min || 0); a.done = Object.assign({}, b.done, a.done); a.goalHit = a.goalHit || b.goalHit; a.rv = Math.max(a.rv || 0, b.rv || 0); if ((b.ru || 0) > (a.ru || 0)) { a.rest = b.rest; a.ru = b.ru; } } }
   for (const k in R.stats || {}) if (!S.stats[k] || (R.stats[k].n || 0) > (S.stats[k].n || 0)) S.stats[k] = R.stats[k];
   for (const k in R.seen || {}) if (S.seen[k] === undefined || newer) S.seen[k] = R.seen[k];
   ["read", "listen", "speak"].forEach(f => { const A = S[f] || (S[f] = {}), B = R[f] || {}; for (const k in B) if (!A[k] || (B[k].at || B[k].date || "") > (A[k].at || A[k].date || "")) A[k] = B[k]; });
@@ -182,7 +186,7 @@ function paintSync() {
 // Estado y sincronización manual, usados desde Ajustes
 window.MTG_SYNC = {
   status: () => ({ state: syncState, err: syncErr, lastOk, dirty, signedIn: !!DOC }),
-  async now() { if (!DOC) return false; clearTimeout(saveTimer); lastPull = 0; const ch = await pullRemote(true); if (dirty || !ch) await pushRemote(); const h = location.hash.slice(1); if (!h || ["today", "practice", "progress", "review", "phrases"].includes(h)) route(); return syncState === "synced"; }
+  async now() { if (!DOC) return false; clearTimeout(saveTimer); lastPull = 0; const ch = await pullRemote(true); if (dirty || !ch) await pushRemote(); const h = location.hash.slice(1); if (!h || ["today", "practice", "exam", "progress", "review", "phrases"].includes(h)) route(); return syncState === "synced"; }
 };
 
 /* ---------- day, xp, streak ---------- */
@@ -193,13 +197,13 @@ function addXP(n) {
   const k = dayKey();
   if (d.xp >= 30 && S.lastActive !== k) {
     S.streak = S.lastActive === addDays(k, -1) ? S.streak + 1 : 1;
-    S.lastActive = k; S.best = Math.max(S.best || 0, S.streak);
-    toast(`Streak: ${S.streak} day${S.streak > 1 ? "s" : ""}. Keep the line running.`);
+    S.lastActive = k; S.best = Math.max(S.best || 0, S.streak, dayRun());
+    toast(`Active day logged · ${weekInfo().active}/7 this week.`);
   }
   if (d.xp >= S.settings.goal && !d.goalHit) { d.goalHit = true; setTimeout(() => { confetti(); toast("Daily goal reached. Brilliant work!"); }, 400); }
   paintChips(); save();
 }
-function liveStreak() { const k = dayKey(); return (S.lastActive === k || S.lastActive === addDays(k, -1)) ? S.streak : 0; }
+function liveStreak() { return dayRun(); }   // días seguidos, con descansos y 2 comodines por semana
 function level() { let i = 0; LEVELS.forEach((l, j) => { if (S.xp >= l.xp) i = j; }); return i; }
 function record(skill, ok) { const s = S.stats[skill] || (S.stats[skill] = {h:[], n:0}); s.h.push(ok ? 1 : 0); if (s.h.length > 80) s.h.shift(); s.n++; }
 function acc(skill) { const s = S.stats[skill]; if (!s || !s.h.length) return null; return s.h.reduce((a, b) => a + b, 0) / s.h.length; }
@@ -216,10 +220,15 @@ function addCard(card) {
 }
 const dueCards = () => S.deck.filter(c => c.due <= dayKey());
 function grade(card, ok) {
+  const late = card.due ? Math.max(0, daysBetween(card.due, dayKey())) : 0, wasFast = card.fav && (card.run || 0) < FAV_KNOWN;
+  const elapsed = (wasFast ? FAV_INTERVALS : INTERVALS)[Math.min(card.box || 0, INTERVALS.length - 1)] + late;
   card.box = ok ? Math.min(card.box + 1, INTERVALS.length - 1) : 0;
   if (!ok) card.lapses = (card.lapses || 0) + 1;
   card.run = ok ? (card.run || 0) + 1 : 0;   // aciertos seguidos; un fallo lo pone a cero y el ♥ vuelve a ir rápido
   const fast = card.fav && card.run < FAV_KNOWN;
+  // Acierto con retraso: si el tiempo real ya superaba el siguiente escalón, sube uno más (Anki hace lo mismo con «Good»)
+  if (ok && !fast && late > 0 && card.box < INTERVALS.length - 1 && INTERVALS[card.box] <= elapsed) card.box++;
+  const td = today(); td.rv = (td.rv || 0) + 1;
   let due = addDays(dayKey(), ok ? (fast ? FAV_INTERVALS : INTERVALS)[card.box] : 1);
   const cap = addDays(examDate(), -3);   // todo vuelve a salir antes del examen
   if (due > cap && cap > dayKey()) due = cap;
@@ -353,62 +362,66 @@ function confetti() {
 
 /* ---------- shell ---------- */
 const NAV = [
-  {id:"today", n:"Today", i:"home", c:"var(--red)"},
-  {id:"practice", n:"Games", i:"play", c:"var(--red)"},
-  {id:"read", n:"Read", i:"book", c:"var(--navy)"},
-  {id:"listen", n:"Listen", i:"ear", c:"var(--green)"},
-  {id:"write", n:"Write", i:"pen", c:"var(--amber)"},
-  {id:"speak", n:"Speak", i:"mic", c:"var(--red)"},
-  {id:"review", n:"Review", i:"cards", c:"var(--plum)"},
-  {id:"phrases", n:"Phrasebook", i:"search", c:"var(--navy)", desk:true}   // en el móvil sigue en la lupa de arriba
+  {id:"today", n:"Today", i:"house"},
+  {id:"practice", n:"Practice", i:"practice"},
+  {id:"exam", n:"Exam", i:"target"},
+  {id:"phrases", n:"Phrasebook", i:"book"}
 ];
+// A qué pestaña pertenece cada pantalla
+function tabOf(h) {
+  const sec = h.split("-")[0];
+  if (["exam", "progress", "mocks"].includes(sec)) return "exam";
+  if (sec === "phrases") return "phrases";
+  if (["practice", "games", "play", "quick", "read", "listen", "real", "write", "rewrite", "micro", "speak"].includes(sec)) return "practice";
+  return "today";
+}
 function shell() {
   document.getElementById("root").innerHTML = `
   <div class="app">
     <header class="top"><div class="top-in">
       <button class="brand" id="brand" aria-label="Mind the Gap, go to Today">${MARK}<span>Mind the Gap</span></button>
-      <div class="chips">
-        <span class="chip flame" id="chipStreak" title="Day streak">${I.flame}<span class="mono">0</span></span>
-        <span class="chip xp" id="chipXP" title="Total XP">${I.bolt}<span class="mono">0</span></span>
-        <button class="icon-btn" id="btnPhrases" aria-label="Phrasebook" title="Phrasebook">${I.search}</button>
-        <button class="icon-btn" id="btnProgress" aria-label="Progress">${I.chart}</button>
-        <button class="icon-btn" id="btnSettings" aria-label="Settings"><span id="sync">${I.gear}</span></button>
-      </div>
+      <button class="weekchip" id="chipWeek" aria-label="Active days this week"></button>
+      <button class="icon-btn" id="btnSearch" aria-label="Search" title="Search (/)">${I.search}</button>
+      <button class="icon-btn" id="btnSettings" aria-label="Settings"><span id="sync">${I.gear}</span></button>
     </div></header>
-    <nav class="nav" aria-label="Sections">${NAV.map(n => `<button data-nav="${n.id}" style="--c:${n.c}"${n.desk ? ' class="deskonly"' : ""}>${I[n.i]}<span>${n.n}</span></button>`).join("")}</nav>
+    <nav class="nav" aria-label="Sections">${NAV.map(n => `<button data-nav="${n.id}">${I[n.i]}<span>${n.n}</span></button>`).join("")}</nav>
     <main id="main" tabindex="-1"></main>
   </div>`;
   $$(".nav button").forEach(b => b.onclick = () => go(b.dataset.nav));
   $("#brand").onclick = () => go("today");
-  $("#btnProgress").onclick = () => go("progress");
-  $("#btnPhrases").onclick = () => go("phrases");
+  $("#chipWeek").onclick = () => go("today");
+  $("#btnSearch").onclick = openSearch;
   $("#btnSettings").onclick = settingsSheet;
   paintChips(); paintSync();
 }
 function paintChips() {
-  const s = $("#chipStreak .mono"), x = $("#chipXP .mono");
-  if (s) s.textContent = liveStreak(); if (x) x.textContent = S.xp.toLocaleString("en-GB");
+  const el = $("#chipWeek"); if (!el) return; const w = weekInfo();
+  el.innerHTML = `<span class="wdots">${w.days.map(x => `<i class="${x.st}"></i>`).join("")}</span><span class="mono">${w.active}/7</span>`;
+  el.title = `${w.active} active day${w.active === 1 ? "" : "s"} this week · ${w.wildLeft} wildcard${w.wildLeft === 1 ? "" : "s"} left`;
 }
 function go(h) { if (location.hash === "#" + h) route(); else location.hash = h; }
 let cleanup = null;
 function route() {
-  TTS.stop(); closePop(); $$("audio").forEach(a => { try { a.pause(); } catch (e) {} }); if (cleanup) { try { cleanup(); } catch (e) {} cleanup = null; }
+  TTS.stop(); closePop(); closeSearch(); $$("audio").forEach(a => { try { a.pause(); } catch (e) {} }); if (cleanup) { try { cleanup(); } catch (e) {} cleanup = null; }
   const h = (location.hash || "#today").slice(1) || "today";
   const main = $("#main"); main.innerHTML = "";
-  const sec = h.split("-")[0];
-  $$(".nav button").forEach(b => b.setAttribute("aria-current", (b.dataset.nav === sec || (sec === "play" && b.dataset.nav === "practice") || (sec === "real" && b.dataset.nav === "listen") || (sec === "quick" && b.dataset.nav === "practice") || (["mix", "focus", "close", "mocks"].includes(sec) && b.dataset.nav === "today") || (["rewrite", "micro"].includes(sec) && b.dataset.nav === "write")) ? "page" : "false"));
+  const tab = tabOf(h);
+  $$(".nav button").forEach(b => b.setAttribute("aria-current", b.dataset.nav === tab ? "page" : "false"));
   const v = document.createElement("section"); v.className = "view"; main.append(v);
   if (h === "today") viewToday(v);
+  else if (h === "exam" || h === "progress") viewExam(v);
   else if (h === "phrases") viewPhrases(v);
-  else if (h === "mix") viewMix(v);
+  else if (h === "mix" || /^mix-\d+$/.test(h)) viewMix(v, +h.split("-")[1] || 5);
   else if (h === "focus") viewFocus(v);
+  else if (h === "focus-review") viewFocusReview(v);
   else if (h === "close") viewClose(v);
   else if (h === "mocks") viewMocks(v);
   else if (h === "rewrite") viewRewrite(v);
   else if (h === "micro") viewMicro(v);
   else if (h === "speak-432") viewTalk(v);
   else if (h === "speak-p2") viewP2(v);
-  else if (h === "practice") viewPractice(v);
+  else if (h === "practice") viewPracticeHub(v);
+  else if (h === "games") viewPractice(v);
   else if (h.startsWith("play-")) viewGame(v, h.slice(5));
   else if (h === "read") viewReadList(v);
   else if (h.startsWith("read-")) viewArticle(v, h.slice(5));
@@ -424,9 +437,9 @@ function route() {
   else if (h === "speak-shadow") viewShadow(v);
   else if (h.startsWith("speak-")) viewSpeak(v, h.slice(6));
   else if (h === "review") viewReview(v);
-  else if (h === "progress") viewProgress(v);
   else viewToday(v);
   window.scrollTo(0, 0);
+  if (pendingAnchor) { const a = pendingAnchor; pendingAnchor = null; setTimeout(() => { const el = document.getElementById(a); if (!el) return; if (el.tagName === "DETAILS") el.open = true; el.scrollIntoView({block:"start", behavior:"smooth"}); el.classList.add("flashhl"); setTimeout(() => el.classList.remove("flashhl"), 1600); }, 80); }
 }
 
 /* ---------- daily route ---------- */
@@ -586,7 +599,7 @@ function viewGame(v, type, opts = {}) {
   v.style.setProperty("--c", T.c);
   const intro = () => {
     const p = isMock ? {done:S.mockBest || 0, total:30} : poolProgress(type);
-    v.innerHTML = `<div class="row"><button class="btn ghost small" id="bk">${I.back} Games</button></div>
+    v.innerHTML = `<div class="row"><button class="btn ghost small" id="bk">${I.back} Practice</button></div>
     <div class="hello"><span class="eyebrow" style="color:${T.c}">${esc(T.part)}</span><h1>${esc(T.name)}</h1><p class="muted">${esc(T.desc)}</p></div>
     <div class="card stack"><div class="row"><span class="mono">${p.done}/${p.total}</span><span class="muted">${isMock ? "best mock score" : "mastered in this bank"}</span></div><div class="bar" style="--c:${T.c}"><i style="--p:${p.done / Math.max(1, p.total) * 100}%"></i></div>
     <div class="row"><button class="btn red" id="start">${isMock ? "Start block · 35 min" : "Start round · 8"}</button>${aiOn() && !isMock ? `<button class="btn ai" id="gen">${I.sparkle} Generate 8 fresh questions</button>` : ""}</div><p class="muted" id="genMsg"></p></div>${methodCard(type)}`;
@@ -707,7 +720,7 @@ function methodCard(type) {
 function viewQuickfire(v) {
   const T = TYPES.idioms;
   v.style.setProperty("--c", T.c);
-  v.innerHTML = `<div class="row"><button class="btn ghost small" id="bk">${I.back} Games</button></div>
+  v.innerHTML = `<div class="row"><button class="btn ghost small" id="bk">${I.back} Practice</button></div>
   <div class="hello"><span class="eyebrow" style="color:${T.c}">${T.part}</span><h1>Idiom Quickfire</h1><p class="muted">60 seconds of fluency practice, only with expressions you have already got right. +8 XP each, streaks of 3 add a bonus.</p></div>
   <div class="card stack"><p>Your record: <b class="mono">${S.qfBest || 0}</b></p><div class="row"><button class="btn red" id="start">Start · 60 s</button><button class="btn" id="learn">Learn 8 new · no clock</button>${aiOn() ? `<button class="btn ai" id="gen">${I.sparkle} Generate fresh idioms</button>` : ""}</div><p class="muted" id="genMsg"></p></div>${methodCard("idioms")}`;
   $("#bk", v).onclick = () => go("practice");
@@ -1053,14 +1066,13 @@ function viewWriteList(v) {
 function nextDue() { const d = S.deck.map(c => c.due).sort()[0]; if (!d) return "later"; return d === addDays(dayKey(), 1) ? "tomorrow" : "on " + d; }
 
 /* ---------- progress ---------- */
-function viewProgress(v) {
+function progressStatsHTML() {
   const li = level();
   const weeks = 12, start = addDays(dayKey(), -(weeks * 7 - 1));
   const cells = []; for (let i = 0; i < weeks * 7; i++) { const k = addDays(start, i), x = S.days[k]?.xp || 0; cells.push(`<i title="${k}: ${x} XP" class="${x >= S.settings.goal ? "l3" : x >= S.settings.goal / 2 ? "l2" : x > 0 ? "l1" : ""}"></i>`); }
   const skills = ["uoe", "reading", "listening", "writing", "grammar", "spelling", "vocab", "speaking"];
   const ws = S.writings.filter(w => w.fb).slice(-10);
-  v.innerHTML = `<div class="hello"><span class="eyebrow">Progress</span><h1>Mission control</h1><p class="muted">${S.xp.toLocaleString("en-GB")} XP · level ${LEVELS[li].n} · streak ${liveStreak()} · best ${S.best || 0}</p></div>
-  <div class="card stack">${levelLine()}</div>
+  return `<div class="card stack"><p class="muted small">${S.xp.toLocaleString("en-GB")} XP · level ${LEVELS[li].n} · run ${liveStreak()} days · best ${S.best || 0}</p>${levelLine()}</div>
   <div class="card stack"><div class="row"><h3>Practice accuracy by skill</h3></div><p class="muted" style="font-size:.85rem">Share of right answers in your last 80 per skill, with the app's own questions. Practice data, not a score estimate.</p>
   <div class="stack">${skills.map(k => { const a = acc(k), s = scale(k); return `<div class="skillrow"><span>${SKILLS[k].n}</span><div class="bar" style="--c:${SKILLS[k].c}"><i style="--p:${a == null ? 0 : a * 100}%"></i></div><span class="mono">${a == null ? "—" : Math.round(a * 100) + "%"}</span></div>`; }).join("")}</div></div>
   <div class="card stack"><h3>Last 12 weeks</h3><div style="display:grid;grid-template-columns:repeat(${weeks},1fr);grid-auto-flow:column;grid-template-rows:repeat(7,auto);gap:4px">${cells.map(c => c.replace("<i ", '<i style="aspect-ratio:1;border-radius:3px;display:block" ')).join("")}</div><p class="muted" style="font-size:.8rem">Darker = closer to your daily goal.</p></div>
@@ -1074,7 +1086,6 @@ function viewProgress(v) {
    <div class="score"><small class="muted">Recordings</small><b>${Object.keys(S.listen).length}</b></div>
    <div class="score"><small class="muted">Texts marked</small><b>${S.writings.length}</b></div>
    <div class="score"><small class="muted">Review cards</small><b>${S.deck.length}</b></div></div></div>`;
-  $(".hello", v).insertAdjacentHTML("afterend", dashHTML()); bindDash(v);
 }
 
 /* ---------- Real British: real recordings + Gemini exercises ---------- */
@@ -1305,7 +1316,7 @@ function viewSpeakList(v) {
   <div class="grid"><button class="card tile" id="t432" style="--c:var(--red)"><span class="tag">Fluency · 9 minutes</span><h3>4/3/2</h3><p class="muted">The same talk in 4, 3 and 2 minutes. Repetition under time pressure builds fluency that carries over to new topics.</p></button>
   <button class="card tile" id="tp2" style="--c:var(--red)"><span class="tag">Exam · Part 2</span><h3>Long turn</h3><p class="muted">Compare two pictures and speculate for one minute.</p></button></div>
   <details class="card stack methodcard"><summary><b>Phrases for discussing, hedging and agreeing</b> <span class="muted">· Parts 3 and 4</span></summary><div class="stack">${C1.TALKPH.map(p => `<div class="errline"><b>${esc(p[0])}</b><small class="muted">${esc(p[1])}</small></div>`).join("")}</div><div><button class="btn small" id="addTalk">Add these phrases to review</button></div></details>
-  <p class="notice">The real test is taken in pairs. Once a month, practise Parts 3 and 4 with another person and tick it off in Mission control.</p>
+  <p class="notice">The real test is taken in pairs. Once a month, practise Parts 3 and 4 with another person and tick it off in Exam › Risks.</p>
   <h2 style="margin-top:8px">Speak for a minute</h2>
   <div class="list">${P.map(p => `<button class="card tile" data-id="${p.id}" style="--c:var(--red)"><span class="tag">${esc(p.part)} · ${p.level}</span><p>${esc(p.q)}</p>${done[p.id] ? `<div class="meta"><span class="mono">Last score ${done[p.id].total}/20</span></div>` : ""}</button>`).join("")}</div>`;
   $("#shadow", v).onclick = () => go("speak-shadow");
@@ -1521,11 +1532,13 @@ function nextWritingTask() {
 }
 function plan() {
   const c = c1s(), dow = new Date().getDay(), blk = c.week[dow] || C1.WEEK[dow], ph = phase().id, due = dueCards().length;
-  const mix = {id:"warm", kinds:["mix", "review"], n:"5-minute mix", s:due ? `${due} review${due > 1 ? "s" : ""} due · typed answers` : "Nothing due · quick transformations", c:"var(--plum)", to:"mix", min:5};
+  const rm = returnMode(), back = !!rm && ["recal", "replan"].includes(rm.id), mm = rm && rm.id === "resume" ? 10 : back ? 15 : 5;
+  const mix = {id:"warm", kinds:["mix", "review"], n:mm > 5 ? (back ? "Welcome-back review" : "10-minute review") : "5-minute mix", s:due ? `${due} review${due > 1 ? "s" : ""} due · most at risk first` : "Nothing due · quick transformations", c:"var(--plum)", to:mm > 5 ? "mix-" + mm : "mix", min:mm};
   if (blk === "rest") return [mix];
-  if (blk === "writing") { const w = nextWritingTask(); return [{id:"skill", kinds:["write"], n:"Full writing by hand: " + w.type, s:"Plan 5 min, then write on paper · 45 min in total", c:"var(--amber)", to:"write-" + w.id, min:45}]; }
-  const P = ph === "taper" ? null : nextPoint();
-  const focus = {id:"focus", kinds:["focus"], n:P ? "Language focus: " + P.t : "Language focus: your weak points", s:P ? "One new point · read it, then produce it" : "Mixed practice on the points you find hardest", c:"var(--red)", to:"focus", min:12};
+  const moved = writingMoved(blk);
+  if (blk === "writing" || moved) { const w = nextWritingTask(), wr = {id:"skill", kinds:["write"], n:"Full writing by hand: " + w.type, s:(moved ? `Moved from ${DAY_N[dowOf(moved)]} · ` : "") + "Plan 5 min, then write on paper · 45 min in total", c:"var(--amber)", to:"write-" + w.id, min:45}; return mm > 5 ? [mix, wr] : [wr]; }
+  const P = ph === "taper" || back ? null : nextPoint();
+  const focus = back ? {id:"focus", kinds:["focus"], n:"Recall: your weak points", s:"No new point today · re-read, then produce", c:"var(--red)", to:"focus-review", min:12} : {id:"focus", kinds:["focus"], n:P ? "Language focus: " + P.t : "Language focus: your weak points", s:P ? "One new point · read it, then produce it" : "Mixed practice on the points you find hardest", c:"var(--red)", to:"focus", min:12};
   const read = nextReading(), lis = nextListening();
   const rd = {n:read ? "Read: " + read.title : "Read: a fresh article", s:read ? `${read.topic} · ${read.mins || 4} min` : "Generate one on your topics", c:"var(--navy)", to:read ? "read-" + read.id : "read"};
   const ls = {n:lis ? "Listen: " + lis.title : "Listen: a fresh recording", s:lis ? `${lis.topic} · British voices` : "Generate one on your topics", c:"var(--green)", to:lis ? "listen-" + lis.id : "listen"};
@@ -1561,44 +1574,40 @@ function paintStage() {
 /* ---------- views: today ---------- */
 function viewToday(v) {
   const c = c1s(), d = today(), stops = plan(), done = stops.filter(s => d.done[s.id]).length, ph = phase(), left = daysToExam();
-  const total = stops.reduce((a, s) => a + (s.min || 0), 0), ov = overall(), pw = pendingRewrite(), dec = decision(), md = mockDue();
+  const total = stops.reduce((a, s) => a + (s.min || 0), 0), pw = pendingRewrite(), dec = decision(), md = mockDue(), rm = returnMode(), R = readiness(), w = weekInfo(), k = dayKey();
   const idiom = BANK.idioms[dayIdx() % BANK.idioms.length];
   const alerts = [];
   if (ph.id === "diag") alerts.push(["mocks", "Diagnostic week: enter the marks of your last C1 mock and try one of each part. That sets your baseline."]);
   if (c.pendingMark && aiOn()) alerts.push(["write-" + c.pendingMark.task, "A text is waiting in the marking queue. Open it to send it to Gemini."]);
-  if (pw && pw.date < dayKey()) alerts.push(["rewrite", `Rewrite pending: your ${pw.type.toLowerCase()} of ${fmtDay(pw.date)}. A correction isn't finished until you rewrite it.`]);
+  if (pw && pw.date < k) alerts.push(["rewrite", `Rewrite pending: your ${pw.type.toLowerCase()} of ${fmtDay(pw.date)}. A correction isn't finished until you rewrite it.`]);
   if (dec && dec.bad) alerts.push(["mocks", dec.t]);
   else if (md && md.overdue && ph.id !== "diag") alerts.push(["mocks", md.txt + " Sit an official sample paper and enter the marks."]);
-  const next = stops.find(s => !d.done[s.id]);
+  const next = stops.find(s => !d.done[s.id]), all = !next, restToday = isRest(k), activeToday = isActive(k);
   v.innerHTML = `
   <div class="hello"><span class="eyebrow">${new Date().toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long"})} · ${esc(ph.n)}</span>
-    <h1>${left >= 0 ? `<span class="mono">${left}</span> day${left === 1 ? "" : "s"} to your C1 Advanced.` : "Exam date passed."} <span>${done === stops.length ? "Session complete." : "Mind the gap."}</span></h1>
-    <p class="muted">${esc(ph.s)}</p></div>
-  ${alerts.map(a => `<button class="notice alertbtn" data-to="${a[0]}">${esc(a[1])} <b>Open ${I.arrow}</b></button>`).join("")}
-  <div class="quickrow"><button class="card quickbtn" id="goSession" style="--c:var(--red)"><b>${done === stops.length ? "Session done" : done ? "Continue session" : `Start session · ${total} min`}</b><small class="muted">${next ? "Next: " + esc(next.n) : "Come back tomorrow"}</small></button>
-    <button class="card quickbtn" id="goMix" style="--c:var(--plum)"><b>5-minute mix</b><small class="muted">${dueCards().length} due · works offline</small></button>
-    <button class="card quickbtn" id="goDash" style="--c:var(--navy)"><b>${ov ? ov.avg + " / 180" : "Mission control"}</b><small class="muted">${ov ? "official mock estimate · target " + C1.TARGET : "Enter an official mock to see where you stand"}</small></button></div>
-  <div class="grid-2">
-    <div class="card"><div class="row"><h2>Today's session</h2><span class="spacer"></span><span class="muted mono">${done}/${stops.length}</span></div>
-      <div class="route" id="route">${stops.map((s, i) => `<button class="stop ${d.done[s.id] ? "done" : ""}" data-i="${i}" style="--c:${s.c}"><span class="dot">${d.done[s.id] ? I.check : ""}</span><span class="lbl"><b>${esc(s.n)}</b><small>${s.min ? s.min + " min · " : ""}${esc(s.s)}</small></span><span class="go">${I.arrow}</span></button>`).join("")}</div>
-      <p class="muted" style="font-size:.8rem;margin-top:10px">Each stop starts its own countdown. Short on time? Do the mix only: five minutes a day beats an hour once a week.</p>
-    </div>
-    <div class="stack">
-      ${pendingActions().length ? `<div class="card stack"><h3>Mock action plan</h3>${actionsHTML(pendingActions().slice(0, 4))}</div>` : ""}
-      <div class="card goal">${ring(d.xp / S.settings.goal)}<div><h3>Daily goal</h3><p class="muted"><span class="mono">${d.xp}</span> / <span class="mono">${S.settings.goal}</span> XP today · streak <span class="mono">${liveStreak()}</span> (best <span class="mono">${S.best || 0}</span>)</p></div></div>
-      <div class="card stack"><div class="row"><h3>Syllabus</h3><span class="spacer"></span><span class="mono muted">${Object.keys(c.pts).length}/${C1.POINTS.length} points</span></div><div class="bar" style="--c:var(--red)"><i style="--p:${Object.keys(c.pts).length / C1.POINTS.length * 100}%"></i></div><p class="muted" style="font-size:.85rem">One new point per session, then it comes back mixed with the others.</p></div>
-      <div class="card wotd stack"><span class="eyebrow">Chunk of the day</span><div class="row"><span class="term">${esc(idiom.t)}</span><button class="icon-btn" id="sayIdiom" aria-label="Listen">${I.speaker}</button></div><p>${esc(idiom.m)}.</p><p class="muted"><i>“${esc(idiom.ex)}”</i></p><div><button class="btn small" id="saveIdiom">Add to review</button></div></div>
-    </div>
-  </div>
-  <p class="muted" style="font-size:.85rem">More: <a href="#phrases"><b>Phrasebook</b></a> · <a href="#quick"><b>Quick play</b></a> · <a href="#practice"><b>Games</b></a> · <a href="#mocks"><b>Official mocks</b></a></p>
-  ${!aiOn() ? `<p class="notice">AI features (marking, fresh articles, explanations) switch on when you add your free Gemini key in Settings (⚙). Everything else works offline.</p>` : ""}`;
+    <h1>${left >= 0 ? `<span class="mono">${left}</span> day${left === 1 ? "" : "s"} to your C1` : "Exam date passed"}</h1></div>
+  ${all ? "" : returnBanner(rm)}
+  ${alerts.slice(0, 2).map(a => `<button class="notice alertbtn" data-to="${a[0]}">${esc(a[1])} <b>Open ${I.arrow}</b></button>`).join("")}
+  <section class="card stack session">
+    <div class="row"><h2>${all ? "Session complete" : "Today's session"}</h2><span class="spacer"></span><span class="muted mono small">${done}/${stops.length} · ${total} min</span></div>
+    <div class="route" id="route">${stops.map((s, i) => `<button class="stop ${d.done[s.id] ? "done" : ""}" data-i="${i}" style="--c:${s.c}"><span class="dot">${d.done[s.id] ? I.check : ""}</span><span class="lbl"><b>${esc(s.n)}</b><small>${s.min ? s.min + " min · " : ""}${esc(s.s)}</small></span><span class="go">${I.arrow}</span></button>`).join("")}</div>
+    <div class="row"><button class="btn red grow" id="goSession">${all ? "Done for today" : done ? "Continue · " + esc(next.n.split(":")[0]) : "Start session"}</button><button class="btn" id="goMix">5-min mix</button></div>
+    <p class="muted small">Short on time? The mix alone counts as an active day.</p>
+  </section>
+  ${pendingActions().length ? `<section class="card stack"><h3>Mock action plan</h3>${actionsHTML(pendingActions().slice(0, 3))}</section>` : ""}
+  <section class="card stack"><div class="row"><h3>This week</h3><span class="spacer"></span>${!activeToday ? `<button class="linkbtn" id="restBtn">${restToday ? "Undo rest day" : "Mark today as rest"}</button>` : ""}</div>${weekStripHTML(w)}</section>
+  <button class="card howcard" id="goExam"><span class="rl-t"><b>How you're doing</b><small>${readinessLine(R)}</small></span><span class="go">${I.arrow}</span></button>
+  <section class="card wotd stack"><span class="eyebrow">Chunk of the day</span><div class="row"><span class="term">${esc(idiom.t)}</span><button class="icon-btn" id="sayIdiom" aria-label="Listen">${I.speaker}</button></div><p>${esc(idiom.m)}. <span class="muted"><i>“${esc(idiom.ex)}”</i></span></p><div><button class="btn small" id="saveIdiom">Add to review</button></div></section>
+  ${!aiOn() ? `<p class="notice small">AI marking and fresh texts switch on when you add your free Gemini key in Settings. Everything else works offline.</p>` : ""}`;
   const open = (s) => { if (!d.done[s.id]) startStage(s); go(s.to); };
   $$("#route .stop", v).forEach(b => b.onclick = () => open(stops[+b.dataset.i]));
   $$(".alertbtn", v).forEach(b => b.onclick = () => go(b.dataset.to));
-  $("#goSession", v).onclick = () => { if (!next) return toast("Today's session is complete."); if (!c.sess || c.sess.d !== dayKey()) { c.sess = {d:dayKey(), t0:Date.now()}; save(); } open(next); };
+  $$("[data-go]", v).forEach(b => b.onclick = () => go(b.dataset.go));
+  $("#goSession", v).onclick = () => { if (!next) return toast("Today's session is complete."); if (!c.sess || c.sess.d !== k) { c.sess = {d:k, t0:Date.now()}; save(); } open(next); };
   $("#goMix", v).onclick = () => go("mix");
+  $("#goExam", v).onclick = () => go("exam");
+  const rb = $("#restBtn", v); if (rb) rb.onclick = () => { setRest(k, restToday ? "" : "rest"); toast(restToday ? "Rest day removed." : "Rest day marked. It won't count as a missed day."); route(); };
   bindActions(v);
-  $("#goDash", v).onclick = () => go(ov ? "progress" : "mocks");
   $("#sayIdiom", v).onclick = () => TTS.speak(`${idiom.t}. ${idiom.ex}`);
   $("#saveIdiom", v).onclick = () => { addCard({k:"word", f:idiom.t, b:idiom.m, ex:idiom.ex}) ? toast("Added to your review queue.") : toast("Already in your queue."); };
 }
@@ -1688,28 +1697,28 @@ function interleave(cards) {
 
 /* ---------- mix de 5 minutos ---------- */
 function mixQueue() {
-  const due = interleave(shuffle(dueCards()));
+  const due = interleave(prioritised(shuffle(dueCards())));
   if (due.length) return due;
   const known = t => shuffle(pool(t).filter(x => S.seen[x._id] === 1)).slice(0, 3);
   let its = known("kwt").concat(known("wf"));
   if (its.length < 4) its = pickItems("kwt", 3).concat(pickItems("wf", 3));
   return interleave(shuffle(its.map(it => ({k:"item", t:it._t, ref:it._id, tmp:true, box:0}))));
 }
-function viewMix(v) {
+function viewMix(v, mins = 5) {
   const queue = mixQueue(), nDue = dueCards().length;
   v.innerHTML = `<div class="row"><button class="btn ghost small" id="bk">${I.back} Today</button></div>
-  <div class="hello"><span class="eyebrow" style="color:var(--plum)">5-minute mix · works offline</span><h1>Retrieve, don't recognise</h1>
-  <p class="muted">${nDue ? `${nDue} review${nDue > 1 ? "s" : ""} due, shuffled so that the same kind never comes twice in a row.` : "Nothing is due, so here are a few transformations and word-formation questions on things you have already seen."} No new content here.</p></div>
+  <div class="hello"><span class="eyebrow" style="color:var(--plum)">${mins}-minute ${mins > 5 ? "review" : "mix"} · works offline</span><h1>Retrieve, don't recognise</h1>
+  <p class="muted">${nDue ? `${nDue} review${nDue > 1 ? "s" : ""} due. What is most at risk of being forgotten comes first, and the same kind never comes twice in a row.` : "Nothing is due, so here are a few transformations and word-formation questions on things you have already seen."} No new content here.</p></div>
   <p class="notice">Es más incómodo que elegir una opción y fallarás más. Es normal: escribir la respuesta de memoria y mezclar temas es lo que hace que se quede.</p>
-  <div class="row"><button class="btn red" id="start" ${queue.length ? "" : "disabled"}>Start · 5:00</button></div>`;
+  <div class="row"><button class="btn red" id="start" ${queue.length ? "" : "disabled"}>Start · ${mins}:00</button></div>`;
   $("#bk", v).onclick = () => go("today");
   $("#start", v).onclick = () => {
-    const end = Date.now() + 5 * 60000; let i = 0, right = 0, n = 0, over = false;
+    const end = Date.now() + mins * 60000; let i = 0, right = 0, n = 0, over = false;
     const tick = setInterval(() => { const t = $("#mixT", v), l = Math.max(0, end - Date.now()); if (t) { t.textContent = Math.floor(l / 60000) + ":" + pad(Math.floor(l / 1000) % 60); t.classList.toggle("low", l < 30000); } }, 500);
     cleanup = () => clearInterval(tick);
     const finish = () => {
       if (over) return; over = true; clearInterval(tick);
-      const xp = right * 6 + 10; addXP(xp); markDone("mix"); today().min = (today().min || 0) + 5; save();
+      const xp = right * 6 + 10; addXP(xp); markDone("mix"); today().min = (today().min || 0) + mins; save();
       const left = dueCards().length;
       v.innerHTML = `<div class="card stack pop" style="text-align:center;align-items:center;padding:32px 18px"><span class="eyebrow">Mix complete</span><div class="big-score">${right}/${n}</div><p class="muted">+${xp} XP. ${left ? left + " still due." : "Nothing left for today."} What you missed comes back tomorrow.</p><div class="row" style="justify-content:center">${left ? `<button class="btn red" id="more">Another five minutes</button>` : ""}<button class="btn" id="home">Back to Today</button></div></div>`;
       const m = $("#more", v); if (m) m.onclick = () => route(); $("#home", v).onclick = () => go("today");
@@ -1731,7 +1740,7 @@ function viewMix(v) {
 
 /* ---------- repaso completo ---------- */
 function viewReview(v) {
-  const due = interleave(shuffle(dueCards())), total = S.deck.length;
+  const due = interleave(prioritised(shuffle(dueCards()))), total = S.deck.length, capLeft = reviewCap() - (today().rv || 0);
   const boxes = INTERVALS.map((_, i) => S.deck.filter(c => Math.min(c.box, INTERVALS.length - 1) === i).length);
   if (!due.length) {
     v.innerHTML = `<div class="hello"><span class="eyebrow" style="color:var(--plum)">Review</span><h1>All caught up</h1><p class="muted">${total ? `You have ${total} cards. The next ones come due ${nextDue()}.` : "Your queue fills up as you work: every mistake, every chunk you mine and every correction lands here, then comes back just before you'd forget it."}</p></div>
@@ -1741,7 +1750,11 @@ function viewReview(v) {
     $("#home", v).insertAdjacentHTML("afterend", `<button class="btn" id="pbGo">Phrasebook</button>`); $("#pbGo", v).onclick = () => go("phrases");
     return;
   }
-  const queue = due.slice(0, 20); let i = 0, right = 0;
+  if (capLeft <= 0 && !reviewForce) {
+    v.innerHTML = `<div class="hello"><span class="eyebrow" style="color:var(--plum)">Review</span><h1>That's today's share</h1><p class="muted">You've done ${today().rv} reviews today. The other ${due.length} are spread over the next few days: a daily cap stops a backlog turning into a wall.</p></div><div class="row"><button class="btn red" id="home">Back to Today</button><button class="btn" id="more">Do more anyway</button></div>`;
+    $("#more", v).onclick = () => { reviewForce = true; route(); }; $("#home", v).onclick = () => go("today"); return;
+  }
+  const queue = due.slice(0, Math.min(20, reviewForce ? 20 : capLeft)); let i = 0, right = 0;
   const step = () => {
     if (i >= queue.length) { addXP(right * 6 + 10); markDone("review");
       v.innerHTML = `<div class="card stack pop" style="text-align:center;align-items:center;padding:32px 18px"><span class="eyebrow">Review complete</span><div class="big-score">${right}/${queue.length}</div><p class="muted">+${right * 6 + 10} XP. ${dueCards().length ? dueCards().length + " more due." : "Queue clear for today."}</p><div class="row" style="justify-content:center">${dueCards().length ? `<button class="btn red" id="more">Keep going</button>` : ""}<button class="btn" id="home">Back to Today</button></div></div>`;
@@ -2137,7 +2150,7 @@ function viewMocks(v) {
     return `<div class="errline"><span><b class="mono">${m.d}</b> ${pp ? esc(pp.n) + " · " : ""}${m.off ? "" : `<span class="typepill">not official</span>`} ${rv ? keys.filter(k => hasRaw(m, k)).map(k => `${C1.AREAS[k].n} <b class="mono">${m.r[k]}</b> → ${scTxt(toScale(k, m.r[k]))}`).join(" · ") : `<i>Score hidden until you reflect</i>`}</span>
     ${m.refl ? `<small class="muted">Hardest: ${esc(m.refl.partN || "")} · cause: ${esc(m.refl.cause || "")}${(m.refl.errs || []).length ? " · " + m.refl.errs.length + " mistake" + (m.refl.errs.length > 1 ? "s" : "") + " logged" : ""}</small>` : ""}
     <small class="muted">${rv ? (av != null ? "Overall " + av + " · " + LIGHT[light(av)].n.toLowerCase() : "Incomplete on its own: no overall score") : ""}${acts.length ? ` · actions ${acts.filter(x => x.done).length}/${acts.length} done` : ""} <button class="btn small ghost" data-del="${m.id}">Delete</button></small></div>`; };
-  v.innerHTML = `<div class="row"><button class="btn ghost small" id="bk">${I.back} Mission control</button></div>
+  v.innerHTML = `<div class="row"><button class="btn ghost small" id="bk">${I.back} Exam</button></div>
   <div class="hello"><span class="eyebrow">Official mocks</span><h1>The only numbers that count</h1><p class="muted">Your level is measured only with official Cambridge practice tests, sat under exam conditions. The app's own questions are for practice and never feed these estimates.</p></div>
   ${pend ? reflectHTML(pend) : toPlan ? planHTML(toPlan) : ""}
   ${pendingActions().length ? `<div class="card stack"><h3>Open actions</h3>${actionsHTML(pendingActions())}</div>` : ""}
@@ -2155,7 +2168,7 @@ function viewMocks(v) {
     ${allPapers().map(p => `<div class="errline" style="grid-template-columns:auto 1fr;align-items:center;gap:10px"><input type="checkbox" data-have="${p.id}" ${hasPaper(p) ? "checked" : ""} style="width:20px;height:20px" aria-label="I have it"><span><b>${esc(p.n)}</b> <small class="muted">${esc(p.src)}</small><br><small>${Object.keys(C1.COMPONENTS).map(k => usedIn(p, k) ? `<span class="typepill" style="color:var(--good)">✓ ${C1.COMPONENTS[k].n.split(" ")[0]} ${fmtDay(paperSt(p.id).used[k])}</span>` : `<span class="typepill">${C1.COMPONENTS[k].n.split(" ")[0]}</span>`).join("")}</small></span></div>`).join("")}
     <div class="row"><input type="text" class="answer" id="newPaper" placeholder="Add another official paper (e.g. Authentic Digital Practice Test)" style="flex:1;min-width:200px;margin:0"><button class="btn small" id="addPaper">Add</button></div></div>
   <div class="card stack"><h3>History</h3>${c.mocks.length ? c.mocks.slice().sort((a, b) => a.d < b.d ? 1 : -1).map(histRow).join("") : `<p class="muted">Nothing yet. Start with the mock you have already done.</p>`}</div>`;
-  $("#bk", v).onclick = () => go("progress");
+  $("#bk", v).onclick = () => go("exam");
   $$("[data-go]", v).forEach(b => b.onclick = () => go(b.dataset.go));
   bindActions(v);
   const dd = $("#diagDone", v); if (dd) dd.onclick = () => { c.diagDone = dayKey(); save(); toast("Baseline set. The plan starts now."); go("today"); };
@@ -2226,26 +2239,27 @@ function risks() {
   const buf = bufferStatus(); if (buf.low.length) out.push({t:"Offline buffer below two weeks: " + buf.low.join(", ") + ".", act:aiOn() ? "stock" : "", lbl:"Stock up"});
   return out;
 }
-function dashHTML() {
+function dashHTML(compact) {
   const c = c1s(), ph = phase(), left = daysToExam(), ex = examDate(), e = estimates(), ov = overall(), R = risks(), k = dayKey();
   const top = S.deck.filter(x => (x.lapses || 0) >= 1).sort((a, b) => (b.lapses || 0) - (a.lapses || 0)).slice(0, 5);
   const dw = decisionWindow(), vd = verdict();
   const ms = [[c.start, "Plan started"], [addDays(ex, -97), "Consolidation begins"], [dw.start, "Go / no-go decision"], ...(dw.dl ? [[dw.dl, "Entry deadline" + (S.settings.centre ? " · " + S.settings.centre : "")]] : []), [addDays(ex, -38), "Exam mode"], [addDays(ex, -10), "Final 10 days: no new content"], [ex, "C1 Advanced, paper-based"]].sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
   const rw = S.writings.filter(w => w.rw).length, mk = S.writings.filter(w => w.fb).length;
-  return `<div class="card examhero"><div class="examdays"><div class="big-score">${Math.max(0, left)}</div><span class="muted">days to go</span></div>
+  const hero = `<div class="card examhero"><div class="examdays"><div class="big-score">${Math.max(0, left)}</div><span class="muted">days to go</span></div>
     <div class="stack" style="flex:1"><span class="eyebrow">C1 Advanced · paper · ${new Date(ex + "T12:00:00").toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long", year:"numeric"})}</span><h2>${esc(ph.n)}</h2><p class="muted">${esc(ph.s)}</p>
     ${dw.dl ? `<p>${dw.left >= 0 ? `<b class="mono">${dw.left}</b> days to the entry deadline (${fmtDay(dw.dl)})${S.settings.centre ? " · " + esc(S.settings.centre) : ""}` : `Entry deadline passed (${fmtDay(dw.dl)})`}</p>` : `<p class="muted">No entry deadline set: add it in Settings.</p>`}
     ${vd ? `<p><span class="chip" style="color:${LIGHT[vd.lv].c}">● ${LIGHT[vd.lv].n}</span> last complete mocks: <b class="mono">${vd.m}</b>${vd.tr ? " · trend " + vd.tr : ""}</p>` : ""}
     <div class="row"><button class="btn small" data-go="mocks">Official mocks</button><button class="btn small ghost" data-go="today">Today's session</button></div></div></div>
-  <div class="card stack"><div class="row"><h3>Estimated score by area</h3><span class="spacer"></span><span class="muted" style="font-size:.8rem">pass ${C1.PASS} · target ${C1.TARGET}</span></div><p class="muted" style="font-size:.85rem">From your latest official practice test in each area. Five areas, 20% each; the result is their average and you don't need to pass each one.</p>
+  `; const scoreCard = `  <div class="card stack"><div class="row"><h3>Estimated score by area</h3><span class="spacer"></span><span class="muted" style="font-size:.8rem">pass ${C1.PASS} · target ${C1.TARGET}</span></div><p class="muted" style="font-size:.85rem">From your latest official practice test in each area. Five areas, 20% each; the result is their average and you don't need to pass each one.</p>
     <div class="stack">${Object.keys(C1.AREAS).map(a => { const x = e[a], sc = x ? (x.sc || 141) : null; return `<div class="skillrow"><span>${C1.AREAS[a].n}</span><div class="bar" style="--c:${sc == null ? "var(--muted)" : sc >= C1.TARGET ? "var(--green)" : sc >= C1.PASS ? "var(--amber)" : "var(--red)"}"><i style="--p:${sc == null ? 0 : Math.max(4, (sc - 140) / 70 * 100)}%"></i></div><span class="mono">${x ? scTxt(x.sc) : "—"}</span></div>`; }).join("")}</div>
     <div class="row"><b>Overall${ov && ov.n < 5 ? ` (${ov.n} of 5 areas)` : ""}</b><span class="spacer"></span><b class="mono" style="font-size:1.5rem">${ov ? ov.avg : "—"}</b><span class="chip" style="${ov ? "color:" + LIGHT[light(ov.avg)].c : ""}">${ov ? "● " + (ov.avg >= C1.TARGET ? "on target" : ov.avg >= C1.GREEN ? "pass with some margin" : ov.avg >= C1.AMBER ? "borderline" : ov.avg >= C1.PASS ? "pass, no margin" : (C1.PASS - ov.avg) + " below the pass mark") : "no official mock yet"}</span></div></div>
-  <div class="grid-2"><div class="card stack"><h3>Milestones</h3>${ms.map(([d, n]) => `<div class="row"><span class="mono muted" style="width:64px">${fmtDay(d)}</span><span style="flex:1">${d <= k ? "<b>" + n + "</b>" : n}</span><span class="muted">${d <= k ? I.check : daysBetween(k, d) + " d"}</span></div>`).join("")}</div>
+  `; const msRisk = `  <div class="grid-2"><div class="card stack"><h3>Milestones</h3>${ms.map(([d, n]) => `<div class="row"><span class="mono muted" style="width:64px">${fmtDay(d)}</span><span style="flex:1">${d <= k ? "<b>" + n + "</b>" : n}</span><span class="muted">${d <= k ? I.check : daysBetween(k, d) + " d"}</span></div>`).join("")}</div>
     <div class="card stack"><h3>Risks</h3>${R.length ? R.map(r => `<div class="errline"><span>${esc(r.t)}</span><small>${r.to ? `<button class="btn small" data-go="${r.to}">Open</button>` : ""}${r.act ? `<button class="btn small" data-act="${r.act}">${r.lbl}</button>` : ""}</small></div>`).join("") : `<p class="muted">No open risks.</p>`}<small class="muted" id="dashMsg"></small></div></div>
-  <div class="grid-2"><div class="card stack"><h3>Status</h3><div class="scores">
+  `; const statusErr = `  <div class="grid-2"><div class="card stack"><h3>Status</h3><div class="scores">
      <div class="score"><small class="muted">Reviews due</small><b>${dueCards().length}</b></div><div class="score"><small class="muted">Streak</small><b>${liveStreak()}</b></div>
      <div class="score"><small class="muted">Syllabus points</small><b>${Object.keys(c.pts).length}<small class="muted">/${C1.POINTS.length}</small></b></div><div class="score"><small class="muted">Texts rewritten</small><b>${rw}<small class="muted">/${mk}</small></b></div></div></div>
     <div class="card stack"><h3>Errors you repeat most</h3>${top.length ? top.map(x => `<div class="errline"><span><b>${esc(x.k === "item" ? x.b : x.f)}</b>${x.k === "mistake" ? " → " + esc(String(x.b).split(" — ")[0]) : ""}</span><small class="muted">${x.k === "item" ? esc(x.f) + " · " : ""}missed ${x.lapses} time${x.lapses > 1 ? "s" : ""}</small></div>`).join("") : `<p class="muted">Nothing repeated yet. Cards you miss more than once show up here.</p>`}</div></div>`;
+  return compact ? msRisk + statusErr : hero + scoreCard + msRisk + statusErr;
 }
 function bindDash(v) {
   $$("[data-go]", v).forEach(b => b.onclick = () => go(b.dataset.go));
@@ -2281,17 +2295,18 @@ function viewPhrases(v) {
   let all = pbAll(), q = "", cat = "", onlyRev = false, limit = 40;
   const inDeck = () => { const m = new Map(); S.deck.forEach(c => { if (c.k !== "item" && c.k !== "mistake") m.set(fold(c.f), c); }); return m; };
   const cats = () => { const n = {}; all.forEach(e => n[e.cat] = (n[e.cat] || 0) + 1); return Object.keys(n).sort((a, b) => a === "My phrases" ? -1 : b === "My phrases" ? 1 : a < b ? -1 : 1).map(c => [c, n[c]]); };
-  v.innerHTML = `<div class="hello"><span class="eyebrow" style="color:var(--navy)">Phrasebook · works offline</span><h1>Look it up. <span>Keep it.</span></h1>
-    <p class="muted">Every expression in the app in one place, plus your own. Search in English or Spanish, then tap Learn to send it to your review queue.</p></div>
-  <div class="card stack" style="border-top:6px solid var(--navy)"><h3>Add something you saw</h3>
+  v.innerHTML = `<div class="hello"><span class="eyebrow">Phrasebook · works offline</span><h1>Your dictionary</h1>
+    <p class="muted">Every expression in the app, plus your own. Search in English or Spanish; tap Learn to send one to your review queue.</p></div>
+  <button class="card howcard" id="pbRev"><span class="rl-t"><b>Review queue</b><small>${dueCards().length} due today · ${S.deck.length} cards in total</small></span><span class="go">${I.arrow}</span></button>
+  <div class="card stack pbsearch"><input type="search" class="answer" id="pbQ" placeholder="Search: deadline, a pesar de, put off…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="margin:0" aria-label="Search the phrasebook">
+    <div class="pbcats" id="pbCats"></div></div>
+  <div id="pbList" class="stack"></div>
+  <details class="card stack methodcard" id="pbSee"><summary><b>Add something you saw</b> <span class="muted">· seen or heard something new?</span></summary>
     <p class="muted" style="font-size:.85rem">Seen or heard something interesting? Type it ${aiOn() ? "and Gemini tells you what it is (phrasal verb, idiom, collocation…), what it means and how to say it in Spanish. Accept it and it goes to your phrases and your review queue." : "with its meaning and save it. With a free Gemini key (Settings) the app analyses it for you."}</p>
     <input class="answer" id="seeF" placeholder="What you saw: e.g. but for, run out of steam" autocapitalize="off" spellcheck="false" style="margin:0">
     <input class="answer" id="seeCtx" placeholder="The sentence it was in (optional, helps)" spellcheck="false" style="margin:0">
     <div class="row">${aiOn() ? `<button class="btn ai" id="seeGo">${I.sparkle} Analyse it · 1 request</button>` : ""}<button class="btn${aiOn() ? "" : " primary"}" id="seeOwn">${aiOn() ? "Add it myself" : "Add it"}</button></div>
-    <div id="seeOut" class="stack"></div></div>
-  <div class="card stack pbsearch"><input type="search" class="answer" id="pbQ" placeholder="Search: deadline, a pesar de, put off…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="margin:0" aria-label="Search the phrasebook">
-    <div class="pbcats" id="pbCats"></div></div>
-  <div id="pbList" class="stack"></div>
+    <div id="seeOut" class="stack"></div></details>
   <details class="card stack methodcard" id="pbAddBox"><summary><b>Add your own expression by hand</b></summary>
     <input class="answer" id="nF" placeholder="Expression in English" autocapitalize="off" spellcheck="false" style="margin:0">
     <input class="answer" id="nM" placeholder="Meaning (Spanish or English)" style="margin:0">
@@ -2379,7 +2394,11 @@ function viewPhrases(v) {
     nb.disabled = false; nb.innerHTML = `${I.sparkle} Fill in with Gemini`;
   };
   paint();
-  setTimeout(() => { if (matchMedia("(pointer:fine)").matches) $("#pbQ", v).focus(); }, 50);
+  $("#pbRev", v).onclick = () => go("review");
+  if (pendingPbQ) { const pq = pendingPbQ; pendingPbQ = null;
+    if (pq.startsWith("@see:")) { const d = $("#pbSee", v); d.open = true; $("#seeF", v).value = pq.slice(5); setTimeout(() => d.scrollIntoView({block:"start"}), 80); }
+    else { const inp = $("#pbQ", v); inp.value = pq; inp.dispatchEvent(new Event("input")); } }
+  else setTimeout(() => { if (matchMedia("(pointer:fine)").matches) $("#pbQ", v).focus(); }, 50);
 }
 
 /* ---------- settings ---------- */
@@ -2392,7 +2411,8 @@ function settingsSheet() {
   <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="pfOn" ${S.settings.produce !== false ? "checked" : ""} style="width:20px;height:20px"><span><b>Answer before the options</b><br><small class="muted">In multiple-choice questions, type your answer first. Harder, and it sticks better.</small></span></label>
   <div class="stack" style="gap:6px"><b>Exam date · C1 Advanced on paper</b><div class="row"><input type="date" id="examD" value="${examDate()}"><select id="examPick"><option value="">Official paper dates 2027…</option>${C1.PAPER_DATES.map(d => `<option value="${d}">${fmtDay(d)}</option>`).join("")}</select></div><small class="muted">Phases, review dates and the countdown are all calculated from this date.</small></div>
   <div class="stack" style="gap:6px"><b>Exam centre and entry deadline</b><div class="row"><input type="text" id="centre" value="${esc(S.settings.centre || "")}" placeholder="Exam centre" style="flex:1;min-width:140px"><input type="date" id="deadline" value="${S.settings.deadline || ""}"></div><small class="muted">Each centre chooses its own sessions and closes entries several weeks before. The go / no-go decision opens ${C1.DECIDE_DAYS} days before this deadline.</small></div>
-  <details><summary><b>Weekly plan</b></summary><div class="stack" style="gap:6px;margin-top:8px">${[1, 2, 3, 4, 5, 6, 0].map(d => `<div class="row"><span style="width:96px">${["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][d]}</span><select data-wk="${d}">${Object.keys(C1.BLOCKS).map(b => `<option value="${b}" ${(c1s().week[d] || C1.WEEK[d]) === b ? "selected" : ""}>${C1.BLOCKS[b].n}</option>`).join("")}</select></div>`).join("")}</div></details>
+  <label class="stack" style="gap:6px"><b>Appearance</b><select id="theme"><option value="light">Light · best for reading</option><option value="dark">Dark</option><option value="auto">Match this device</option></select><small class="muted">Dark text on a light background is easier to read for longer, so Light is the default.</small></label>
+  <div class="row"><span><b>Weekly plan</b><br><small class="muted">It now lives in Exam, next to your syllabus.</small></span><span class="spacer"></span><button class="btn small" id="toWeek">Edit weekly plan</button></div>
   <div class="stack" style="gap:6px"><b>AI usage</b><small class="muted">${aiCount()} request${aiCount() === 1 ? "" : "s"} today from this device. The free Gemini quota is small and changes without notice; see your real limits in Google AI Studio. On the free tier Google may use what you send to improve its products, so keep private data out of your texts.</small><div class="row"><button class="btn small ai" id="stock" ${aiOn() ? "" : "disabled"}>${I.sparkle} Stock up for offline</button><small class="muted" id="stockMsg"></small></div></div>
   <div id="mtgBackend" class="stack"></div>
   <div class="stack" style="gap:6px"><b>Backup</b><div class="row"><button class="btn small" id="copy">Copy progress code</button></div><textarea class="answer" id="imp" rows="2" placeholder="Paste a progress code here to restore it" spellcheck="false"></textarea><div><button class="btn small" id="doImp">Restore</button></div></div>
@@ -2407,7 +2427,8 @@ function settingsSheet() {
   $("#centre", bg).onchange = (e) => { S.settings.centre = e.target.value.trim(); save(); route(); };
   $("#deadline", bg).onchange = (e) => { S.settings.deadline = e.target.value; save(); route(); toast(e.target.value ? "Entry deadline set: " + fmtDay(e.target.value) + "." : "Entry deadline removed."); };
   $("#examD", bg).onchange = (e) => setExam(e.target.value); $("#examPick", bg).onchange = (e) => setExam(e.target.value);
-  $$("[data-wk]", bg).forEach(s => s.onchange = () => { c1s().week[s.dataset.wk] = s.value; save(); route(); });
+  $("#toWeek", bg).onclick = () => { close(); pendingAnchor = "week"; go("exam"); };
+  $("#theme", bg).value = S.settings.theme || "light"; $("#theme", bg).onchange = (e) => { S.settings.theme = e.target.value; save(); applyTheme(); };
   $("#stock", bg).onclick = async (e) => { e.target.disabled = true; await stockUp(t => { $("#stockMsg", bg).textContent = t; }); e.target.disabled = false; };
   window.MTG && window.MTG.mountSettings($("#mtgBackend", bg));
   paintVoiceSel(); $("#t", bg).onclick = () => TTS.speak("Cheers. This is how I'll read your texts.");
@@ -2415,18 +2436,318 @@ function settingsSheet() {
   $("#doImp", bg).onclick = () => { try { const o = JSON.parse(decodeURIComponent(escape(atob($("#imp", bg).value.trim())))); if (!o || o.v !== 1) throw 0; S = Object.assign(blank(), o); save(); close(); route(); paintChips(); toast("Progress restored."); } catch (e) { toast("That code isn't valid."); } };
 }
 
+
+/* ===================== v26 · navegación, buscador, Exam y regreso tras ausencias ===================== */
+
+/* ---------- días activos, descanso y comodines ---------- */
+// Un día cuenta como activo si hiciste al menos el mix de 5 minutos (o 30 XP). Los días marcados como descanso no son ausencias.
+// Cada semana (lunes a domingo) trae 2 comodines que cubren solos los días sin actividad: la racha no se rompe por un día suelto.
+const isActive = (k) => { const d = S.days[k]; return !!d && ((d.xp || 0) >= 30 || !!(d.done && d.done.warm)); };
+const isRest = (k) => !!(S.days[k] && S.days[k].rest);
+const mondayOf = (k) => { const dow = (new Date(k + "T12:00:00").getDay() + 6) % 7; return addDays(k, -dow); };
+const dowOf = (k) => new Date(k + "T12:00:00").getDay();
+function weekInfo(mon = mondayOf(dayKey())) {
+  const t = dayKey(), start = (S.c1 && S.c1.start) || t; let wild = 2; const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(mon, i); let st;
+    if (isActive(d)) st = "active"; else if (isRest(d)) st = "rest";
+    else if (d > t) st = "future"; else if (d === t) st = "today";
+    else if (d < start) st = "before";
+    else if (wild > 0) { st = "wild"; wild--; } else st = "missed";
+    days.push({d, st});
+  }
+  return {days, active:days.filter(x => x.st === "active").length, wildLeft:wild};
+}
+// Días seguidos con actividad, sostenidos por descansos y comodines (solo suman los días activos)
+function dayRun() {
+  const t = dayKey(), cache = {}; let k = (isActive(t) || isRest(t)) ? t : addDays(t, -1), n = 0, guard = 0;
+  while (guard++ < 800) {
+    const mon = mondayOf(k), wi = cache[mon] || (cache[mon] = weekInfo(mon)), x = wi.days.find(y => y.d === k);
+    if (!x || !["active", "rest", "wild"].includes(x.st)) break;
+    if (x.st === "active") n++;
+    k = addDays(k, -1);
+  }
+  return n;
+}
+function setRest(k, kind) { const d = S.days[k] || (S.days[k] = {xp:0, done:{}, min:0}); d.rest = kind || ""; d.ru = Date.now(); save(); paintChips(); }
+
+/* ---------- regreso tras días sin entrar ---------- */
+// 1 día sin entrar: nada cambia. 2-3: repaso ampliado. 4-13: sesión de regreso sin punto nuevo. 14+: replanificar.
+function lastPresence() { for (let i = 1; i <= 400; i++) { const k = addDays(dayKey(), -i); if (isActive(k) || isRest(k)) return k; } return null; }
+function returnMode() {
+  const last = lastPresence(); if (!last) return null;
+  const missed = daysBetween(last, dayKey()) - 1;
+  if (missed <= 0) return null;
+  return {id:missed === 1 ? "continue" : missed <= 3 ? "resume" : missed <= 13 ? "recal" : "replan", missed, last};
+}
+function nextMonday() { const t = dayKey(); return dowOf(t) === 1 ? t : addDays(mondayOf(t), 7); }
+function returnBanner(rm) {
+  if (!rm || rm.id === "continue") return "";
+  const txt = rm.id === "resume" ? `Welcome back. ${rm.missed} days off barely moves what you know. Start with a 10-minute review: what's most at risk comes first.`
+    : rm.id === "recal" ? `Welcome back. ${rm.missed} days off: today starts with what's most at risk and your weak points, then picks up where you left off. No new grammar point today.`
+    : `Welcome back. After ${rm.missed} days, check where you stand first so the plan fits. ${dowOf(dayKey()) === 1 ? "Today" : "Monday " + fmtDay(nextMonday())} is a good fresh start.`;
+  return `<div class="notice welcome"><p>${esc(txt)}</p>${rm.id === "replan" ? `<div class="row"><button class="btn small" data-go="exam">How you're doing</button></div>` : ""}</div>`;
+}
+// Si el día del writing pasó esta semana sin escribir, el writing se recoloca en el siguiente día de sesión
+function writingMoved(blk) {
+  if (blk === "writing" || blk === "rest") return null;
+  const t = dayKey(), mon = mondayOf(t), c = c1s();
+  if (S.writings.some(w => w.date >= mon)) return null;
+  for (let k = mon > c.start ? mon : c.start; k < t; k = addDays(k, 1)) { const dw = dowOf(k); if ((c.week[dw] || C1.WEEK[dw]) === "writing") return k; }
+  return null;
+}
+
+/* ---------- cola de repaso: retraso, riesgo y tope ---------- */
+// Interferencia del castellano: false friends, phrasal verbs y tus propios errores. Van antes en caso de empate.
+const isInterf = (c) => c.k === "mistake" || (c.k === "item" && (c.t === "err" || c.t === "pv"));
+const isNewCard = (c) => c.run === undefined && !c.lapses;
+const lateBy = (c) => c.due ? Math.max(0, daysBetween(c.due, dayKey())) : 0;
+function riskOf(c) { const fast = c.fav && (c.run || 0) < FAV_KNOWN; const iv = Math.max(1, (fast ? FAV_INTERVALS : INTERVALS)[Math.min(c.box || 0, INTERVALS.length - 1)]); return lateBy(c) / iv; }
+function dailyLoad() { let s = 0, n = 0; for (let i = 1; i <= 14; i++) { const d = S.days[addDays(dayKey(), -i)]; if (d && d.rv) { s += d.rv; n++; } } return n ? s / n : 0; }
+const reviewCap = () => Math.max(30, Math.round(1.5 * dailyLoad()));
+function backlog() { const due = dueCards(), old = due.filter(c => !isNewCard(c)); return {due:due.length, old:old.length, heavy:old.length > 2 * Math.max(15, dailyLoad())}; }
+// Primero lo más atrasado en proporción a su intervalo; con atraso grande, las tarjetas nuevas esperan al final
+function prioritised(cards) {
+  const heavy = backlog().heavy;
+  return cards.slice().sort((a, b) => (heavy && isNewCard(a) !== isNewCard(b) ? (isNewCard(a) ? 1 : -1) : 0)
+    || (Math.round(riskOf(b) * 10) - Math.round(riskOf(a) * 10)) || ((isInterf(b) ? 1 : 0) - (isInterf(a) ? 1 : 0)));
+}
+
+/* ---------- ritmo y colchón del plan ---------- */
+// El temario avanza a 5 sesiones por semana; la sexta es colchón para los días que fallen (unas 29 hasta el examen).
+const sessionDay = (k) => { const d = S.days[k]; return !!d && !!d.done && (!!d.done.skill || Object.keys(d.done).length >= 3); };
+function pace() {
+  const c = c1s(), t = dayKey(), start = c.start, totalW = Math.max(1, daysBetween(start, examDate()) / 7);
+  const elapsedW = Math.max(0, Math.min(totalW, daysBetween(start, t) / 7));
+  const planned = Math.max(1, Math.round(totalW * 5)), buffer = Math.max(1, Math.round(totalW)), expected = Math.floor(elapsedW * 5);
+  let done = 0; for (let k = start; k <= t; k = addDays(k, 1)) if (sessionDay(k)) done++;
+  const used = Math.max(0, expected - done), pDone = Math.min(1, done / planned), pBuf = Math.min(1, used / buffer);
+  const lv = used <= 2 || pBuf <= pDone ? "green" : (pBuf <= pDone + 0.25 && used < buffer) ? "amber" : "red";
+  return {planned, buffer, expected, done, used, pDone, pBuf, lv, left:Math.max(0, buffer - used)};
+}
+
+/* ---------- cómo voy respecto al examen ---------- */
+// Fuente fiable: el último simulacro oficial de cada parte. Si no hay, la práctica de la app (aciertos pasados por la tabla oficial de Cambridge) o las notas de la IA en Writing: solo orientativo.
+const STATUS = {strong:{n:"Strong", c:"var(--good)"}, border:{n:"Borderline", c:"var(--amber)"}, work:{n:"Needs work", c:"var(--bad)"}, none:{n:"No data yet", c:"var(--muted)"}};
+const PRACTICE_SKILL = {reading:"reading", uoe:"uoe", listening:"listening", speaking:"speaking"};
+function practiceScore(a) {
+  if (a === "writing") {
+    const ws = S.writings.filter(w => w.fb && w.fb.total != null).slice(-3); if (!ws.length) return null;
+    const avg = ws.reduce((s, w) => s + (+w.fb.total || 0), 0) / ws.length;
+    return {sc:toScale("writing", avg * 2) || 141, src:`AI marks, last ${ws.length} text${ws.length > 1 ? "s" : ""}`};
+  }
+  const st = S.stats[PRACTICE_SKILL[a]]; if (!st || !st.h || st.h.length < 12) return null;
+  const a1 = acc(PRACTICE_SKILL[a]);
+  return {sc:toScale(a, a1 * C1.AREAS[a].max) || 141, src:`App practice, ${Math.round(a1 * 100)}% of your last ${st.h.length} answers`};
+}
+function areaAction(a) {
+  if (a === "writing") { const pw = pendingRewrite(), w = nextWritingTask(); return pw ? ["Rewrite your last text", "rewrite"] : ["Write a " + w.type.toLowerCase(), "write-" + w.id]; }
+  return {reading:["An exam-style reading", "read"], uoe:["Key Word Transformation · Part 4", "play-kwt"], listening:["A listening on the clock", "listen"], speaking:["Speaking 4/3/2", "speak-432"]}[a];
+}
+function readiness() {
+  const e = estimates();
+  const rows = Object.keys(C1.AREAS).map(a => {
+    const off = e[a], pr = off ? null : practiceScore(a);
+    const v = off ? {sc:off.sc || 141, src:"Official mock, " + fmtDay(off.d), off:true} : pr ? {sc:pr.sc, src:pr.src + " · indicative", off:false} : null;
+    const st = !v ? "none" : v.sc >= C1.TARGET ? "strong" : v.sc >= C1.PASS ? "border" : "work";
+    return {a, n:C1.AREAS[a].n, v, st, act:areaAction(a)};
+  });
+  const have = rows.filter(r => r.v), avg = have.length ? Math.round(have.reduce((s, r) => s + r.v.sc, 0) / have.length) : null;
+  const focus = rows.filter(r => r.st === "work" || r.st === "border").sort((x, y) => x.v.sc - y.v.sc).slice(0, 2);
+  return {rows, avg, n:have.length, off:rows.filter(r => r.v && r.v.off).length, focus};
+}
+const LO = 150, HI = 210, pos = (sc) => Math.max(0, Math.min(100, (sc - LO) / (HI - LO) * 100));
+function readinessHTML(R) {
+  const head = R.avg == null ? `<p class="muted">No marks yet. Sit an official sample paper (Exam › Official mocks) for a reliable estimate; the app's own practice gives a rough one after a few rounds.</p>`
+    : `<div class="ready-top"><div><span class="big-num mono">${R.off < R.n ? "~" : ""}${R.avg}</span><span class="muted"> overall${R.n < 5 ? ` · ${R.n} of 5 parts` : ""}</span></div>
+       <span class="pill" style="--c:${R.avg >= C1.TARGET ? "var(--good)" : R.avg >= C1.PASS ? "var(--amber)" : "var(--bad)"}">${R.avg >= C1.TARGET ? "On target" : R.avg >= C1.PASS ? `Pass · ${C1.TARGET - R.avg} to target` : `${C1.PASS - R.avg} to pass`}</span></div>`;
+  return `<section class="card stack" id="ready"><div class="row"><h2>How you're doing</h2><span class="spacer"></span><span class="legend small"><span><i></i>pass ${C1.PASS}</span><span class="g"><i></i>target ${C1.TARGET}</span></span></div>${head}
+    <div class="readyrows">${R.rows.map(r => `<div class="readyrow">
+      <div class="rr-top"><b>${esc(r.n)}</b><span class="spacer"></span>${r.v ? `<b class="mono">${r.v.off ? "" : "~"}${r.v.sc}</b>` : ""}<span class="pill" style="--c:${STATUS[r.st].c}">${STATUS[r.st].n}</span></div>
+      <div class="scale" aria-hidden="true"><i class="m180" style="left:${pos(C1.PASS)}%"></i><i class="m190" style="left:${pos(C1.TARGET)}%"></i>${r.v ? `<b style="left:${pos(r.v.sc)}%;--c:${STATUS[r.st].c}"></b>` : ""}</div>
+      <div class="rr-foot"><small class="muted">${r.v ? esc(r.v.src) : "No data yet"}</small>${r.st !== "strong" && r.act ? `<button class="linkbtn" data-go="${r.act[1]}">${esc(r.act[0])} ${I.arrow}</button>` : ""}</div></div>`).join("")}</div>
+    ${R.focus.length ? `<p class="focusline"><b>Focus this week:</b> ${R.focus.map(r => esc(r.n)).join(" and ")}.</p>` : R.n === 5 ? `<p class="focusline"><b>All five parts at ${C1.TARGET}+.</b> Keep them there with timed parts and official mocks.</p>` : ""}
+    <p class="muted small">Only official papers measure you. Practice numbers (~) are a rough guide from the app's own questions.</p></section>`;
+}
+function readinessLine(R) {
+  if (R.avg == null) return `<span class="muted">No marks yet: an official sample paper gives you a starting point.</span>`;
+  return `<b class="mono">${R.off < R.n ? "~" : ""}${R.avg}</b> <span class="muted">overall</span> · ${R.focus.length ? "work on " + R.focus.map(r => esc(r.n)).join(" and ") : "on track"}`;
+}
+
+/* ---------- Exam: cómo voy, plan semanal, temario, simulacros ---------- */
+const BLK_SHORT = {reading:"Read", listening:"Listen", writing:"Write", rewrite:"Rewrite", speaking:"Speak", uoe:"UoE", rest:"Rest"};
+const DAY_N = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+function weekStripHTML(w, compact) {
+  const c = c1s(), t = dayKey();
+  return `<div class="weekstrip">${w.days.map(x => { const dw = dowOf(x.d), b = c.week[dw] || C1.WEEK[dw];
+    return `<div class="wd ${x.st}${x.d === t ? " now" : ""}" title="${DAY_N[dw]} ${fmtDay(x.d)}: ${C1.BLOCKS[b].n}"><small>${DAY_N[dw][0]}</small><i></i><span>${BLK_SHORT[b] || ""}</span></div>`; }).join("")}</div>
+  ${compact ? "" : `<p class="muted small">${w.active}/7 active days · ${w.wildLeft} wildcard${w.wildLeft === 1 ? "" : "s"} left this week. A wildcard covers a missed day by itself, so one bad day never breaks your run.</p>`}`;
+}
+function paceHTML(P) {
+  const lv = {green:["On track", "var(--good)"], amber:["Using buffer fast", "var(--amber)"], red:["Behind: trim the plan", "var(--bad)"]}[P.lv];
+  return `<section class="card stack" id="pace"><div class="row"><h3>Pace and buffer</h3><span class="spacer"></span><span class="pill" style="--c:${lv[1]}">${lv[0]}</span></div>
+    <div class="pacebar"><span>Plan done</span><div class="bar"><i style="--p:${P.pDone * 100}%;--c:var(--navy)"></i></div><b class="mono">${P.done}/${P.planned}</b></div>
+    <div class="pacebar"><span>Buffer used</span><div class="bar"><i style="--p:${P.pBuf * 100}%;--c:${lv[1]}"></i></div><b class="mono">${P.used}/${P.buffer}</b></div>
+    <p class="muted small">The syllabus moves at 5 sessions a week; the 6th is spare. Missed sessions use the buffer, so a bad week doesn't push the exam back.${P.lv === "red" ? " If the buffer runs out, cut extra reading and games first, never the review queue or your writing." : ""}</p></section>`;
+}
+function weekPlanHTML() {
+  const c = c1s(), t = dowOf(dayKey());
+  return `<section class="card stack" id="week"><h3>Weekly plan</h3><div class="weekplan">${[1, 2, 3, 4, 5, 6, 0].map(d => `<label class="wp${d === t ? " now" : ""}"><span>${DAY_N[d]}</span><select data-wk="${d}">${Object.keys(C1.BLOCKS).map(b => `<option value="${b}" ${(c.week[d] || C1.WEEK[d]) === b ? "selected" : ""}>${C1.BLOCKS[b].n}</option>`).join("")}</select></label>`).join("")}</div>
+    <p class="muted small">If you miss the writing day, the writing moves to your next session that week.</p></section>`;
+}
+function syllabusHTML() {
+  const c = c1s(), nx = nextPoint(), n = Object.keys(c.pts).length;
+  return `<section class="card stack" id="syllabus"><div class="row"><h3>Syllabus</h3><span class="spacer"></span><span class="mono muted">${n}/${C1.POINTS.length}</span></div>
+    <div class="bar"><i style="--p:${n / C1.POINTS.length * 100}%;--c:var(--red)"></i></div>
+    <p class="muted small">One new point per session, then it comes back mixed with the others in your review queue.</p>
+    <div class="ptlist">${C1.POINTS.map((p, i) => { const d = c.pts[p.id], isNext = nx && nx.id === p.id;
+      return `<details class="pt" id="pt-${p.id}"><summary><span class="ptn mono">${i + 1}</span><span class="ptt">${esc(p.t)}</span>${d ? `<span class="pill" style="--c:var(--good)">${d.r}/${d.n}</span>` : isNext ? `<span class="pill" style="--c:var(--red)">Next</span>` : ""}</summary>
+        <div class="stack ptbody"><p>${esc(p.es)}</p><p class="notice"><b>Ojo, hispanohablante:</b> ${esc(p.trap)}</p>${p.ex.map(x => `<p><b>${esc(x)}</b></p>`).join("")}</div></details>`; }).join("")}</div></section>`;
+}
+function mocksCardHTML() {
+  const np = nextPaper(), vd = verdict(), dw = decisionWindow(), n = officialMocks().length;
+  return `<section class="card stack" id="mockcard"><div class="row"><h3>Official mocks</h3><span class="spacer"></span>${vd ? `<span class="pill" style="--c:${LIGHT[vd.lv].c}">${LIGHT[vd.lv].n} · ${vd.m}</span>` : ""}</div>
+    <p class="muted">${n ? `${n} result${n > 1 ? "s" : ""} entered.` : "No official result yet."} ${np ? "Next paper: " + esc(np.n) + "." : ""} ${dw.dl ? (dw.left >= 0 ? `${dw.left} days to the entry deadline.` : "Entry deadline passed.") : ""}</p>
+    <div class="row"><button class="btn small" data-go="mocks">Open official mocks</button></div></section>`;
+}
+function viewExam(v) {
+  const ph = phase(), left = daysToExam(), ex = examDate(), R = readiness(), P = pace();
+  v.innerHTML = `<div class="hello"><span class="eyebrow">${esc(ph.n)} · C1 Advanced · ${new Date(ex + "T12:00:00").toLocaleDateString("en-GB", {day:"numeric", month:"long", year:"numeric"})}</span>
+    <h1><span class="mono">${Math.max(0, left)}</span> days to the exam</h1><p class="muted">${esc(ph.s)}</p></div>
+  ${readinessHTML(R)}
+  <div class="grid-2">${paceHTML(P)}${mocksCardHTML()}</div>
+  ${weekPlanHTML()}
+  ${syllabusHTML()}
+  ${dashHTML(true)}
+  <details class="card stack" id="stats"><summary><b>More stats</b> <span class="muted">· accuracy, activity, totals</span></summary><div class="stack" style="margin-top:12px">${progressStatsHTML()}</div></details>`;
+  bindDash(v);
+  $$("[data-wk]", v).forEach(s => s.onchange = () => { c1s().week[s.dataset.wk] = s.value; save(); toast("Weekly plan updated."); });
+}
+
+/* ---------- Practice: todo el contenido agrupado como el examen ---------- */
+function viewPracticeHub(v) {
+  const w = nextWritingTask(), pw = pendingRewrite(), unread = allArticles().filter(a => !S.read[a.id]).length, unheard = allListening().filter(a => !S.listen[a.id]).length;
+  const game = (k, sub) => { const t = TYPES[k], p = k === "mock" ? {done:S.mockBest || 0, total:30} : poolProgress(k); return [`play-${k}`, t.name, sub || t.part, k === "mock" ? (S.mockBest ? `best ${S.mockBest}/30` : "") : `${p.done}/${p.total}`]; };
+  const G = [
+    {h:"Reading and Use of English", c:"var(--red)", rows:[game("mc", "Part 1 · collocations"), game("oc", "Part 2 · one word per gap"), game("wf", "Part 3 · prefixes and suffixes"), game("kwt", "Part 4 · rewrite with the key word"),
+      ["read", "Reading texts", "Your topics and exam-style Parts 5–8", unread ? unread + " new" : ""], game("mock", "Parts 1–4 on the clock · 35 min")]},
+    {h:"Writing", c:"var(--amber)", rows:[[`write-${w.id}`, "This week's text: " + w.type, "By hand, 45 minutes, then marked", ""], [pw ? "rewrite" : "micro", pw ? "Rewrite your " + pw.type.toLowerCase() : "Micro-exercises", pw ? "A correction isn't finished until you rewrite it" : "Paraphrase, register, linkers · 10 min", pw ? "pending" : ""], ["write", "All writing tasks", "Guides, model phrases and your marked work", S.writings.length ? S.writings.length + " done" : ""]]},
+    {h:"Listening", c:"var(--green)", rows:[["listen", "Recordings", "British voices, then transcript and dictation", unheard ? unheard + " new" : ""], ["real", "Real British", "Real videos with questions", ""], game("spell", "Hear it in a British voice, type it")]},
+    {h:"Speaking", c:"var(--plum)", rows:[["speak-432", "4/3/2 talk", "The same talk in 4, 3 and 2 minutes", ""], ["speak-p2", "Part 2 · compare two photos", "One minute, then feedback", ""], ["speak-shadow", "Shadowing", "Repeat real phrases for rhythm and stress", ""], ["speak", "All speaking", "Exam parts and questions", ""]]},
+    {h:"Grammar and vocabulary", c:"var(--navy)", rows:[game("gram", "C1 structures · ten seconds each"), game("err", "Mistakes Spanish speakers make"), game("pv"), game("work"), game("idioms")]}
+  ];
+  v.innerHTML = `<div class="hello"><span class="eyebrow">Practice</span><h1>Everything, grouped like the exam</h1></div>
+  <div class="duo"><button class="card bigbtn" data-go="quick"><b>${I.bolt} Quick play</b><small class="muted">2–5 minutes of grammar and vocabulary</small></button>
+    <button class="card bigbtn" data-go="mix"><b>5-minute mix</b><small class="muted">${dueCards().length} due · most at risk first</small></button></div>
+  ${G.map(g => `<section class="group"><h2 class="gh"><i style="background:${g.c}"></i>${esc(g.h)}</h2><div class="card rows">${g.rows.map(r => `<button class="rowlink" data-go="${r[0]}"><span class="rl-t"><b>${esc(r[1])}</b><small>${esc(r[2])}</small></span>${r[3] ? `<span class="rl-m mono">${esc(r[3])}</span>` : ""}<span class="go">${I.arrow}</span></button>`).join("")}</div></section>`).join("")}
+  <p class="muted small">All game types in one grid: <a href="#games">Games</a>.</p>`;
+  $$("[data-go]", v).forEach(b => b.onclick = () => go(b.dataset.go));
+}
+
+/* ---------- buscador global ---------- */
+let searchEl = null, pendingAnchor = null, pendingPbQ = null, reviewForce = false;
+const SEARCH_PAGES = [
+  ["Today", "today", "hoy inicio sesion session plan del dia"],
+  ["Practice", "practice", "practicar ejercicios juegos games"],
+  ["How you're doing", "exam#ready", "examen como voy nota estimada score progreso progress readiness mejorar puntos debiles"],
+  ["Weekly plan", "exam#week", "plan semanal semana horario calendario schedule plan de estudio"],
+  ["Syllabus · grammar points", "exam#syllabus", "temario gramatica grammar puntos"],
+  ["Pace and buffer", "exam#pace", "colchon ritmo margen buffer retraso"],
+  ["Official mocks", "mocks", "simulacros examenes oficiales mock papers resultados notas decision inscripcion"],
+  ["Milestones and risks", "exam", "hitos riesgos milestones risks"],
+  ["Phrasebook", "phrases", "diccionario dictionary frases expresiones vocabulario phrasal verbs idioms buscar palabra"],
+  ["Add something you saw", "phrases#pbSee", "anadir frase nueva expresion gemini analizar"],
+  ["Review queue", "review", "repaso tarjetas cards flashcards cola"],
+  ["5-minute mix", "mix", "mix repaso rapido"],
+  ["Quick play", "quick", "juego rapido minutos"],
+  ["All games", "games", "juegos games"],
+  ["Reading", "read", "lectura leer articulos textos"],
+  ["Listening", "listen", "escuchar audios listening dictado"],
+  ["Real British videos", "real", "videos youtube bbc real british"],
+  ["Writing", "write", "escribir redaccion writing essay ensayo carta email report review proposal"],
+  ["Rewrite your last text", "rewrite", "reescritura reescribir correccion"],
+  ["Writing micro-exercises", "micro", "microejercicios parafrasear registro conectores"],
+  ["Speaking", "speak", "hablar speaking oral"],
+  ["Speaking 4/3/2", "speak-432", "hablar fluidez 432"],
+  ["Speaking Part 2 · photos", "speak-p2", "fotos comparar part 2"],
+  ["Shadowing", "speak-shadow", "repetir pronunciacion shadowing"],
+  ["More stats", "exam#stats", "estadisticas stats precision accuracy actividad xp nivel level totales"],
+  ["Settings", "@settings", "ajustes configuracion settings gemini clave api key sincronizacion sync voz voice fecha examen exam date centro deadline copia backup tema theme oscuro dark claro light"]
+];
+let searchIdx = null;
+function searchIndex() {
+  if (searchIdx) return searchIdx;
+  const out = [], add = (g, t, s, to, extra) => out.push({g, t, s:s || "", to, k:fold([t, s, extra].join(" "))});
+  SEARCH_PAGES.forEach(([t, to, k]) => add("Go to", t, "", to, k));
+  C1.POINTS.forEach(p => add("Syllabus", p.t, "Grammar point", "exam#pt-" + p.id, p.es + " " + p.ex.join(" ")));
+  Object.entries(TYPES).forEach(([k, t]) => add("Practice", t.name, t.part, "play-" + k, t.desc));
+  allArticles().forEach(a => add("Reading", a.title, a.topic || "", "read-" + a.id));
+  allListening().forEach(a => add("Listening", a.title, a.topic || "", "listen-" + a.id));
+  (BANK.real || []).concat(S.realCustom || []).forEach(x => add("Videos", x.t || x.title || "", x.src || "", "real-" + x.yt, x.topic || ""));
+  BANK.writing.forEach(w => add("Writing", w.type, w.prompt.split(/[.:]/)[0].slice(0, 70), "write-" + w.id, w.prompt));
+  pbAll().forEach(e => add("Phrasebook", e.f, e.m, "pb:" + e.f, e.ex + " " + e.cat));
+  return (searchIdx = out);
+}
+const GROUP_ORDER = ["Go to", "Phrasebook", "Syllabus", "Practice", "Reading", "Listening", "Videos", "Writing"];
+function runSearch(q) {
+  const toks = fold(q).split(/\s+/).filter(Boolean); if (!toks.length) return [];
+  const qf = fold(q).trim(), res = [];
+  searchIndex().forEach(x => { if (!toks.every(t => x.k.includes(t))) return; const tf = fold(x.t); res.push(Object.assign({sc:tf === qf ? 4 : tf.startsWith(qf) ? 3 : tf.includes(qf) ? 2 : 1}, x)); });
+  return res.sort((a, b) => b.sc - a.sc);
+}
+function searchGo(to) {
+  closeSearch();
+  if (to === "@settings") return settingsSheet();
+  if (to.startsWith("pb:")) { pendingPbQ = to.slice(3); return go("phrases"); }
+  const [r, a] = to.split("#"); if (a) pendingAnchor = a; go(r);
+}
+function closeSearch() { if (searchEl) { searchEl.remove(); searchEl = null; } }
+function openSearch() {
+  if (searchEl) return; searchIdx = null;
+  searchEl = document.createElement("div"); searchEl.className = "search-bg";
+  searchEl.innerHTML = `<div class="search" role="dialog" aria-label="Search"><div class="search-in">${I.search}<input type="text" inputmode="search" enterkeyhint="search" id="sQ" placeholder="Search anything: inversion, diccionario, plan…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Search"><button class="icon-btn" id="sX" aria-label="Close">${I.close}</button></div><div class="search-res" id="sRes"></div></div>`;
+  document.body.append(searchEl);
+  const inp = $("#sQ", searchEl), box = $("#sRes", searchEl);
+  const paint = () => {
+    const q = inp.value.trim();
+    if (!q) { box.innerHTML = `<p class="sg">Popular</p>${[["Phrasebook", "phrases"], ["How you're doing", "exam#ready"], ["Weekly plan", "exam#week"], ["Syllabus", "exam#syllabus"], ["Official mocks", "mocks"], ["Settings", "@settings"]].map(([t, to]) => `<button class="sr" data-to="${to}"><b>${t}</b></button>`).join("")}<p class="muted small" style="padding:8px 4px">Search in English or Spanish: expressions, grammar points, texts, videos, games and settings.</p>`; return; }
+    const res = runSearch(q); if (!res.length) { box.innerHTML = `<p class="muted" style="padding:12px 4px">Nothing found for “${esc(q)}”. Try another word, or add it to your Phrasebook.</p><button class="sr" data-to="phrases#pbSee"><b>Add “${esc(q)}” to my phrases</b></button>`; return; }
+    const by = {}; res.forEach(x => (by[x.g] = by[x.g] || []).push(x));
+    const best = g => Math.max(...by[g].map(x => x.sc)), groups = GROUP_ORDER.filter(g => by[g]).sort((a, b) => best(b) - best(a) || GROUP_ORDER.indexOf(a) - GROUP_ORDER.indexOf(b));
+    box.innerHTML = groups.map(g => { const lim = g === "Phrasebook" ? 6 : 4, xs = by[g];
+      return `<p class="sg">${g}</p>${xs.slice(0, lim).map(x => `<button class="sr" data-to="${esc(x.to)}"><b>${esc(x.t)}</b>${x.s ? `<small>${esc(x.s)}</small>` : ""}</button>`).join("")}${g === "Phrasebook" && xs.length > lim ? `<button class="sr more" data-to="pb:${esc(q)}">See all ${xs.length} in the Phrasebook ${I.arrow}</button>` : ""}`; }).join("");
+  };
+  box.onclick = (e) => { const b = e.target.closest("[data-to]"); if (!b) return; const to = b.dataset.to; if (to === "phrases#pbSee" && inp.value.trim()) pendingPbQ = "@see:" + inp.value.trim(); searchGo(to); };
+  let t; inp.oninput = () => { clearTimeout(t); t = setTimeout(paint, 90); };
+  inp.onkeydown = (e) => { if (e.key === "Enter") { const b = $(".sr", box); if (b) b.click(); } };
+  searchEl.onclick = (e) => { if (e.target === searchEl) closeSearch(); };
+  $("#sX", searchEl).onclick = closeSearch;
+  paint(); inp.focus();   // en iPhone el teclado solo sale si el foco llega dentro del toque
+}
+addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && searchEl) return closeSearch();
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "") || (document.activeElement && document.activeElement.isContentEditable);
+  if (((e.key === "/" && !typing) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k")) && !searchEl) { e.preventDefault(); openSearch(); }
+});
+
+/* ---------- tema ---------- */
+// Claro por defecto: el texto oscuro sobre fondo claro se lee mejor (ventaja de polaridad positiva). Oscuro, a elección.
+function applyTheme() { const t = (S.settings && S.settings.theme) || "light"; document.documentElement.dataset.theme = t; const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = t === "dark" || (t === "auto" && matchMedia("(prefers-color-scheme: dark)").matches) ? "#101318" : "#FFFFFF"; }
+
+
 /* ---------- boot ---------- */
 function boot() {
-  shell(); TTS.init(); route();
+  applyTheme(); shell(); TTS.init(); route();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
   addEventListener("pointerdown", () => TTS.unlock(), {once:true, capture:true});
   addEventListener("hashchange", route);
   addEventListener("online", () => { if (DOC) pushRemote(); });
   // Al salir: subir ya lo pendiente. Al volver: traer lo hecho en otros dispositivos.
   const flush = () => { if (DOC && dirty) { clearTimeout(saveTimer); pushRemote(); } };
-  document.addEventListener("visibilitychange", () => { if (document.hidden) flush(); else pullRemote().then(ch => { const h = location.hash.slice(1); if (ch && (!h || h === "today" || h === "progress")) route(); }); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) flush(); else pullRemote().then(ch => { const h = location.hash.slice(1); if (ch && (!h || h === "today" || h === "exam" || h === "progress")) route(); }); });
   addEventListener("pagehide", flush);
   // Con la app abierta y a la vista, mirar cada 20 s si el otro dispositivo ha guardado algo
-  setInterval(() => { if (DOC && !document.hidden && navigator.onLine) pullRemote().then(ch => { const h = location.hash.slice(1); if (ch && (!h || h === "today" || h === "progress")) route(); }); }, 20000);
+  setInterval(() => { if (DOC && !document.hidden && navigator.onLine) pullRemote().then(ch => { const h = location.hash.slice(1); if (ch && (!h || h === "today" || h === "exam" || h === "progress")) route(); }); }, 20000);
   addEventListener("online", () => { if (DOC) pullRemote(true); });
   document.addEventListener("click", (e) => { if (popEl && !popEl.contains(e.target)) closePop(); });
   const C = window.claude;
@@ -2439,7 +2760,7 @@ function boot() {
       DOC = ref;
       const changed = await pullRemote(true);
       if (!changed && dirty) pushRemote();
-      const h = location.hash.slice(1); if (changed && (!h || ["today", "practice", "progress", "review", "phrases"].includes(h))) route();
+      const h = location.hash.slice(1); if (changed && (!h || ["today", "practice", "exam", "progress", "review", "phrases"].includes(h))) route();
     }).catch(() => {});
   }
 }

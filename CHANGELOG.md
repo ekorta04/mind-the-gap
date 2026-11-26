@@ -1,5 +1,18 @@
 # CHANGELOG · Mind the Gap
 
+## v26 — Nueva estructura, «How you're doing», buscador y reglas para cuando fallas días
+- **Cuatro pestañas** en vez de siete: Today, Practice, Exam y Phrasebook. Practice agrupa todo como el examen (Reading & Use of English, Writing, Listening, Speaking, gramática y vocabulario). Exam junta cómo vas, ritmo, plan semanal (antes escondido en Ajustes), temario, simulacros, hitos, riesgos y estadísticas. La cabecera solo lleva los días activos de la semana, la lupa y Ajustes.
+- **How you're doing** (Exam, con resumen en Today): nota por parte frente a 180 y 190, de dónde sale (simulacro oficial, o práctica de la app marcada con ~ como orientativa), Strong / Borderline / Needs work, la acción concreta para cada parte y el foco de la semana. La práctica se pasa por las tablas oficiales de conversión de Cambridge; las notas de la IA en Writing, igual.
+- **Buscador global** (lupa, o tecla / y Ctrl+K en el ordenador): diccionario, temario, lecturas, audios, vídeos, writings, juegos y ajustes. Entiende castellano («diccionario», «plan», «simulacros»).
+- **Phrasebook**: buscador arriba y fijo al bajar, acceso a la cola de repaso, «Add something you saw» plegado.
+- **Regreso tras días sin entrar** (según la investigación de noviembre): 1 día, nada cambia; 2-3, repaso de 10 min con lo más en riesgo primero; 4-13, repaso de 15 min y puntos débiles, sin punto nuevo; 14 o más, aviso para mirar cómo vas y reiniciar el lunes. Motivo: lo consolidado apenas se olvida en pocos días y lo reciente es lo frágil (Cepeda et al., 2008; curva de FSRS).
+- **Cola de repaso**: acertar con retraso sube un escalón extra si el tiempo real ya lo superaba (como Anki con «Good»); orden por riesgo (días de retraso ÷ intervalo) y, en empate, primero lo que choca con el castellano (Error Hunt, phrasal verbs, tus errores); con atraso grande, las tarjetas nuevas esperan al final; en Review, tope diario de 1,5 veces la media de 14 días (mínimo 30), con opción de seguir.
+- **Días activos con comodines**: un día cuenta con el mix de 5 minutos; 2 comodines por semana cubren solos los días sin actividad; «x/7» arriba; «Mark today as rest»; nunca «racha rota». Motivo: un fallo aislado no afecta al hábito (Lally et al., 2010), las reservas de emergencia mejoran la constancia (Sharif y Shu) y ver una racha rota desmotiva (Silverman y Barasch, 2023).
+- **Ritmo y colchón**: el temario avanza a 5 sesiones por semana y la sexta es colchón (unas 31 hasta el 19/06/2027). Barra de plan hecho frente a colchón gastado, en verde, ámbar o rojo.
+- **Writing recolocado**: si pasa el día del writing sin escribir, el writing pasa a la siguiente sesión de esa semana.
+- **Estética**: claro por defecto (el texto oscuro sobre fondo claro se lee mejor: ventaja de polaridad positiva, Piepenbrock et al.), oscuro o automático en Ajustes › Appearance; un solo acento rojo; los colores solo indican destreza o estado; una sola tipografía (Inter).
+- Datos: mismo formato del progreso (mtg-v1). Campos nuevos por día: `rv` (repasos hechos) y `rest`/`ru` (día de descanso con marca de tiempo); `settings.theme`. Se fusionan entre dispositivos sin pérdidas.
+
 ## v25 — Puesta en marcha de obras (Heathrow T5), finanzas y 29 preguntas nuevas
 - **Lectura nueva**: "On Time, On Budget — and Still a Fiasco", sobre la apertura de la Terminal 5 de Heathrow (2008) y la preparación para operar. Datos comprobados en el informe del Transport Committee de la Cámara de los Comunes y la respuesta oficial de BAA.
 - **Real British**: 5 vídeos nuevos (English at Work 56 "Setting priorities", tres 6 Minute English de trabajo y dinero, y Dave Robson, ingeniero de carrera de Williams).
